@@ -45,15 +45,24 @@ const chartStyles = `
   }
 `;
 
-// Custom tooltip component for better styling
-const CustomTooltip = ({ active, payload, label, chartKey }) => {
+const CustomTooltip = ({ active = false, payload = [], label = '', chartKey }) => {
     if (active && payload && payload.length) {
+        // Define labels based on chart type
+        const labelMap = {
+            users: "Users",
+            bookings: "Bookings",
+            payments: "Payments",
+            revenue: "Revenue"
+        };
+
+        const displayLabel = labelMap[chartKey] || "Value";
+
         return (
             <div className="bg-gradient-to-br from-neutral-900 to-neutral-800 backdrop-blur-sm border border-neutral-700 rounded-xl p-4 shadow-2xl">
                 <p className="text-neutral-100 font-semibold mb-2">{`${label}`}</p>
                 {payload.map((entry, index) => (
                     <p key={index} className="text-sm font-medium" style={{ color: entry.color }}>
-                        {`${entry.name}: ${chartKey === 'revenue' ? '₹' : ''}${entry.value.toLocaleString()}`}
+                        {`${displayLabel}: ${chartKey === 'revenue' ? '₹' : ''}${entry.value?.toLocaleString() || 0}`}
                     </p>
                 ))}
             </div>
@@ -439,7 +448,7 @@ export default function AdminDashboardStats() {
                             tickLine={false}
                             tickFormatter={(v) => v.toLocaleString()}
                         />
-                        <Tooltip content={<CustomTooltip chartKey={key} />} />
+                        <Tooltip content={(props) => <CustomTooltip {...props} chartKey={key} />} />
                         <Area
                             type="monotone"
                             dataKey="value"
@@ -470,7 +479,7 @@ export default function AdminDashboardStats() {
                             tickLine={false}
                             tickFormatter={(v) => v.toLocaleString()}
                         />
-                        <Tooltip content={<CustomTooltip chartKey={key} />} />
+                        <Tooltip content={(props) => <CustomTooltip {...props} chartKey={key} />} />
                         <Bar
                             dataKey="value"
                             fill={config.fill}
@@ -498,7 +507,7 @@ export default function AdminDashboardStats() {
                             tickLine={false}
                             tickFormatter={(v) => v.toLocaleString()}
                         />
-                        <Tooltip content={<CustomTooltip chartKey={key} />} />
+                        <Tooltip content={(props) => <CustomTooltip {...props} chartKey={key} />} />
                         <Line
                             type="monotone"
                             dataKey="value"
@@ -534,13 +543,15 @@ export default function AdminDashboardStats() {
                             tickLine={false}
                             tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
                         />
-                        <Tooltip content={<CustomTooltip chartKey={key} />} />
+                        <Tooltip content={(props) => <CustomTooltip {...props} chartKey={key} />} />
+                        {/* Add hide={true} to Area to remove it from tooltip */}
                         <Area
                             type="monotone"
                             dataKey="value"
                             fill="url(#revenueGradient)"
                             stroke="none"
                             opacity={0.4}
+                            hide={true}  // This will hide it from tooltip
                         />
                         <Line
                             type="monotone"
@@ -550,14 +561,13 @@ export default function AdminDashboardStats() {
                             dot={false}
                         />
                     </ComposedChart>
-                );
-
+                    );
             default:
                 return (
                     <LineChart {...commonProps}>
                         <XAxis dataKey="label" stroke="#a3a3a3" fontSize={12} />
                         <YAxis stroke="#a3a3a3" fontSize={12} />
-                        <Tooltip content={<CustomTooltip chartKey={key} />} />
+                        <Tooltip content={(props) => <CustomTooltip {...props} chartKey={key} />} />
                         <Line
                             type="monotone"
                             dataKey="value"
