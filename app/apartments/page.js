@@ -9,29 +9,31 @@ import Header from '@/components/Header';
 // Updated Skeleton with new design
 const ApartmentCardSkeleton = () => {
     return (
-        <div className="bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl overflow-hidden shadow-2xl animate-pulse border border-neutral-700/50">
-            <div className="h-64 bg-neutral-800 relative overflow-hidden">
-                <div className="absolute top-4 right-4 bg-neutral-700 w-20 h-7 rounded-full"></div>
-            </div>
-            <div className="p-6">
-                <div className="h-7 bg-neutral-700 rounded-lg mb-4 w-3/4"></div>
-                <div className="flex items-center mb-4">
-                    <div className="h-4 w-4 bg-neutral-700 rounded-full mr-2"></div>
-                    <div className="h-4 bg-neutral-700 rounded w-1/2"></div>
+        <div className="bg-neutral-900 rounded-2xl overflow-hidden shadow-2xl border border-neutral-700/50">
+            <div className="animate-pulse-custom">
+                <div className="h-64 bg-neutral-800 relative overflow-hidden">
+                    <div className="absolute bottom-4 right-4 bg-neutral-700 w-20 h-7 rounded-full"></div>
                 </div>
-                <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center">
-                        <div className="h-5 w-5 bg-neutral-700 rounded-full mr-1"></div>
-                        <div className="h-4 bg-neutral-700 rounded w-8 ml-1"></div>
-                        <div className="h-4 bg-neutral-700 rounded w-12 ml-1"></div>
+                <div className="p-6">
+                    <div className="h-7 bg-neutral-700 rounded-lg mb-4 w-3/4"></div>
+                    <div className="flex items-center mb-4">
+                        <div className="h-4 w-4 bg-neutral-700 rounded-full mr-2"></div>
+                        <div className="h-4 bg-neutral-700 rounded w-1/2"></div>
                     </div>
+                    <div className="flex items-center justify-between mb-5">
+                        <div className="flex items-center">
+                            <div className="h-5 w-5 bg-neutral-700 rounded-full mr-1"></div>
+                            <div className="h-4 bg-neutral-700 rounded w-8 ml-1"></div>
+                            <div className="h-4 bg-neutral-700 rounded w-12 ml-1"></div>
+                        </div>
+                    </div>
+                    <div className="flex flex-wrap gap-3 mb-6">
+                        {[...Array(3)].map((_, idx) => (
+                            <div key={idx} className="h-6 bg-neutral-700 rounded-full w-16"></div>
+                        ))}
+                    </div>
+                    <div className="w-full bg-neutral-700 h-12 rounded-xl"></div>
                 </div>
-                <div className="flex flex-wrap gap-3 mb-6">
-                    {[...Array(3)].map((_, idx) => (
-                        <div key={idx} className="h-6 bg-neutral-700 rounded-full w-16"></div>
-                    ))}
-                </div>
-                <div className="w-full bg-gradient-to-r from-neutral-700 to-neutral-800 h-12 rounded-xl"></div>
             </div>
         </div>
     );
@@ -52,7 +54,7 @@ const OfferTag = ({ offer }) => {
                     </div>
                 </div>
                 {/* Tooltip on hover */}
-                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block">
+                <div className="absolute mb-2 mt-6 hidden group-hover:block">
                     <div className="bg-neutral-900/95 backdrop-blur-sm text-white text-xs rounded-lg p-3 w-48 shadow-xl border border-neutral-700">
                         <div className="font-bold text-yellow-400 mb-1">{offer.title}</div>
                         <p className="text-gray-300 mb-2">{offer.description}</p>
@@ -83,14 +85,14 @@ const ApartmentImage = ({ apartment, index, offer }) => {
             {hasDiscount ? (
                 <span className="bg-gradient-to-r from-teal-500 to-emerald-500 px-3 py-1 rounded-full text-sm font-bold text-black shadow-md">
                     <span className="text-sm line-through font-medium mr-3">
-                        ${apartment.price}
+                        &#8377;{apartment.price}
                     </span>
 
-                    ${finalPrice}/night
+                    &#8377;{finalPrice}/night
                 </span>
             ) : (
                 <div className="bg-gradient-to-r from-teal-500 to-emerald-500 px-4 py-2 rounded-full text-sm font-bold text-black shadow-lg">
-                    ${apartment.price}/night
+                    &#8377;{apartment.price}/night
                 </div>
             )}
         </div>
@@ -579,38 +581,78 @@ export default function ApartmentsPage() {
         fetchData();
     }, []);
 
-    // Function to get offer for a specific apartment
     const getApartmentOffer = (apartmentId) => {
-        if (!offers.length) return null;
+        if (!offers.length) {
+            console.log('No offers available');
+            return null;
+        }
 
         const now = new Date();
+        console.log('Current date:', now);
+        console.log('Checking offers for apartment ID:', apartmentId);
 
-        return offers.find(offer => {
+        // Filter active offers
+        const activeOffers = offers.filter(offer => {
             const validFrom = new Date(offer.valid_from);
             const validUntil = new Date(offer.valid_until);
 
-            // Offer must be within valid date range
-            if (now < validFrom || now > validUntil) return false;
+            // Check if offer is active and within date range
+            const isActive = offer.is_active === 1 || offer.is_active === true;
+            const isInDateRange = now >= validFrom && now <= validUntil;
 
-            // If null -> offer applies to ALL apartments
+            console.log(`Offer ${offer.id}:`, {
+                is_active: offer.is_active,
+                isInDateRange,
+                validFrom: validFrom.toISOString(),
+                validUntil: validUntil.toISOString(),
+                now: now.toISOString()
+            });
+
+            return isActive && isInDateRange;
+        });
+
+        console.log('Active offers:', activeOffers);
+
+        if (!activeOffers.length) {
+            console.log('No active offers found');
+            return null;
+        }
+
+        // First, check for specific apartment offers
+        const specificOffer = activeOffers.find(offer => {
+            // If apartment_ids is null, it's a global offer (skip for specific check)
             if (offer.apartment_ids === null) {
-                return true;
+                console.log('Skipping global offer for specific check:', offer.id);
+                return false;
             }
 
             let apartmentIds = offer.apartment_ids;
 
-            // If value is a string, parse it
+            // Parse if it's a string
             if (typeof apartmentIds === "string") {
                 try {
                     apartmentIds = JSON.parse(apartmentIds);
-                } catch {
+                } catch (e) {
+                    console.error('Error parsing apartment_ids:', e);
                     return false;
                 }
             }
 
-            // Must be an array & include the apartmentId
-            return Array.isArray(apartmentIds) && apartmentIds.includes(apartmentId);
+            const includesApartment = Array.isArray(apartmentIds) && apartmentIds.includes(apartmentId);
+            console.log(`Offer ${offer.id} includes apartment ${apartmentId}:`, includesApartment);
+            return includesApartment;
         });
+
+        console.log('Specific offer found:', specificOffer);
+
+        // If no specific offer, check for global offers
+        if (!specificOffer) {
+            const globalOffer = activeOffers.find(offer => offer.apartment_ids === null);
+            console.log('Global offer found:', globalOffer);
+            return globalOffer;
+        }
+
+        return specificOffer;
     };
 
     // Memoized filtered apartments with safe access
