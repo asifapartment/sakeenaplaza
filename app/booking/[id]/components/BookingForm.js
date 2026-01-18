@@ -144,23 +144,24 @@ function BookingForm({ apartmentId, disabledRanges, lockedRanges, dailyRate = 20
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                     checkin: formData.checkin,
                     checkout: formData.checkout,
                     apartment_id: Number(apartmentId),
                 }),
-                credentials: 'include',
             });
+            
 
             const result = await response.json();
 
             if (!response.ok) {
                 throw new Error(result.message || 'Failed to check booking dates');
             }
-            if (result.success === false) {
-                setFormError("The selected dates are not available. Please choose different dates.");
+            if (response.status === 409) {
+                setFormError(result.message);
                 return;
-            }
+            }            
             // If no existing booking, proceed with verification
             setFormError("");
             setError("");

@@ -46,7 +46,7 @@ export async function POST(request) {
                 SELECT 1
                 FROM bookings
                 WHERE apartment_id = ?
-                  AND status IN ('pending', 'confirmed')
+                  AND status IN ('pending', 'confirmed','ongoing')
                   AND start_date < ?
                   AND end_date > ?
              ) AS hasConflict`,
