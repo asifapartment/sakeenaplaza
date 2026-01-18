@@ -157,4 +157,4 @@ const ApartmentRow = ({ apartment, onEdit, onDelete, onViewDetails, loadingActio
     );
 };
 
-export default ApartmentRow;z
+export default ApartmentRow;
