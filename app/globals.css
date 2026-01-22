@@ -141,3 +141,25 @@ body {
 .animate-pulse-custom {
   animation: pulse-custom 2s ease-in-out infinite;
 }
+
+/* ================================
+   FIX react-day-picker LAYOUT
+   ================================ */
+
+.rdp-table {
+  display: table !important;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rdp-head_row,
+.rdp-row {
+  display: table-row !important;
+}
+
+.rdp-head_cell,
+.rdp-cell {
+  display: table-cell !important;
+  text-align: center;
+  vertical-align: middle;
+}

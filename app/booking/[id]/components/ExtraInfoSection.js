@@ -4,7 +4,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import * as solidIcons from '@fortawesome/free-solid-svg-icons';
 
 function ExtraInfoSection({ whyBookWithUs = [], policy = {} }) {
-    // ✅ Default fallback data
     const defaultWhyBookWithUs = [
         { icon: "faHeadset", text: "24/7 Customer Support" },
         { icon: "faTag", text: "Best Price Guarantee" },
@@ -16,7 +15,6 @@ function ExtraInfoSection({ whyBookWithUs = [], policy = {} }) {
         link: "/cancellation-policy"
     };
 
-    // ✅ Always produce valid arrays/objects
     const displayWhyBookWithUs =
         Array.isArray(whyBookWithUs) && whyBookWithUs.length > 0
             ? whyBookWithUs
@@ -27,47 +25,104 @@ function ExtraInfoSection({ whyBookWithUs = [], policy = {} }) {
             ? policy
             : defaultPolicy;
 
-    // ✅ Safe icon rendering
     const renderIcon = (iconName) => {
         const icon =
             typeof iconName === "string" && solidIcons[iconName]
                 ? solidIcons[iconName]
                 : solidIcons.faCheckCircle;
-        return <FontAwesomeIcon icon={icon} className="text-teal-400 mr-2" />;
+
+        return (
+            <FontAwesomeIcon
+                icon={icon}
+                className="text-teal-400 text-sm mt-0.5"
+            />
+        );
     };
 
     return (
         <div className="space-y-6">
-            {/* Why Book With Us */}
-            <div className="bg-neutral-800/50 p-4 rounded-lg space-y-2">
-                <p className="font-semibold">Why Book With Us?</p>
-                <ul className="text-sm text-gray-400 space-y-2">
+            {/* WHY BOOK WITH US */}
+            <div
+                className="
+                    relative overflow-hidden rounded-2xl p-6
+                    bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800
+                    border border-white/10
+                    shadow-xl shadow-black/40
+                "
+            >
+                {/* Glow */}
+                <div className="absolute inset-0 bg-gradient-to-r from-teal-500/5 via-transparent to-indigo-500/5 pointer-events-none" />
+
+                {/* Header */}
+                <div className="relative flex items-center gap-3 mb-4">
+                    <div className="h-9 w-1 rounded-full bg-gradient-to-b from-teal-400 to-emerald-500" />
+                    <h3 className="text-lg font-semibold text-white tracking-wide">
+                        Why Book With Us?
+                    </h3>
+                </div>
+
+                {/* List */}
+                <ul className="relative space-y-3">
                     {displayWhyBookWithUs.map((reason, index) => (
                         <li
                             key={index}
-                            className="flex items-center bg-neutral-900/40 p-2 rounded-md"
+                            className="
+                                flex items-start gap-3
+                                rounded-xl px-4 py-3
+                                bg-neutral-800/40
+                                border border-white/5
+                                hover:bg-neutral-800/60
+                                hover:border-white/10
+                                transition-all duration-200
+                            "
                         >
                             {renderIcon(reason?.icon)}
-                            <span>{reason?.text || "Benefit available"}</span>
+                            <span className="text-sm text-gray-300 leading-relaxed">
+                                {reason?.text || "Benefit available"}
+                            </span>
                         </li>
                     ))}
                 </ul>
             </div>
 
-            {/* Cancellation Policy */}
-            <div className="bg-neutral-800/50 p-4 rounded-lg">
-                <p className="font-semibold mb-1">Cancellation Policy</p>
-                <p className="text-sm text-gray-400">
+            {/* CANCELLATION POLICY */}
+            <div
+                className="
+                    relative overflow-hidden rounded-2xl p-6
+                    bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800
+                    border border-white/10
+                    shadow-xl shadow-black/40
+                "
+            >
+                {/* Glow */}
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-transparent to-teal-500/5 pointer-events-none" />
+
+                {/* Header */}
+                <div className="relative flex items-center gap-3 mb-3">
+                    <div className="h-9 w-1 rounded-full bg-gradient-to-b from-indigo-400 to-purple-500" />
+                    <h3 className="text-lg font-semibold text-white tracking-wide">
+                        Cancellation Policy
+                    </h3>
+                </div>
+
+                <p className="relative text-sm text-gray-300 leading-relaxed">
                     {displayPolicy?.cancellation ||
                         displayPolicy?.text ||
                         "Policy details not available."}
                 </p>
+
                 {displayPolicy?.link && (
                     <a
                         href={displayPolicy.link}
-                        className="text-teal-400 text-sm hover:underline ml-1"
+                        className="
+                            inline-flex items-center gap-1 mt-3
+                            text-sm text-teal-400
+                            hover:text-teal-300
+                            hover:underline
+                        "
                     >
                         Read more
+                        <FontAwesomeIcon icon={solidIcons.faArrowRight} />
                     </a>
                 )}
             </div>

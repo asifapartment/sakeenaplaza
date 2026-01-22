@@ -121,7 +121,7 @@ export async function GET(req) {
             query("SELECT COUNT(*) AS totalUsers FROM users"),
             query("SELECT COUNT(*) AS totalBookings FROM bookings"),
             query("SELECT COUNT(*) AS totalPayments FROM payments"),
-            query("SELECT IFNULL(SUM(amount),0) AS totalRevenue FROM payments WHERE status IN ('paid')"),
+            query("SELECT IFNULL(SUM(amount),0) AS totalRevenue FROM payments WHERE status IN ('paid','refunded')"),
             query("SELECT COUNT(*) AS pendingBookings FROM bookings WHERE status = 'pending'"),
             query("SELECT COUNT(*) AS confirmedBookings FROM bookings WHERE status = 'confirmed'"),
             query("SELECT COUNT(*) AS cancelledBookings FROM bookings WHERE status = 'cancelled'"),
@@ -250,8 +250,8 @@ export async function GET(req) {
         const graphTables = [
             { name: "users", column: "created_at", sum: false, alias: "users" },
             { name: "bookings", column: "created_at", sum: false, alias: "bookings" },
-            { name: "payments", column: "paid_at", sum: false, alias: "payments", status: "AND status='paid'" },
-            { name: "payments", column: "paid_at", sum: true, alias: "revenue", status: "AND status='paid'" },
+            { name: "payments", column: "paid_at", sum: false, alias: "payments", status: "AND status IN ('paid','refunded')" },
+            { name: "payments", column: "paid_at", sum: true, alias: "revenue", status: "AND status IN ('paid','refunded')" },
         ];
 
         const graphResults = await Promise.all(

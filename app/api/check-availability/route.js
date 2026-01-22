@@ -1,82 +1,98 @@
+// app/api/calendar-booked-dates/route.js
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/mysql-wrapper';
 
 export async function POST(req) {
     try {
-        const { apartment_id, checkin, checkout } = await req.json();
+        const { apartment_id } = await req.json();
 
-        if (!apartment_id || !checkin || !checkout) {
+        if (!apartment_id) {
             return NextResponse.json(
-                { available: false, message: 'Missing input data.' },
+                { error: 'Apartment ID is required' },
                 { status: 400 }
             );
         }
 
-        // Convert to date objects
-        const checkinDate = new Date(checkin);
-        const checkoutDate = new Date(checkout);
-
-        // Strip time from all dates
-        checkinDate.setHours(0, 0, 0, 0);
-        checkoutDate.setHours(0, 0, 0, 0);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        // Validate date formats
-        if (isNaN(checkinDate.getTime()) || isNaN(checkoutDate.getTime())) {
-            return NextResponse.json(
-                { available: false, message: 'Invalid date format.' },
-                { status: 400 }
-            );
-        }
-
-        // Ensure check-in is in the future (or same day if allowed)
-        if (checkinDate <= today) {
-            return NextResponse.json(
-                { available: false, message: "The check-in date must be a future date." },
-                { status: 400 }
-            );
-        }
-
-        // Ensure check-out is after check-in
-        if (checkinDate >= checkoutDate) {
-            return NextResponse.json(
-                { available: false, message: 'Check-out date must be after check-in date.' },
-                { status: 400 }
-            );
-        }
-
-        // Check overlapping bookings
-        const results = await query(
-            `
-            SELECT start_date, end_date
+        // Get all bookings (confirmed, ongoing, and pending that haven't expired)
+        const bookings = await query(`
+            SELECT 
+                start_date,
+                end_date,
+                status
             FROM bookings
             WHERE apartment_id = ?
             AND (
-                    status IN ('confirmed', 'pendig')
-                    OR (status = 'pending' AND expires_at > NOW())
-                )
+                status IN ('confirmed', 'ongoing')
+                OR (status = 'pending' AND expires_at > NOW())
+            )
+            AND end_date > CURDATE()
             ORDER BY start_date ASC
+        `, [apartment_id]);
 
-            `,
-            [apartment_id, checkin, checkin, checkout, checkout, checkin, checkout]
-        );
+        // Convert to Date objects and create date ranges
+        const disabledRanges = bookings.map(booking => {
+            const from = new Date(booking.start_date);
+            const to = new Date(booking.end_date);
 
-        if (results.length > 0) {
-            return NextResponse.json({
-                available: false,
-                message: 'Apartment not available for selected dates.',
-            });
-        }
+            // Important: checkout day is NOT occupied
+            to.setDate(to.getDate() - 1);
+
+            // For single day bookings
+            if (to < from) {
+                return { from, to: from };
+            }
+
+            return { from, to };
+        }).filter(Boolean); // Remove any null entries
+
+        // Also create individual booked dates for highlighting
+        const bookedDates = [];
+        bookings.forEach(booking => {
+            const start = new Date(booking.start_date);
+            const end = new Date(booking.end_date);
+            const current = new Date(start);
+
+            // Add all dates in the booking range (except checkout day)
+            while (current < end) {
+                bookedDates.push(new Date(current));
+                current.setDate(current.getDate() + 1);
+            }
+        });
+
+        // Remove duplicate dates
+        const uniqueBookedDates = [...new Set(bookedDates.map(d =>
+            d.toISOString().split('T')[0]
+        ))].map(dateStr => new Date(dateStr));
 
         return NextResponse.json({
-            available: true,
-            message: 'Apartment is available!',
+            success: true,
+            data: {
+                // Array of individual booked dates for highlighting
+                bookedDates: uniqueBookedDates,
+
+                // Array of ranges for DayPicker disabled prop
+                disabledRanges: disabledRanges,
+
+                // Simple stats
+                stats: {
+                    totalBookings: bookings.length,
+                    bookedDays: uniqueBookedDates.length,
+                    dateRange: {
+                        from: bookings[0]?.start_date || 'No bookings',
+                        to: bookings[bookings.length - 1]?.end_date || 'No bookings'
+                    }
+                }
+            }
         });
+
     } catch (error) {
-        console.error('Error checking availability:', error);
+        console.error('Error fetching booked dates:', error);
         return NextResponse.json(
-            { available: false, message: 'Internal server error.' },
+            {
+                success: false,
+                error: 'Failed to fetch booked dates',
+                message: error.message
+            },
             { status: 500 }
         );
     }

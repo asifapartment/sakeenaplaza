@@ -42,28 +42,29 @@ export async function POST(request) {
         }
 
         const [{ hasConflict }] = await query(
-            `SELECT EXISTS (
+            `
+            SELECT EXISTS (
                 SELECT 1
                 FROM bookings
                 WHERE apartment_id = ?
-                  AND status IN ('pending', 'confirmed','ongoing')
-                  AND start_date < ?
-                  AND end_date > ?
-             ) AS hasConflict`,
+                AND status IN ('confirmed', 'ongoing', 'pending')
+                AND start_date < ?
+                AND end_date > ?
+            ) AS hasConflict
+            `,
             [apartment_id, checkout, checkin]
         );
-        console.log('Date conflict check result:', hasConflict);
-        if (hasConflict) {
+
+        const conflict = Number(hasConflict);
+
+        if (conflict === 1) {
             return NextResponse.json(
                 { success: false, message: 'Apartment not available for selected dates' },
-                { status: 200 }
+                { status: 409 }
             );
         }
-          
-        return NextResponse.json(
-            { success: true },
-            { status: 200 }
-        );
+
+        return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
         console.error('Error processing feedback:', error);
         return NextResponse.json(

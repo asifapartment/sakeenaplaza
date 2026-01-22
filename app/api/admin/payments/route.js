@@ -47,6 +47,7 @@ export async function GET(request) {
               b.id as booking_id,
               b.start_date,
               b.end_date,
+              b.total_amount,
               b.status as booking_status,
               u.name as user_name,
               u.email as user_email,

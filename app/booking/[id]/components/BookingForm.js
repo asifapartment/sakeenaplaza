@@ -4,13 +4,13 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import BookingCalendar from "@/components/bookingCalender";
 import Toast from "@/components/toast";
-import { Loader2, ShieldCheck, Tag } from "lucide-react";
+import { Calendar, CreditCard, Loader2, Plus, ShieldCheck, Tag, Users } from "lucide-react";
 import VerificationModal from "./VerificationModal";
 import FeedbackModal from "./FeedbackModal";
 import GuestDetailsForm from "./GuestDetailsForm";
 import GuestDetailsModal from "./GuestDetailsModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faPen, faTag, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useOffers, applyOffer, getApplicableOffers } from "@/hooks/useOffers";
 
 function formatForMySQL(date) {
@@ -155,13 +155,15 @@ function BookingForm({ apartmentId, disabledRanges, lockedRanges, dailyRate = 20
 
             const result = await response.json();
 
-            if (!response.ok) {
-                throw new Error(result.message || 'Failed to check booking dates');
-            }
             if (response.status === 409) {
                 setFormError(result.message);
                 return;
-            }            
+            }
+
+            if (!response.ok) {
+                setFormError('Unexpected error occurred');
+                return;
+              }
             // If no existing booking, proceed with verification
             setFormError("");
             setError("");
@@ -237,75 +239,138 @@ function BookingForm({ apartmentId, disabledRanges, lockedRanges, dailyRate = 20
 
     return (
         <section>
-            <div className="sticky top-24 bg-neutral-900 rounded-xl p-4 sm:p-6 border border-white/10 shadow-lg space-y-6">
-                {/* Errors */}
+            <div
+                className="
+        sticky top-24
+        relative overflow-hidden
+        rounded-2xl p-5 sm:p-8
+        bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800
+        border border-white/10
+        shadow-2xl shadow-black/40
+        space-y-8
+    "
+            >
+                {/* Soft glow */}
+                <div className="absolute inset-0 bg-gradient-to-r from-teal-500/5 via-transparent to-indigo-500/5 pointer-events-none" />
+
+                {/* Error Toast */}
                 {(formError || error) && (
-                    <Toast
-                        message={formError || error}
-                        type="error"
-                        onClose={() => { setFormError(""); setError(""); }}
-                    />
+                    <div className="animate-fade-in">
+                        <Toast
+                            message={formError || error}
+                            type="error"
+                            onClose={() => { setFormError(""); setError(""); }}
+                        />
+                    </div>
                 )}
+
                 {/* Offer Banner */}
                 {!offersLoading && applicableOffers.length > 0 && (
-                    <div className="bg-gradient-to-r from-teal-900/30 to-teal-800/30 border border-teal-700/50 rounded-lg p-3">
-                        <div className="flex items-start gap-3">
-                            <Tag className="w-5 h-5 text-teal-400 mt-0.5 flex-shrink-0" />
-                            <div className="flex-1">
-                                <p className="font-semibold text-teal-300 mb-1">Special Offer Applied!</p>
-                                <div className="space-y-1">
-                                    {applicableOffers.map((offer) => (
-                                        <div key={offer.id} className="text-sm">
-                                            <span className="font-medium">{offer.title}:</span>
-                                            <span className="text-teal-200 ml-2">{offer.discount_percentage}% OFF</span>
-                                            {offer.description && (
-                                                <p className="text-gray-300 text-xs mt-0.5">{offer.description}</p>
-                                            )}
-                                        </div>
-                                    ))}
+                    <div className="animate-fade-in">
+                        <div className="relative overflow-hidden bg-gradient-to-r from-teal-900/40 via-teal-800/40 to-emerald-900/30 border border-teal-600/40 rounded-xl p-4 backdrop-blur-sm">
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/10 rounded-full -translate-y-12 translate-x-12 blur-xl"></div>
+                            <div className="flex items-start gap-4 relative z-10">
+                                <div className="flex-shrink-0 p-2 bg-teal-900/50 rounded-lg border border-teal-700/50">
+                                    <Tag className="w-5 h-5 text-teal-300" />
                                 </div>
-                                <p className="text-xs text-gray-400 mt-2">
-                                    Valid until: {new Date(applicableOffers[0].valid_until).toLocaleDateString()}
-                                </p>
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <span className="font-bold text-teal-300 text-lg">🎉 Special Offer Applied!</span>
+                                        <span className="px-2 py-1 bg-teal-900/60 text-teal-200 text-xs font-medium rounded-full">
+                                            {applicableOffers.length} offer{applicableOffers.length > 1 ? 's' : ''}
+                                        </span>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {applicableOffers.map((offer) => (
+                                            <div key={offer.id} className="p-3 bg-black/30 rounded-lg border border-white/5">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <p className="font-semibold text-white">{offer.title}</p>
+                                                        {offer.description && (
+                                                            <p className="text-gray-300 text-sm mt-1">{offer.description}</p>
+                                                        )}
+                                                    </div>
+                                                    <span className="px-3 py-1 bg-gradient-to-r from-teal-700 to-emerald-700 text-white font-bold rounded-full text-sm">
+                                                        {offer.discount_percentage}% OFF
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2 mt-3 text-xs text-gray-400">
+                                                    <Calendar className="w-3 h-3" />
+                                                    Valid until: {new Date(offer.valid_until).toLocaleDateString('en-US', {
+                                                        weekday: 'short',
+                                                        month: 'short',
+                                                        day: 'numeric'
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 )}
+
                 {/* Booking Form */}
                 <div>
-                    <h2 className="text-xl font-bold mb-6 text-center">Book Your Stay</h2>
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="text-center mb-8">
+                        <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                            <Calendar className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                            Book Your Stay
+                        </h2>
+                        <p className="text-gray-400 text-sm mt-2">Select dates and guests to proceed</p>
+                    </div>
 
-                        {/* Calendar */}
-                        <BookingCalendar
-                            loadCallender={loadCallender}
-                            setLoadCallender={setLoadCallender}
-                            apartmentId={Number(apartmentId)}
-                            formData={formData}
-                            setFormData={setFormData}
-                            background="neutral-800"
-                        />
+                    <form onSubmit={handleSubmit} className="space-y-8">
+                        {/* Calendar Section */}
+                        <div className="p-4 max-sm:p-0">
+                            <BookingCalendar
+                                apartmentId={apartmentId}
+                                formData={formData}
+                                setFormData={setFormData}
+                                size="medium"
+                            />
+                        </div>
 
-                        {/* Fixed Times Display */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="text-sm text-white mb-1 block">Check-in Time</label>
-                                <div className="w-full p-3 rounded-lg bg-neutral-800 text-white border border-white/10">
-                                    {fixedCheckinTime} (3:00 PM)
+                        {/* Check-in/out Times */}
+                        <div className="bg-neutral-800/50 rounded-xl p-4 border border-white/10">
+                            <h3 className="font-semibold text-white mb-4">Check-in & Check-out Times</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                        <label className="text-sm text-gray-300">Check-in</label>
+                                    </div>
+                                    <div className="p-4 rounded-lg bg-gradient-to-r from-neutral-800 to-neutral-900 border border-white/10">
+                                        <div className="text-xl font-bold text-white">{fixedCheckinTime}</div>
+                                        <div className="text-sm text-gray-400 mt-1">3:00 PM • Fixed time</div>
+                                    </div>
                                 </div>
-                                <p className="text-xs text-gray-400 mt-1">Fixed check-in time</p>
-                            </div>
-                            <div>
-                                <label className="text-sm text-white mb-1 block">Check-out Time</label>
-                                <div className="w-full p-3 rounded-lg bg-neutral-800 text-white border border-white/10">
-                                    {fixedCheckoutTime} (11:00 AM)
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                                        <label className="text-sm text-gray-300">Check-out</label>
+                                    </div>
+                                    <div className="p-4 rounded-lg bg-gradient-to-r from-neutral-800 to-neutral-900 border border-white/10">
+                                        <div className="text-xl font-bold text-white">{fixedCheckoutTime}</div>
+                                        <div className="text-sm text-gray-400 mt-1">11:00 AM • Fixed time</div>
+                                    </div>
                                 </div>
-                                <p className="text-xs text-gray-400 mt-1">Fixed check-out time</p>
                             </div>
                         </div>
 
-                        {/* Guests */}
-                        <div className="flex flex-col justify-between text-sm space-y-2">
+                        {/* Guests Section */}
+                        <div className="bg-neutral-800/50 rounded-xl p-4 border border-white/10">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="font-semibold text-white flex items-center gap-2">
+                                    <Users className="w-5 h-5 text-teal-400" />
+                                    Guests
+                                </h3>
+                                <span className="px-3 py-1 bg-neutral-700/50 text-gray-300 text-sm rounded-full">
+                                    {guestsInfo.length} {guestsInfo.length === 1 ? 'guest' : 'guests'}
+                                </span>
+                            </div>
+
                             <GuestList
                                 guests={guestsInfo}
                                 hasAdultGuest={hasAdultGuest}
@@ -317,200 +382,238 @@ function BookingForm({ apartmentId, disabledRanges, lockedRanges, dailyRate = 20
                                     const updated = [...guestsInfo];
                                     updated.splice(index, 1);
                                     setGuestsInfo(updated);
-
-                                    // Update guest count
                                     setFormData({ ...formData, guests: updated.length });
                                 }}
-
                             />
 
-                            {/* Adult Guest Requirement Message */}
+                            {/* Adult Guest Requirement */}
                             {guestsInfo.length > 0 && !hasAdultGuest && (
-                                <div className="text-red-400 text-sm bg-red-900/20 p-2 rounded-lg border border-red-800/50">
-                                    ⚠️ At least one guest must be 18 years or older to book.
+                                <div className="mt-4 p-3 bg-gradient-to-r from-red-900/20 to-red-800/10 rounded-lg border border-red-800/30 flex items-start gap-3">
+                                    <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-red-300 font-medium text-sm">Age Requirement</p>
+                                        <p className="text-red-400/80 text-sm">At least one guest must be 18 years or older to book.</p>
+                                    </div>
                                 </div>
                             )}
 
                             <button
                                 type="button"
                                 onClick={() => setShowGuestModal(true)}
-                                className="mt-3 w-full bg-teal-800 border border-white/10 p-3 rounded-lg text-gray-300 hover:bg-teal-700 transition"
+                                className="mt-4 w-full py-3 rounded-xl border-2 border-dashed border-white/20 hover:border-teal-500/50 hover:bg-teal-900/10 transition-all duration-300 text-gray-300 hover:text-white group flex items-center justify-center gap-2"
                             >
-                                + Add Guest
+                                <Plus className="w-5 h-5 group-hover:text-teal-400 transition-colors" />
+                                Add Guest
                             </button>
-
                         </div>
 
                         {/* Price Summary */}
-                        <div className="p-4 rounded-xl border border-white/10 bg-neutral-800 shadow-sm space-y-3">
-                            <div className="flex justify-between items-center">
-                                <p className="text-white font-semibold text-lg">Price Summary</p>
+                        <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl p-6 border border-white/10 shadow-lg">
+                            <div className="flex justify-between items-center mb-6 relative">
+                                <div>
+                                    <h3 className="font-bold text-xl text-white">Price Summary</h3>
+                                    <p className="text-gray-400 text-sm">Detailed breakdown of your stay</p>
+                                </div>
                                 {bookingSummary?.hasDiscount && bookingSummary.appliedOffer && (
-                                    <span className="bg-teal-900 text-teal-300 text-xs font-medium px-2 py-1 rounded">
-                                        {bookingSummary.appliedOffer.title}
+                                    <span className="absolute top-[-40px] right-0 px-4 py-2 bg-gradient-to-r from-teal-800/40 to-emerald-800/40 backdrop-blur-sm border border-teal-500/30 text-white rounded-full text-xs shadow-lg shadow-teal-900/20 flex items-center gap-2">
+                                        <FontAwesomeIcon icon={faTag} className="text-emerald-300" />
+                                        {bookingSummary.appliedOffer.discount_percentage}% OFF
                                     </span>
                                 )}
                             </div>
 
                             {bookingSummary ? (
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-400">Check-in</span>
-                                        <span>{formData.checkin} at {fixedCheckinTime}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-400">Check-out</span>
-                                        <span>{formData.checkout} at {fixedCheckoutTime}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-400">Guests</span>
-                                        <span>{formData.guests} {formData.guests === 1 ? "Guest" : "Guests"}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-400">Nights</span>
-                                        <span>{bookingSummary.nights}</span>
+                                <div className="space-y-4">
+                                    {/* Stay Details */}
+                                    <div className="grid grid-cols-2 gap-4 p-4 bg-black/20 rounded-xl">
+                                        <div>
+                                            <p className="text-gray-400 text-sm">Check-in</p>
+                                            <p className="font-medium text-white">{formData.checkin}</p>
+                                            <p className="text-gray-400 text-xs">{fixedCheckinTime}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-400 text-sm">Check-out</p>
+                                            <p className="font-medium text-white">{formData.checkout}</p>
+                                            <p className="text-gray-400 text-xs">{fixedCheckoutTime}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-400 text-sm">Nights</p>
+                                            <p className="font-medium text-white">{bookingSummary.nights}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-400 text-sm">Guests</p>
+                                            <p className="font-medium text-white">{formData.guests}</p>
+                                        </div>
                                     </div>
 
-                                    <div className="border-t border-white/10 my-2 pt-2 space-y-2">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="flex items-center gap-2">
-                                                {bookingSummary.hasDiscount ? (
-                                                    <>
-                                                        <span className="text-teal-300">₹{bookingSummary.dailyRate}</span>
-                                                        <span className="line-through text-gray-400">₹{bookingSummary.originalDailyRate}</span>
-                                                    </>
-                                                ) : (
-                                                    <span>₹{bookingSummary.dailyRate}</span>
+                                    {/* Price Breakdown */}
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between items-center py-2 border-b border-white/10">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-gray-300">Nightly Rate</span>
+                                                {bookingSummary.hasDiscount && (
+                                                    <span className="text-xs line-through text-gray-500">₹{bookingSummary.originalDailyRate}</span>
                                                 )}
-                                                <span>× {bookingSummary.nights} nights</span>
-                                            </span>
-                                            <span>₹{bookingSummary.basePrice}</span>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-white font-medium">
+                                                    {bookingSummary.hasDiscount && (
+                                                        <span className="text-teal-300 mr-2">₹{bookingSummary.dailyRate}</span>
+                                                    )}
+                                                    × {bookingSummary.nights} nights
+                                                </div>
+                                                <div className="text-gray-300">₹{bookingSummary.basePrice}</div>
+                                            </div>
                                         </div>
 
-                                        <div className="flex justify-between text-sm">
-                                            <span>Cleaning Fee</span>
-                                            <span>₹{cleaningFee}</span>
+                                        <div className="flex justify-between py-2 border-b border-white/10">
+                                            <span className="text-gray-300">Cleaning Fee</span>
+                                            <span className="text-white">₹{cleaningFee}</span>
                                         </div>
 
                                         {bookingSummary.hasDiscount && (
-                                            <div className="flex justify-between text-sm text-teal-400">
-                                                <span>Discount Applied ({bookingSummary.appliedOffer?.discount_percentage}%)</span>
-                                                <span>-₹{bookingSummary.discountAmount.toFixed(2)}</span>
+                                            <div className="flex justify-between py-3 bg-gradient-to-r from-teal-900/20 to-emerald-900/10 rounded-lg px-4">
+                                                <div>
+                                                    <span className="text-teal-300 font-medium">Discount</span>
+                                                    <p className="text-teal-400/80 text-xs">
+                                                        {bookingSummary.appliedOffer?.discount_percentage}% OFF
+                                                    </p>
+                                                </div>
+                                                <span className="text-teal-300 font-bold">-₹{bookingSummary.discountAmount.toFixed(2)}</span>
                                             </div>
                                         )}
                                     </div>
 
-                                    <div className="flex justify-between font-bold text-lg pt-2 border-t border-white/10">
-                                        <span>Total</span>
-                                        <span className="text-teal-400">₹{bookingSummary.total}</span>
+                                    {/* Total */}
+                                    <div className="pt-4 border-t border-white/20">
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <p className="text-gray-300 text-sm">Total Amount</p>
+                                                {bookingSummary.hasDiscount && (
+                                                    <p className="text-teal-400 text-xs">
+                                                        You save ₹{bookingSummary.discountAmount.toFixed(2)}!
+                                                    </p>
+                                                )}
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-2xl font-bold bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">
+                                                    ₹{bookingSummary.total}
+                                                </p>
+                                                <p className="text-gray-400 text-xs">Including all taxes & fees</p>
+                                            </div>
+                                        </div>
                                     </div>
-
-                                    {bookingSummary.hasDiscount && (
-                                        <p className="text-xs text-gray-400 text-center pt-2">
-                                            You save ₹{bookingSummary.discountAmount.toFixed(2)} with this offer!
-                                        </p>
-                                    )}
                                 </div>
                             ) : (
-                                <div className="text-center py-4 text-gray-400">
-                                    Select dates to see price summary
+                                <div className="text-center py-8">
+                                    <Calendar className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                                    <p className="text-gray-400">Select dates to see price details</p>
                                 </div>
                             )}
                         </div>
 
-                        {/* Secure Payment Badge */}
-                        <div className="flex items-center justify-center gap-2 p-3 bg-teal-900/20 rounded-lg border border-teal-800/50">
-                            <ShieldCheck className="w-5 h-5 text-teal-400" />
-                            <span className="text-sm">Secure booking process</span>
+                        {/* Secure Payment */}
+                        <div className="flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-teal-900/10 to-emerald-900/10 rounded-xl border border-teal-800/30">
+                            <div className="p-2 bg-teal-900/30 rounded-lg">
+                                <ShieldCheck className="w-6 h-6 text-teal-400" />
+                            </div>
+                            <div>
+                                <p className="font-medium text-white">Secure & Encrypted</p>
+                                <p className="text-gray-400 text-sm">Your payment information is protected</p>
+                            </div>
                         </div>
 
-                        {/* Terms */}
-                        <div className="flex items-start gap-3 text-sm text-gray-300">
-                            <input
-                                type="checkbox"
-                                id="terms"
-                                checked={agreeTerms}
-                                onChange={() => setAgreeTerms(!agreeTerms)}
-                                className="mt-1 accent-teal-600"
-                            />
-                            <label htmlFor="terms" className="leading-snug">
-                                I agree to the{" "}
-                                <a href="/terms-conditions" className="text-teal-400 hover:underline">
-                                    Terms & Conditions
-                                </a>{" "}
-                                and{" "}
-                                <a href="/cancellation-refund" className="text-teal-400 hover:underline">
-                                    Cancellation Policy
-                                </a>.
-                            </label>
+                        {/* Terms & Conditions */}
+                        <div className="p-4 bg-neutral-800/30 rounded-xl border border-white/10">
+                            <div className="flex items-start gap-3">
+                                <div className="flex-shrink-0">
+                                    <input
+                                        type="checkbox"
+                                        id="terms"
+                                        checked={agreeTerms}
+                                        onChange={() => setAgreeTerms(!agreeTerms)}
+                                        className="w-5 h-5 accent-teal-600 rounded border-white/20 focus:ring-2 focus:ring-teal-500/50"
+                                    />
+                                </div>
+                                <label htmlFor="terms" className="text-sm text-gray-300 cursor-pointer">
+                                    <span className="font-medium text-white">I agree to the booking terms</span>
+                                    <p className="mt-1">
+                                        By proceeding, I confirm that I have read and accept the{" "}
+                                        <a href="/terms-conditions" className="text-teal-400 hover:text-teal-300 hover:underline transition-colors">
+                                            Terms & Conditions
+                                        </a>{" "}
+                                        and{" "}
+                                        <a href="/cancellation-refund" className="text-teal-400 hover:text-teal-300 hover:underline transition-colors">
+                                            Cancellation Policy
+                                        </a>.
+                                    </p>
+                                </label>
+                            </div>
                         </div>
 
-                        {/* Submit */}
+                        {/* Submit Button */}
                         <button
                             type="submit"
                             disabled={loading || !agreeTerms || !bookingSummary || !hasAdultGuest}
-                            className={`w-full text-white py-4 rounded-lg transition font-medium shadow-lg flex items-center justify-center bg-gradient-to-r from-teal-600 to-teal-700 
-                                ${!hasAdultGuest ? 'cursor-not-allowed opacity-70' : 'hover:from-teal-700 hover:to-teal-800'}`}
+                            className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-xl
+                        ${!hasAdultGuest || loading || !agreeTerms || !bookingSummary
+                                    ? 'bg-gradient-to-r from-gray-700 to-gray-800 cursor-not-allowed opacity-70'
+                                    : 'bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98]'
+                                }`}
                         >
                             {loading ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Processing...
-                                </>
-                            ) :(
-                                "Request a Booking"
+                                <div className="flex items-center justify-center gap-3">
+                                    <Loader2 className="w-6 h-6 animate-spin" />
+                                    <span>Processing Your Request...</span>
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-center gap-3">
+                                    <CreditCard className="w-5 h-5" />
+                                    <span>Request Booking</span>
+                                </div>
                             )}
                         </button>
                     </form>
-
-                    <GuestDetailsModal
-                        isOpen={showGuestModal}
-                        guestCount={formData.guests}
-                        initialData={
-                            formData.editIndex !== undefined
-                                ? guestsInfo[formData.editIndex]
-                                : null
-                        }
-                        onClose={() => {
-                            setShowGuestModal(false);
-                            setFormData({ ...formData, editIndex: undefined });
-                        }}
-                        onSave={(data) => {
-                            if (formData.editIndex !== undefined) {
-                                const updated = [...guestsInfo];
-                                updated[formData.editIndex] = data;
-                                setGuestsInfo(updated);
-                                setFormData({ ...formData, guests: updated.length, editIndex: undefined });
-                            } else {
-                                const updated = [...guestsInfo, data];
-                                setGuestsInfo(updated);
-                                setFormData({ ...formData, guests: updated.length });
-                            }
-                            setShowGuestModal(false);
-                        }}
-
-                    />
-
-
                 </div>
-            </div>
 
-            <VerificationModal
-                loadCallender={loadCallender}
-                setLoadCallender={setLoadCallender}
-                isOpen={showVerificationModal}
-                onClose={() => setShowVerificationModal(false)}
-                onConfirm={handleConfirmBooking}
-                loading={loading}
-                bookingId={id}
-            />
-            {/* <FeedbackModal
-                isOpen={showFeedbackModal}
-                onClose={() => {
-                    setShowFeedbackModal(false);
-                    router.push(`/dashboard`);
-                }}
-                bookingId={id}
-            /> */}
+                {/* Modals */}
+                <GuestDetailsModal
+                    isOpen={showGuestModal}
+                    guestCount={formData.guests}
+                    initialData={
+                        formData.editIndex !== undefined
+                            ? guestsInfo[formData.editIndex]
+                            : null
+                    }
+                    onClose={() => {
+                        setShowGuestModal(false);
+                        setFormData({ ...formData, editIndex: undefined });
+                    }}
+                    onSave={(data) => {
+                        if (formData.editIndex !== undefined) {
+                            const updated = [...guestsInfo];
+                            updated[formData.editIndex] = data;
+                            setGuestsInfo(updated);
+                            setFormData({ ...formData, guests: updated.length, editIndex: undefined });
+                        } else {
+                            const updated = [...guestsInfo, data];
+                            setGuestsInfo(updated);
+                            setFormData({ ...formData, guests: updated.length });
+                        }
+                        setShowGuestModal(false);
+                    }}
+                />
+
+                <VerificationModal
+                    loadCallender={loadCallender}
+                    setLoadCallender={setLoadCallender}
+                    isOpen={showVerificationModal}
+                    onClose={() => setShowVerificationModal(false)}
+                    onConfirm={handleConfirmBooking}
+                    loading={loading}
+                    bookingId={id}
+                />
+            </div>
         </section>
     );
 }

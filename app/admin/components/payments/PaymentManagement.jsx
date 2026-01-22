@@ -139,10 +139,49 @@ const PaymentManagement = () => {
         return payments.filter(payment =>
             payment.user_name?.toLowerCase().includes(filters.search.toLowerCase()) ||
             payment.apartment_title?.toLowerCase().includes(filters.search.toLowerCase()) ||
-            payment.razorpay_payment_id?.toLowerCase().includes(filters.search.toLowerCase())
+            payment.razorpay_payment_id?.toLowerCase().includes(filters.search.toLowerCase()) ||
+            payment.id?.toString() === filters.search ||
+            payment.refund_id?.toLowerCase().includes(filters.search.toLowerCase())
         );
     }, [payments, filters.search]);
 
+    const handleRefund = async (refundData) => {
+        try {
+            const response = await fetch('/api/admin/payments/refund', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(refundData),
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Refund failed');
+            }
+
+            const result = await response.json();
+
+            // Update local state
+            setPayments(prevPayments =>
+                prevPayments.map(payment =>
+                    payment.id === refundData.paymentId
+                        ? { ...payment, status: 'refunded' }
+                        : payment
+                )
+            );
+
+            // Show success message
+            alert(result.message || 'Refund processed successfully');
+
+            return result;
+        } catch (error) {
+            console.error('Refund error:', error);
+            throw error;
+        }
+    };
+    
     if (loading && payments.length === 0) {
         return <LoadingSpinner />;
     }
@@ -183,7 +222,9 @@ const PaymentManagement = () => {
                     loading={loading}
                     filters={filters}
                     onViewDetails={setPaymentDetails}
+                    onRefund={handleRefund}
                 />
+
             </Suspense>
 
             {/* Modal - Only load when needed */}
