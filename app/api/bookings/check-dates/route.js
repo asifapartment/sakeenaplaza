@@ -4,9 +4,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
-
     try {
-        // Extract token from cookies
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
 
@@ -17,7 +15,6 @@ export async function POST(request) {
             );
         }
 
-        // ✅ Verify JWT
         const { valid, decoded, error } = verifyToken(token);
         if (!valid) {
             return NextResponse.json(
@@ -26,14 +23,28 @@ export async function POST(request) {
             );
         }
 
+        // 🔥 STEP 1: Expire stale bookings
+        await query(
+            `
+            UPDATE bookings
+            SET status = 'expired',
+                expired_at = NOW()
+            WHERE status IN ('pending', 'confirmed', 'ongoing')
+              AND expires_at IS NOT NULL
+              AND expires_at <= NOW();
+            `
+        );
+
         const body = await request.json();
-        const {checkin, checkout, apartment_id} = body;
+        const { checkin, checkout, apartment_id } = body;
+
         if (!checkin || !checkout) {
             return NextResponse.json(
                 { error: "Check-in and Check-out dates are required" },
                 { status: 400 }
             );
         }
+
         if (!apartment_id) {
             return NextResponse.json(
                 { error: "Apartment ID is required" },
@@ -41,23 +52,22 @@ export async function POST(request) {
             );
         }
 
+        // 🔎 STEP 2: Conflict check
         const [{ hasConflict }] = await query(
             `
             SELECT EXISTS (
                 SELECT 1
                 FROM bookings
                 WHERE apartment_id = ?
-                AND status IN ('confirmed', 'ongoing', 'pending')
-                AND start_date < ?
-                AND end_date > ?
+                  AND status IN ('confirmed', 'ongoing', 'pending')
+                  AND start_date < ?
+                  AND end_date > ?
             ) AS hasConflict
             `,
             [apartment_id, checkout, checkin]
         );
 
-        const conflict = Number(hasConflict);
-
-        if (conflict === 1) {
+        if (Number(hasConflict) === 1) {
             return NextResponse.json(
                 { success: false, message: 'Apartment not available for selected dates' },
                 { status: 409 }
@@ -65,8 +75,9 @@ export async function POST(request) {
         }
 
         return NextResponse.json({ success: true }, { status: 200 });
+
     } catch (error) {
-        console.error('Error processing feedback:', error);
+        console.error('Booking availability error:', error);
         return NextResponse.json(
             { success: false, message: 'Internal server error' },
             { status: 500 }

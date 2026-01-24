@@ -121,7 +121,7 @@ export async function GET(req) {
             query("SELECT COUNT(*) AS totalUsers FROM users"),
             query("SELECT COUNT(*) AS totalBookings FROM bookings"),
             query("SELECT COUNT(*) AS totalPayments FROM payments"),
-            query("SELECT IFNULL(SUM(amount),0) AS totalRevenue FROM payments WHERE status IN ('paid','refunded')"),
+            query("SELECT IFNULL(SUM(amount),0) AS totalRevenue FROM payments WHERE status IN ('paid','refunded') "),
             query("SELECT COUNT(*) AS pendingBookings FROM bookings WHERE status = 'pending'"),
             query("SELECT COUNT(*) AS confirmedBookings FROM bookings WHERE status = 'confirmed'"),
             query("SELECT COUNT(*) AS cancelledBookings FROM bookings WHERE status = 'cancelled'"),
