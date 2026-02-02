@@ -1,6 +1,5 @@
-// app/api/calendar-booked-dates/route.js
-import { NextResponse } from 'next/server';
-import { query } from '@/lib/mysql-wrapper';
+import { query } from "@/lib/mysql-wrapper";
+import { NextResponse } from "next/server";
 
 export async function POST(req) {
     try {
@@ -8,91 +7,76 @@ export async function POST(req) {
 
         if (!apartment_id) {
             return NextResponse.json(
-                { error: 'Apartment ID is required' },
+                { error: "Apartment ID required" },
                 { status: 400 }
             );
         }
 
-        // Get all bookings (confirmed, ongoing, and pending that haven't expired)
         const bookings = await query(`
-            SELECT 
-                start_date,
-                end_date,
-                status
+            SELECT start_date, end_date
             FROM bookings
             WHERE apartment_id = ?
-            AND (
-                status IN ('confirmed', 'ongoing')
-                OR (status = 'pending' AND expires_at > NOW())
-            )
-            AND end_date > CURDATE()
+            AND status IN ('confirmed','ongoing','pending')
+            AND end_date >= CURDATE()
             ORDER BY start_date ASC
         `, [apartment_id]);
 
-        // Convert to Date objects and create date ranges
-        const disabledRanges = bookings.map(booking => {
-            const from = new Date(booking.start_date);
-            const to = new Date(booking.end_date);
+        const blockedSet = new Set();
 
-            // Important: checkout day is NOT occupied
-            to.setDate(to.getDate() - 1);
+        const checkins = new Set();
+        const checkouts = new Set();
 
-            // For single day bookings
-            if (to < from) {
-                return { from, to: from };
+        // helper: local YYYY-MM-DD (no UTC shift)
+        const localDate = d => d.toLocaleDateString("en-CA");
+
+        for (const b of bookings) {
+
+            const start = new Date(b.start_date);
+            const end = new Date(b.end_date);
+
+            start.setHours(0, 0, 0, 0);
+            end.setHours(0, 0, 0, 0);
+
+            const startStr = localDate(start);
+            const endStr = localDate(end);
+
+            checkins.add(startStr);
+            checkouts.add(endStr);
+
+            let night = new Date(start);
+
+            // block occupied nights (hotel style)
+            while (night < end) {
+                blockedSet.add(localDate(night));
+                night.setDate(night.getDate() + 1);
             }
+        }
 
-            return { from, to };
-        }).filter(Boolean); // Remove any null entries
-
-        // Also create individual booked dates for highlighting
-        const bookedDates = [];
-        bookings.forEach(booking => {
-            const start = new Date(booking.start_date);
-            const end = new Date(booking.end_date);
-            const current = new Date(start);
-
-            // Add all dates in the booking range (except checkout day)
-            while (current < end) {
-                bookedDates.push(new Date(current));
-                current.setDate(current.getDate() + 1);
+        // block touching boundaries (no same-day turnover)
+        for (const d of checkins) {
+            if (checkouts.has(d)) {
+                blockedSet.add(d);
             }
-        });
+        }
 
-        // Remove duplicate dates
-        const uniqueBookedDates = [...new Set(bookedDates.map(d =>
-            d.toISOString().split('T')[0]
-        ))].map(dateStr => new Date(dateStr));
+        const blockedDates = [...blockedSet].sort();
 
         return NextResponse.json({
             success: true,
             data: {
-                // Array of individual booked dates for highlighting
-                bookedDates: uniqueBookedDates,
-
-                // Array of ranges for DayPicker disabled prop
-                disabledRanges: disabledRanges,
-
-                // Simple stats
-                stats: {
-                    totalBookings: bookings.length,
-                    bookedDays: uniqueBookedDates.length,
-                    dateRange: {
-                        from: bookings[0]?.start_date || 'No bookings',
-                        to: bookings[bookings.length - 1]?.end_date || 'No bookings'
-                    }
+                blockedDates,
+                totalBlocked: blockedDates.length,
+                range: {
+                    from: blockedDates[0] || null,
+                    to: blockedDates[blockedDates.length - 1] || null
                 }
             }
         });
 
-    } catch (error) {
-        console.error('Error fetching booked dates:', error);
+    } catch (err) {
+        console.error(err);
         return NextResponse.json(
-            {
-                success: false,
-                error: 'Failed to fetch booked dates',
-                message: error.message
-            },
+            { success: false, error: "Calendar fetch failed" },
             { status: 500 }
         );
     }
