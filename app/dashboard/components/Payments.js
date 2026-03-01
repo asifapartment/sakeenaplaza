@@ -365,75 +365,54 @@ export default function Payments() {
             setCurrentAction(action);
             setCurrentPaymentId(paymentId);
 
+            const url = `/api/test-receipt/${paymentId}`;
+
+            /* ================================
+               ✅ VIEW RECEIPT (NO FETCH)
+               ================================ */
             if (action === 'view') {
                 setReceiptLoading(true);
-            } else if (action === 'download') {
+
+                // Directly load API URL into iframe
+                setReceiptHTML(url);
+                setShowReceiptModal(true);
+
+                setReceiptLoading(false);
+                return;
+            }
+
+            /* ================================
+               ✅ DOWNLOAD RECEIPT (FETCH NEEDED)
+               ================================ */
+            if (action === 'download') {
                 setDownloadLoading(true);
-            }
 
-            const url = `/api/test-receipt/${paymentId}`;
-            console.log('📡 Fetching from URL:', url);
+                console.log('📡 Fetching for download:', url);
 
-            const res = await fetch(url);
-            console.log('📡 Response status:', res.status);
+                const res = await fetch(url);
 
-            if (!res.ok) {
-                throw new Error(`Failed to fetch receipt (${res.status})`);
-            }
+                if (!res.ok) {
+                    throw new Error(`Failed to fetch receipt (${res.status})`);
+                }
 
-            const contentType = res.headers.get('content-type');
-            console.log('📄 Content-Type:', contentType);
+                const pdfBlob = await res.blob();
 
-            if (!contentType || !contentType.includes('pdf')) {
-                throw new Error('Invalid response format: Expected PDF');
-            }
+                if (!pdfBlob || pdfBlob.size === 0) {
+                    throw new Error('Received empty receipt');
+                }
 
-            const pdfBlob = await res.blob();
-            console.log('📦 Blob received:', {
-                size: pdfBlob.size,
-                type: pdfBlob.type
-            });
+                const blobUrl = URL.createObjectURL(pdfBlob);
 
-            if (pdfBlob.size === 0) {
-                throw new Error('Received empty receipt');
-            }
-
-            if (action === 'view') {
-                // SOLUTION 1: Convert blob to data URL (more reliable than blob URL)
-                const reader = new FileReader();
-                reader.onload = function () {
-                    const dataUrl = reader.result;
-                    console.log('✅ Data URL created, length:', dataUrl.length);
-
-                    // Store the data URL
-                    setReceiptHTML(dataUrl);
-
-                    // Show modal
-                    setShowReceiptModal(true);
-                    setReceiptLoading(false);
-                };
-                reader.onerror = function (error) {
-                    console.error('❌ FileReader error:', error);
-                    throw new Error('Failed to read PDF data');
-                };
-                reader.readAsDataURL(pdfBlob);
-
-            } else if (action === 'download') {
-                // Download logic remains the same
-                const downloadUrl = URL.createObjectURL(pdfBlob);
                 const a = document.createElement('a');
-                a.href = downloadUrl;
-                a.download = `receipt-${paymentId}-${Date.now()}.pdf`;
+                a.href = blobUrl;
+                a.download = `receipt-${paymentId}.pdf`;
                 document.body.appendChild(a);
                 a.click();
 
-                setTimeout(() => {
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(downloadUrl);
-                }, 100);
+                a.remove();
+                URL.revokeObjectURL(blobUrl);
 
                 setDownloadLoading(false);
-                console.log('✅ Download completed');
             }
 
         } catch (error) {
@@ -631,87 +610,102 @@ export default function Payments() {
                 </div>
             )}
 
-            {/* Receipt Modal - Enhanced version */}
+            {/* Receipt Modal */}
             {showReceiptModal && (
                 <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
                     <div className="relative bg-gradient-to-br from-neutral-900 to-neutral-950 rounded-2xl shadow-2xl shadow-black/50 w-full max-w-4xl h-[85vh] overflow-hidden border border-neutral-700/50">
-                        {/* Modal Header */}
+
+                        {/* ---------------- Header ---------------- */}
                         <div className="flex items-center justify-between p-5 border-b border-neutral-700/50 bg-neutral-900/50">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 rounded-lg bg-gradient-to-br from-teal-500/10 to-teal-400/5">
                                     <FontAwesomeIcon icon={faReceipt} className="text-teal-400" />
                                 </div>
+
                                 <div>
-                                    <h3 className="text-lg font-semibold text-neutral-100">Payment Receipt</h3>
-                                    <p className="text-sm text-neutral-400">Payment ID: {currentPaymentId}</p>
+                                    <h3 className="text-lg font-semibold text-neutral-100">
+                                        Payment Receipt
+                                    </h3>
+                                    <p className="text-sm text-neutral-400">
+                                        Payment ID: {currentPaymentId}
+                                    </p>
                                 </div>
                             </div>
+
                             <div className="flex items-center gap-2">
-                                {/* Add download button in modal */}
+
+                                {/* -------- Download PDF -------- */}
                                 <button
                                     onClick={async () => {
-                                        // Re-fetch for download
-                                        const res = await fetch(`/api/test-receipt/${currentPaymentId}`);
-                                        const blob = await res.blob();
-                                        const url = URL.createObjectURL(blob);
-                                        const a = document.createElement('a');
-                                        a.href = url;
-                                        a.download = `receipt-${currentPaymentId}.pdf`;
-                                        a.click();
-                                        URL.revokeObjectURL(url);
+                                        try {
+                                            const res = await fetch(
+                                                `/api/test-receipt/${currentPaymentId}`
+                                            );
+
+                                            if (!res.ok) throw new Error("Download failed");
+
+                                            const blob = await res.blob();
+                                            const url = window.URL.createObjectURL(blob);
+
+                                            const a = document.createElement("a");
+                                            a.href = url;
+                                            a.download = `receipt-${currentPaymentId}.pdf`;
+                                            document.body.appendChild(a);
+                                            a.click();
+                                            a.remove();
+
+                                            // revoke AFTER download
+                                            setTimeout(() => URL.revokeObjectURL(url), 2000);
+                                        } catch (err) {
+                                            console.error(err);
+                                            alert("Failed to download receipt");
+                                        }
                                     }}
                                     className="p-2 rounded-xl hover:bg-neutral-800/50 transition-colors border border-neutral-700/50"
                                     title="Download PDF"
                                 >
-                                    <FontAwesomeIcon icon={faDownload} className="text-neutral-400 hover:text-teal-400" />
+                                    <FontAwesomeIcon
+                                        icon={faDownload}
+                                        className="text-neutral-400 hover:text-teal-400"
+                                    />
                                 </button>
+
+                                {/* -------- Close Modal -------- */}
                                 <button
                                     className="p-2 rounded-xl hover:bg-neutral-800/50 transition-colors border border-neutral-700/50"
                                     onClick={() => {
                                         setShowReceiptModal(false);
-                                        if (receiptHTML) {
-                                            // Clean up if it's a blob URL
-                                            if (receiptHTML.startsWith('blob:')) {
-                                                URL.revokeObjectURL(receiptHTML);
-                                            }
-                                            setReceiptHTML('');
+
+                                        // safely revoke blob url
+                                        if (receiptHTML?.startsWith("blob:")) {
+                                            URL.revokeObjectURL(receiptHTML);
                                         }
-                                        setCurrentPaymentId('');
+
+                                        setReceiptHTML("");
+                                        setCurrentPaymentId("");
                                     }}
                                 >
-                                    <FontAwesomeIcon icon={faTimesCircle} className="text-neutral-400 hover:text-rose-400" />
+                                    <FontAwesomeIcon
+                                        icon={faTimesCircle}
+                                        className="text-neutral-400 hover:text-rose-400"
+                                    />
                                 </button>
                             </div>
                         </div>
 
-                        {/* PDF Display - Multiple fallback options */}
+                        {/* ---------------- PDF Viewer ---------------- */}
                         <div className="w-full h-[calc(100%-80px)] bg-neutral-800/30">
-                            {receiptHTML && (
-                                <>
-                                    {/* Try embed first (most reliable) */}
-                                    <embed
-                                        src={receiptHTML}
-                                        type="application/pdf"
-                                        className="w-full h-full"
-                                        style={{ border: 'none' }}
-                                    />
-
-                                    {/* Fallback message if embed fails */}
-                                    <div className="hidden only:flex flex-col items-center justify-center h-full">
-                                        <p className="text-neutral-400 mb-4">PDF cannot be displayed directly.</p>
-                                        <button
-                                            onClick={async () => {
-                                                const res = await fetch(`/api/test-receipt/${currentPaymentId}`);
-                                                const blob = await res.blob();
-                                                const url = URL.createObjectURL(blob);
-                                                window.open(url, '_blank');
-                                            }}
-                                            className="px-4 py-2 bg-gradient-to-r from-teal-600 to-teal-500 text-white rounded-lg"
-                                        >
-                                            Open in New Tab
-                                        </button>
-                                    </div>
-                                </>
+                            {receiptHTML ? (
+                                <iframe
+                                    key={receiptHTML}
+                                    src={receiptHTML}
+                                    title="Receipt PDF"
+                                    className="w-full h-full"
+                                />
+                            ) : (
+                                <div className="flex flex-col items-center justify-center h-full text-neutral-400">
+                                    Loading receipt...
+                                </div>
                             )}
                         </div>
                     </div>

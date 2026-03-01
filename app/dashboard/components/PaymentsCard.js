@@ -234,7 +234,7 @@ export default function PaymentCard({
             {/* Action Buttons - Compact */}
             <div className="relative flex gap-2">
                 <button
-                    onClick={() => onViewReceipt(paymentId)}
+                    onClick={() => onViewReceipt(paymentId, 'view')}
                     disabled={isViewActionLoading || isDownloadActionLoading}
                     className="flex-1 px-3 py-2 bg-neutral-800/50 hover:bg-neutral-700/50 text-neutral-200 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 border border-neutral-700/50 hover:border-teal-500/30 hover:text-teal-100 group/btn disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -247,7 +247,7 @@ export default function PaymentCard({
                 </button>
 
                 <button
-                    onClick={() => onDownloadReceipt(paymentId)}
+                    onClick={() => onDownloadReceipt(paymentId, 'download')}
                     disabled={isViewActionLoading || isDownloadActionLoading}
                     className="flex-1 px-3 py-2 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white rounded-lg text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 border border-teal-500/50 hover:border-teal-400 group/btn disabled:opacity-50 disabled:cursor-not-allowed"
                 >

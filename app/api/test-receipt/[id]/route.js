@@ -110,11 +110,15 @@ export async function GET(req, { params }) {
 
     await browser.close();
 
-    return new NextResponse(pdfBuffer, {
+    const uint8 = new Uint8Array(pdfBuffer);
+
+    return new Response(uint8, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
+        "Content-Length": uint8.length.toString(),
         "Content-Disposition": `inline; filename=receipt-${id}.pdf`,
+        "Cache-Control": "no-store",
       },
     });
   } catch (err) {
