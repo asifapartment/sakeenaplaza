@@ -69,7 +69,7 @@ export async function GET(req, { params }) {
     if (data.user_id !== userId)
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
-    if (data.paymentStatus !== "paid")
+    if (!data.paymentStatus)
       return NextResponse.json({ error: "Payment not completed" }, { status: 403 });
 
     // 🌍 Detect environment

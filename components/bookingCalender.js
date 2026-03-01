@@ -321,7 +321,7 @@ export default function BookingCalendar({
         const nights = getNights();
 
         return (
-            <div className="mb-6 p-4 bg-gradient-to-r from-blue-500/10 to-blue-600/10 border border-blue-500/20 rounded-xl">
+            <div className="p-4 bg-gradient-to-r from-blue-500/10 to-blue-600/10 border border-blue-500/20 rounded-xl">
                 <p className="text-sm font-medium text-neutral-300 mb-2">Selected Dates</p>
                 <div className="flex items-center justify-between">
                     <div className="text-center">
@@ -360,9 +360,6 @@ export default function BookingCalendar({
 
             {/* Legend */}
             {bookedDates.length > 0 && <CalendarLegend />}
-
-            {/* Selected dates */}
-            {formData.checkin && formData.checkout && <SelectedDatesDisplay />}
 
             {/* Calendar Container */}
             <div
@@ -418,6 +415,9 @@ export default function BookingCalendar({
 
                 )}
             </div>
+
+            {/* Selected dates */}
+            {formData.checkin && formData.checkout && <SelectedDatesDisplay />}
 
             <BookingConflictModal
                 open={showConflictModal}

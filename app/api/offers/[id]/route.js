@@ -15,7 +15,7 @@ export async function DELETE(request, { params }) {
             return NextResponse.json({ error: adminCheck.error }, { status: 401 });
         }
 
-        const { id } = params;
+        const { id } = await params;
 
         // Soft delete (set is_active = false)
         const [result] = await pool.query(

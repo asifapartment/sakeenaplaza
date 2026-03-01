@@ -11,11 +11,18 @@ import {
     faMessage,
     faStar,
     faInfoCircle,
-    faCommentDots
+    faCommentDots,
+    faClock,
+    faChevronRight,
+    faEllipsisVertical,
+    faXmark
 } from "@fortawesome/free-solid-svg-icons";
+import TimeAgo from "react-timeago";
+import { serverToClientTime } from "@/lib/TimeCoverter";
 
 export default function NotificationItem({ item, refresh }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showActions, setShowActions] = useState(false);
 
     const iconMap = {
         booking: faBell,
@@ -30,7 +37,6 @@ export default function NotificationItem({ item, refresh }) {
     const markAsRead = async () => {
         await fetch(`/api/admin/notifications/read?id=${item.id}`, {
             method: "PUT",
-            cache: "no-store",
         });
         refresh();
     };
@@ -38,16 +44,40 @@ export default function NotificationItem({ item, refresh }) {
     const handleDelete = async () => {
         await fetch(`/api/admin/notifications/delete?id=${item.id}`, {
             method: "DELETE",
-            cache: "no-store",
         });
-
         setShowDeleteModal(false);
         refresh();
     };
 
+    const formatTime = (date) => {
+        const now = new Date();
+        const diffMs = now - new Date(date);
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 60) {
+            return `${diffMins}m ago`;
+        } else if (diffHours < 24) {
+            return `${diffHours}h ago`;
+        } else if (diffDays === 1) {
+            return "Yesterday";
+        } else if (diffDays < 7) {
+            return `${diffDays}d ago`;
+        }
+        return new Date(date).toLocaleDateString();
+    };
+
+    const getTypeStyle = () => {
+        const base = "px-2.5 py-1 rounded-md text-xs font-medium border ";
+        if (item.is_read) {
+            return base + "bg-neutral-800 text-neutral-300 border-neutral-700";
+        }
+        return base + "bg-neutral-900 text-neutral-100 border-neutral-600";
+    };
+
     return (
         <>
-            {/* Vercel-style Delete Modal */}
             <DeleteModal
                 open={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}
@@ -55,108 +85,201 @@ export default function NotificationItem({ item, refresh }) {
             />
 
             <div
-                className={`flex items-start justify-between p-4 rounded-xl 
-                border backdrop-blur-xl shadow-md transition-all duration-200
-                ${item.is_read
-                        ? "border-neutral-700 bg-[#111111]/50"
-                    : "border-neutral-500 bg-neutral-900/10 shadow-neutral-200/10"
+                className={`group relative flex items-start justify-between p-5 rounded-xl
+                    border transition-all duration-200
+                    ${item.is_read
+                        ? "border-neutral-800 bg-neutral-900/50"
+                        : "border-neutral-700 bg-neutral-950 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]"
                     }
-                hover:scale-[1.01]
-            `}
+                    hover:bg-neutral-900 hover:border-neutral-600
+                `}
             >
-                <div className="flex gap-4 justify-start items-center">
+                {/* Unread indicator */}
+                {!item.is_read && (
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-neutral-100" />
+                )}
+
+                <div className="flex gap-4 items-start w-full pl-2">
                     {/* Icon */}
                     <div className={`
-                        w-11 h-11 flex items-center justify-center rounded-full 
-                        ${item.is_read ? "bg-neutral-800" : "bg-neutral-500/20"}
+                        w-10 h-10 flex items-center justify-center rounded-lg
+                        ${item.is_read
+                            ? "bg-neutral-800 border-neutral-700"
+                            : "bg-neutral-900 border-neutral-600"
+                        }
+                        border
                     `}>
                         <FontAwesomeIcon
                             icon={iconMap[item.type] || iconMap.default}
-                            className="text-neutral-400 text-xl"
+                            className={`text-lg ${item.is_read ? "text-neutral-400" : "text-neutral-200"}`}
                         />
                     </div>
 
                     {/* Content */}
-                    <div>
-                        <h3 className="font-semibold text-white text-md flex items-center gap-2">
-                            {item.title}
-                            {!item.is_read && (
-                                <span className="text-blue-400 text-xs px-2 py-0.5 rounded-full border border-blue-400">
-                                    NEW
-                                </span>
-                            )}
-                        </h3>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between mb-2">
+                            <div>
+                                <h3 className="font-medium text-neutral-100 text-base flex items-center gap-2 mb-1">
+                                    {item.title}
+                                    {!item.is_read && (
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-200 border border-neutral-700">
+                                            NEW
+                                        </span>
+                                    )}
+                                </h3>
+                                <p className="text-neutral-400 text-sm">
+                                    {item.content}
+                                </p>
+                            </div>
 
-                        <p className="text-neutral-300 mt-1 leading-relaxed text-sm">
-                            {item.content}
-                        </p>
-                    </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex flex-col">
-                    <div className="flex gap-2 justify-end">
-                        {!item.is_read && (
+                            {/* Actions dropdown trigger */}
                             <button
-                                onClick={markAsRead}
-                                className="
-                                flex items-center gap-2 px-3 py-1.5 rounded-lg
-                                bg-green-600/20 border border-green-700 text-green-400
-                                text-sm
-                                hover:bg-green-600/30 transition-all duration-150
-                            "
+                                onClick={() => setShowActions(!showActions)}
+                                className="p-1.5 rounded hover:bg-neutral-800 transition"
                             >
-                                <FontAwesomeIcon icon={faCheckCircle} />
-                                Mark Read
+                                <FontAwesomeIcon
+                                    icon={faEllipsisVertical}
+                                    className="text-neutral-400 text-sm"
+                                />
                             </button>
-                        )}
-                        <button
-                            onClick={() => setShowDeleteModal(true)}
-                            className="
-                            flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm
-                            bg-red-600/20 border border-red-700 text-red-400
-                            hover:bg-red-600/30 transition-all duration-150
-                        "
-                        >
-                            <FontAwesomeIcon icon={faTrash} />
-                            Delete
-                        </button>
-                    </div>
-                    
-                    <div className="text-xs text-neutral-500 mt-1">
-                        {item.type.toUpperCase()} •{" "}
-                        {new Date(item.created_at).toLocaleString()}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="flex items-center justify-between mt-4 pt-3 border-t border-neutral-800">
+                            <div className="flex items-center gap-3">
+                                <span className={getTypeStyle()}>
+                                    {item.type.toUpperCase()}
+                                </span>
+
+                                <div className="flex items-center gap-1 text-xs text-neutral-500">
+                                    <FontAwesomeIcon icon={faClock} className="text-[10px]" />
+                                    <span><TimeAgo date={serverToClientTime(item.created_at)}/></span>
+                                </div>
+                            </div>
+
+                            {/* Desktop action buttons */}
+                            <div className={`flex items-center gap-2 ${showActions ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                                {!item.is_read && (
+                                    <button
+                                        onClick={markAsRead}
+                                        className="
+                                            flex items-center gap-2 px-3 py-1.5 rounded text-xs
+                                            bg-neutral-800 text-neutral-200 border border-neutral-700
+                                            hover:bg-neutral-700 hover:border-neutral-600
+                                            transition-colors
+                                        "
+                                    >
+                                        <FontAwesomeIcon icon={faCheckCircle} />
+                                        Mark Read
+                                    </button>
+                                )}
+
+                                <button
+                                    onClick={() => setShowDeleteModal(true)}
+                                    className="
+                                        flex items-center gap-2 px-3 py-1.5 rounded text-xs
+                                        bg-neutral-800 text-neutral-200 border border-neutral-700
+                                        hover:bg-neutral-700 hover:border-neutral-600
+                                        transition-colors
+                                    "
+                                >
+                                    <FontAwesomeIcon icon={faTrash} />
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                {/* Mobile dropdown actions */}
+                {showActions && (
+                    <div className="absolute right-3 top-12 mt-1 w-48 bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl z-10">
+                        <div className="p-1.5">
+                            {!item.is_read && (
+                                <button
+                                    onClick={() => {
+                                        markAsRead();
+                                        setShowActions(false);
+                                    }}
+                                    className="w-full text-left px-3 py-2.5 rounded hover:bg-neutral-800 text-sm text-neutral-200 flex items-center gap-3"
+                                >
+                                    <FontAwesomeIcon icon={faCheckCircle} className="text-neutral-300" />
+                                    Mark as Read
+                                </button>
+                            )}
+                            <button
+                                onClick={() => {
+                                    setShowDeleteModal(true);
+                                    setShowActions(false);
+                                }}
+                                className="w-full text-left px-3 py-2.5 rounded hover:bg-neutral-800 text-sm text-neutral-200 flex items-center gap-3"
+                            >
+                                <FontAwesomeIcon icon={faTrash} />
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </>
     );
 }
 
-/* Modal Component */
+/* Minimal Dark Modal Component */
 function DeleteModal({ open, onClose, onConfirm }) {
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-            <div className="bg-[#111111] border border-gray-800 rounded-xl p-6 w-[380px] shadow-2xl animate-scaleIn">
-                <h2 className="text-white font-semibold text-lg mb-2">Delete Notification?</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div
+                className="absolute inset-0 bg-neutral-950/90"
+                onClick={onClose}
+            />
 
-                <p className="text-gray-400 text-sm mb-5">
-                    Are you sure you want to delete this notification? This action cannot be undone.
-                </p>
-
-                <div className="flex justify-end gap-3">
+            {/* Modal */}
+            <div className="relative bg-neutral-900 border border-neutral-800 rounded-lg w-full max-w-md shadow-2xl">
+                {/* Modal Header */}
+                <div className="flex items-center justify-between p-4 border-b border-neutral-800">
+                    <h2 className="font-medium text-neutral-100">
+                        Delete notification
+                    </h2>
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 transition"
+                        className="p-1.5 rounded hover:bg-neutral-800 transition"
+                    >
+                        <FontAwesomeIcon icon={faXmark} className="text-neutral-400" />
+                    </button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-4 border-b border-neutral-800">
+                    <p className="text-neutral-400 text-sm">
+                        Are you sure you want to delete this notification? This action cannot be undone.
+                    </p>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="flex items-center justify-end gap-2 p-4">
+                    <button
+                        onClick={onClose}
+                        className="
+                            px-4 py-2 rounded text-sm
+                            bg-neutral-800 text-neutral-200 border border-neutral-700
+                            hover:bg-neutral-700 hover:border-neutral-600
+                            transition-colors
+                        "
                     >
                         Cancel
                     </button>
-
                     <button
                         onClick={onConfirm}
-                        className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+                        className="
+                            px-4 py-2 rounded text-sm
+                            bg-neutral-900 text-neutral-100 border border-neutral-800
+                            hover:bg-neutral-800 hover:border-neutral-700
+                            transition-colors
+                        "
                     >
                         Delete
                     </button>

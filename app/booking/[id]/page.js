@@ -3,8 +3,6 @@ import dynamic from "next/dynamic";
 import Header from "@/components/Header";
 import ReviewSection from "@/components/Review";
 import Footer from "@/app/components/Footer";
-import Image from "next/image";
-import Script from "next/script";
 import Head from "next/head";
 // ⚡ Dynamic imports with proper fallbacks
 const GallerySection = dynamic(() => import("@/components/galery1"), {

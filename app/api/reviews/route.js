@@ -1,27 +1,35 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/mysql-wrapper";
 import { verifyToken } from "@/lib/jwt";
+import { parseCookies } from "@/lib/cookies";
 import { createNotification } from "@/lib/notification-service";
-import { cookies } from "next/headers";
 
 export async function GET(req) {
     try {
         const { searchParams } = new URL(req.url);
-
         const apartmentId = searchParams.get("apartmentId");
 
         // Extract token from cookies
-        const token = req.cookies.get("token")?.value;
+        const cookies = parseCookies(req.headers.get("cookie"));
+        const token = cookies?.token;
 
         let userIdFromToken = null;
+
         if (token) {
-            const decoded = await verifyToken(token);
-            userIdFromToken = decoded?.id;
+            const { valid, decoded } = verifyToken(token);
+            if (valid) {
+                userIdFromToken = decoded.id;
+            }
         }
 
+        console.log(
+            "GET reviews",
+            { apartmentId, userIdFromToken }
+        );
+
         /* ───────────────────────────
-              GET REVIEWS BY APARTMENT
-           ─────────────────────────── */
+           GET REVIEWS BY APARTMENT
+        ─────────────────────────── */
         if (apartmentId) {
             const reviews = await query(
                 `
@@ -47,8 +55,8 @@ export async function GET(req) {
         }
 
         /* ───────────────────────────
-            GET REVIEWS FOR LOGGED IN USER
-           ─────────────────────────── */
+           GET REVIEWS FOR LOGGED-IN USER
+        ─────────────────────────── */
         if (userIdFromToken) {
             const reviews = await query(
                 `
@@ -74,23 +82,28 @@ export async function GET(req) {
         }
 
         return NextResponse.json(
-            { error: "Unauthorized: token missing." },
+            { success: false, error: "Unauthorized" },
             { status: 401 }
         );
 
     } catch (err) {
         console.error("GET reviews error:", err);
-        return NextResponse.json({ error: "Server error" }, { status: 500 });
+        return NextResponse.json(
+            { success: false, error: "Server error" },
+            { status: 500 }
+        );
     }
 }
+
 
 
 
 /* ─────────────────────────────── POST (Submit review) ─────────────────────────────── */
 export async function POST(req) {
     try {
-        const cookieStore = await cookies();
-        const token =  cookieStore.get('token')?.value;
+        // Extract token from cookies
+        const cookies = parseCookies(req.headers.get("cookie"));
+        const token = cookies?.token;
         
         if (!token) {
             return NextResponse.json(

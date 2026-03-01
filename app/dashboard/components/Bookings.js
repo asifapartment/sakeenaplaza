@@ -1,216 +1,247 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faSearch,
     faFilter,
-    faEdit,
     faBan,
     faEnvelope,
-    faReceipt,
     faCreditCard,
     faTrash,
     faCalendar,
     faRupeeSign,
     faTimes,
     faCheck,
-    faExclamationTriangle
+    faExclamationTriangle,
+    faCalendarAlt,
+    faXmark
 } from '@fortawesome/free-solid-svg-icons';
 import FilterPills from './FilterPills';
-import Card from './Card';
-import { loadRazorpay, createRazorpayOrder } from '@/utils/razorpay' // Adjust path as needed
+import BookingCard from './BookingCard';
+import { loadRazorpay } from '@/utils/razorpay';
 import BookingInfoModal from './BookingInfoModal';
 
-const DEFAULT_DATA = { bookings: [] };
+// Skeleton Loading Component
+const BookingCardSkeleton = () => {
+    return (
+        <div className="relative bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-700/50 rounded-2xl p-5 animate-pulse">
+            {/* Status Badge Skeleton */}
+            <div className="flex items-center justify-between mb-4">
+                <div className="h-6 w-20 bg-neutral-700 rounded-full"></div>
+                <div className="h-8 w-8 bg-neutral-700 rounded-lg"></div>
+            </div>
 
-const getSafeData = (data) => {
-    if (!data || typeof data !== 'object') return DEFAULT_DATA;
-    return { bookings: Array.isArray(data.bookings) ? data.bookings : [] };
+            {/* Apartment Name Skeleton */}
+            <div className="h-6 w-3/4 bg-neutral-700 rounded-lg mb-2"></div>
+
+            {/* Guest Info Skeleton */}
+            <div className="space-y-3 mb-5">
+                <div className="flex items-center gap-2">
+                    <div className="h-4 w-4 bg-neutral-700 rounded"></div>
+                    <div className="h-4 w-32 bg-neutral-700 rounded"></div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="h-4 w-4 bg-neutral-700 rounded"></div>
+                    <div className="h-4 w-40 bg-neutral-700 rounded"></div>
+                </div>
+            </div>
+
+            {/* Date Section Skeleton */}
+            <div className="bg-neutral-800/50 rounded-xl p-4 mb-4 border border-neutral-700/30">
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <div className="h-3 w-16 bg-neutral-700 rounded mb-2"></div>
+                        <div className="h-4 w-28 bg-neutral-700 rounded"></div>
+                    </div>
+                    <div>
+                        <div className="h-3 w-16 bg-neutral-700 rounded mb-2"></div>
+                        <div className="h-4 w-28 bg-neutral-700 rounded"></div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Price Skeleton */}
+            <div className="flex items-center justify-between mb-4">
+                <div>
+                    <div className="h-3 w-20 bg-neutral-700 rounded mb-1"></div>
+                    <div className="h-5 w-24 bg-neutral-700 rounded"></div>
+                </div>
+                <div className="h-9 w-24 bg-neutral-700 rounded-lg"></div>
+            </div>
+
+            {/* Action Buttons Skeleton */}
+            <div className="flex gap-2">
+                <div className="flex-1 h-10 bg-neutral-700 rounded-xl"></div>
+                <div className="flex-1 h-10 bg-neutral-700 rounded-xl"></div>
+                <div className="w-10 h-10 bg-neutral-700 rounded-xl"></div>
+            </div>
+        </div>
+    );
+};
+
+// Skeleton for Search and Filter Bar
+const SearchFilterSkeleton = () => {
+    return (
+        <div className="flex flex-col lg:flex-row gap-4 mt-6 animate-pulse">
+            {/* Search Input Skeleton */}
+            <div className="flex-1">
+                <div className="w-full h-12 bg-neutral-800/50 rounded-xl"></div>
+            </div>
+
+            {/* Date Range Button Skeleton */}
+            <div className="w-40 h-12 bg-neutral-800/50 rounded-xl"></div>
+        </div>
+    );
+};
+
+// Skeleton for Filter Pills
+const FilterPillsSkeleton = () => {
+    return (
+        <div className="flex flex-wrap gap-2 mb-6 animate-pulse">
+            {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-9 w-20 bg-neutral-800/50 rounded-full"></div>
+            ))}
+        </div>
+    );
 };
 
 export default function Bookings() {
-    const [bookingsData, setBookingsData] = useState(DEFAULT_DATA);
+    const [bookings, setBookings] = useState([]);
     const [filter, setFilter] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
-    const [isModalOpen, setModalOpen] = useState(false);
-    const [selectedBooking, setSelectedBooking] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [showInfoModal, setShowInfoModal] = useState(false);
+    const [selectedBooking, setSelectedBooking] = useState(null);
+    const [resendMessage, setResendMessage] = useState('');
+    const [paymentMessage, setPaymentMessage] = useState('');
+    // 1. Add a state for document uploads (optional, if you need to track upload status globally)
+    const [uploadingDocuments, setUploadingDocuments] = useState({});
 
-    // ✅ For resend button
-    const [resendingId, setResendingId] = useState(null);
-    const [resendMessage, setResendMessage] = useState("");
+    // 2. Update the handleDocumentUploadSuccess function
+    const handleDocumentUploadSuccess = (bookingId) => {
+        // Update the specific booking's document status
+        setBookings(prev => prev.map(booking =>
+            booking.id === bookingId
+                ? {
+                    ...booking,
+                    document_verification: {
+                        ...booking.document_verification,
+                        status: "in_progress",
+                        reviewMessage: null // Clear any rejection messages
+                    }
+                }
+                : booking
+        ));
 
-    // ✅ For payment processing
-    const [processingPayment, setProcessingPayment] = useState(null);
-    const [paymentMessage, setPaymentMessage] = useState("");
+        // Also update selectedBooking if it's the same booking
+        if (selectedBooking && selectedBooking.id === bookingId) {
+            setSelectedBooking(prev => ({
+                ...prev,
+                document_verification: {
+                    ...prev.document_verification,
+                    status: "in_progress",
+                    reviewMessage: null
+                }
+            }));
+        }
+    };
 
-    // ✅ Payment verification modal state
-    const [showPaymentModal, setShowPaymentModal] = useState(false);
-    const [paymentStatus, setPaymentStatus] = useState('verifying'); // 'verifying', 'success', 'failed'
-    const [paymentDetails, setPaymentDetails] = useState(null);
+    // 3. Add handlers for upload start/end (optional for loading states)
+    const handleDocumentUploadStart = (bookingId) => {
+        setUploadingDocuments(prev => ({
+            ...prev,
+            [bookingId]: true
+        }));
+    };
 
-    // ✅ For date range filter
+    const handleDocumentUploadEnd = (bookingId) => {
+        setUploadingDocuments(prev => ({
+            ...prev,
+            [bookingId]: false
+        }));
+    };
+    // Date range filter
     const [dateRange, setDateRange] = useState({
         startDate: '',
         endDate: ''
     });
     const [showDatePicker, setShowDatePicker] = useState(false);
 
-    // ✅ Initialize Razorpay
+    // Initialize Razorpay
     useEffect(() => {
         loadRazorpay();
     }, []);
 
-    // ✅ Close payment modal
-    const closePaymentModal = () => {
-        setShowPaymentModal(false);
-        setPaymentStatus('verifying');
-        setPaymentDetails(null);
+    // Fetch bookings
+    const fetchBookings = useCallback(async () => {
+        try {
+            const res = await fetch('/api/dashboard/bookings', {
+                method: 'GET',
+                credentials: 'include',
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setBookings(data.bookings || []);
+            }
+        } catch (err) {
+            console.error('Error fetching bookings:', err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchBookings();
+    }, [fetchBookings]);
+
+    // Optimized booking update (single booking update)
+    const updateBookingInState = (bookingId, updates) => {
+        setBookings(prev => prev.map(booking =>
+            booking.id === bookingId ? { ...booking, ...updates } : booking
+        ));
     };
 
-    // ✅ Cancel booking handler
+    // Cancel booking with optimistic update
     const handleCancelBooking = async (booking) => {
-        if (!confirm(`Are you sure you want to cancel booking #${booking.id}?`)) {
-            return;
-        }
+        if (!confirm(`Are you sure you want to cancel booking #${booking.id}?`)) return;
+
+        // Optimistic update
+        updateBookingInState(booking.id, { status: 'cancelled' });
 
         try {
             const res = await fetch('/api/bookings/cancel', {
                 method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({
-                    booking_id: booking.id // Make sure this field exists in your booking data
-                }),
+                body: JSON.stringify({ booking_id: booking.id }),
             });
 
             const result = await res.json();
 
-            if (res.ok && result.success) {
-                // Show success message
-                setPaymentMessage(`✅ Booking #${booking.id} cancelled successfully`);
-                setShowInfoModal(false);
-                // Refresh bookings to update status
-                await fetchBookings();
-            } else {
+            if (!res.ok || !result.success) {
+                // Revert on failure
+                updateBookingInState(booking.id, { status: booking.status });
                 setPaymentMessage(`❌ Failed to cancel booking: ${result.error}`);
+            } else {
+                setPaymentMessage(`✅ Booking #${booking.id} cancelled successfully`);
             }
         } catch (error) {
+            // Revert on error
+            updateBookingInState(booking.id, { status: booking.status });
             setPaymentMessage('❌ Failed to cancel booking. Please try again.');
-        } finally {
-            // Auto-hide message after 1 seconds
-            setTimeout(() => setPaymentMessage(""), 1000);
         }
     };
 
-    // ✅ Razorpay payment handler
-    const handlePayment = async (booking) => {
-        setProcessingPayment(booking.id);
-        setPaymentMessage("");
-
-        try {
-            // Create order
-            const order = await createRazorpayOrder(booking.id);
-
-            const options = {
-                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-                amount: order.amount,
-                currency: order.currency,
-                name: "Rooms4U",
-                description: `Payment for Booking #${booking.id}`,
-                order_id: order.order_id,
-                handler: async function (response) {
-                    // Show verification modal
-                    setShowPaymentModal(true);
-                    setPaymentStatus('verifying');
-                    setPaymentDetails({
-                        bookingId: booking.id,
-                        orderId: response.razorpay_order_id,
-                        paymentId: response.razorpay_payment_id
-                    });
-
-                    // Verify payment on server
-                    const verifyResponse = await fetch('/api/payments/verify-payment', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        credentials: 'include',
-                        body: JSON.stringify({
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature,
-                            bookingId: booking.id,
-                            amount: order.amount,
-                            method: 'razorpay' // You can get this from response if available
-                        }),
-                    });
-
-                    const result = await verifyResponse.json();
-
-                    if (result.success) {
-                        setPaymentStatus('success');
-                        setPaymentMessage(`✅ Payment successful! Payment ID: ${response.razorpay_payment_id}`);
-                        // Refresh bookings to update status
-                        await fetchBookings();
-                    } else {
-                        setPaymentStatus('failed');
-                        setPaymentMessage(`❌ Payment verification failed: ${result.error}`);
-                    }
-                },
-                prefill: {
-                    name: booking.guestName,
-                    email: booking.guestEmail,
-                    contact: booking.guestPhone || '' // Add phone if available
-                },
-                notes: {
-                    bookingId: booking.id.toString(),
-                    apartment: booking.apartment
-                },
-                theme: {
-                    color: '#10b981' // Teal color to match your theme
-                }
-            };
-
-            const razorpayInstance = new window.Razorpay(options);
-
-            razorpayInstance.on('payment.failed', function (response) {
-                setShowPaymentModal(true);
-                setPaymentStatus('failed');
-                setPaymentMessage(`❌ Payment failed: ${response.error.description}`);
-            });
-
-            razorpayInstance.on('close', function () {
-                // If modal is not already shown (payment wasn't completed), show verification modal
-                if (!showPaymentModal) {
-                    setShowPaymentModal(true);
-                    setPaymentStatus('verifying');
-                }
-            });
-
-            razorpayInstance.open();
-
-        } catch (error) {
-            console.error('Payment initiation error:', error);
-            setPaymentMessage('❌ Failed to initiate payment. Please try again.');
-            setProcessingPayment(null);
-        }
-    };
-
-    // ✅ Function to trigger the resend email API
+    // Resend email
     const handleResendEmail = async (booking) => {
-        setResendingId(booking.id);
-        setResendMessage("");
-
         try {
             const res = await fetch("/api/notify/to-admin", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
                 body: JSON.stringify({
+                    bookingId: booking.id,
                     customerName: booking.guestName,
                     customerEmail: booking.guestEmail,
                     apartmentName: booking.apartment,
@@ -228,48 +259,11 @@ export default function Bookings() {
                 setResendMessage(`⚠️ ${result.error || "Could not resend email"}`);
             }
         } catch (error) {
-            console.error("Error resending email:", error);
             setResendMessage("❌ Failed to resend email. Try again later.");
-        } finally {
-            setResendingId(null);
-            setTimeout(() => setResendMessage(""), 5000);
         }
     };
 
-    // ✅ Fetch bookings securely
-    const fetchBookings = async () => {
-        setLoading(true);
-        try {
-            const res = await fetch('/api/dashboard/bookings', {
-                method: 'GET',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-            });
-
-            if (!res.ok) {
-                console.error('Failed to fetch bookings:', res.status);
-                return;
-            }
-
-            const json = await res.json();
-            console.log(json)
-            setBookingsData(getSafeData(json));
-        } catch (err) {
-            console.error('Error fetching bookings:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchBookings();
-    }, []);
-
-    const handleUpdateSuccess = async () => {
-        await fetchBookings();
-    };
-
-    // ✅ Date range filter functions
+    // Date range filter functions
     const handleDateRangeApply = () => {
         setShowDatePicker(false);
     };
@@ -281,20 +275,42 @@ export default function Bookings() {
 
     const isDateInRange = (dateString, startDate, endDate) => {
         if (!startDate && !endDate) return true;
-
         const date = new Date(dateString);
         const start = startDate ? new Date(startDate) : null;
         const end = endDate ? new Date(endDate) : null;
 
-        if (start && end) {
-            return date >= start && date <= end;
-        } else if (start) {
-            return date >= start;
-        } else if (end) {
-            return date <= end;
-        }
+        if (start && end) return date >= start && date <= end;
+        if (start) return date >= start;
+        if (end) return date <= end;
         return true;
     };
+
+    // Filter bookings
+    const filteredBookings = bookings.filter((booking) => {
+        if (!booking || typeof booking !== 'object') return false;
+
+        // Filter by status
+        const matchesFilter = filter === 'all' || booking.status === filter;
+
+        // Normalize search
+        const searchLower = searchTerm.toLowerCase();
+
+        // Filter by search term (ID + existing fields)
+        const matchesSearch =
+            !searchLower ||
+            (booking.id && booking.id.toString().toLowerCase().includes(searchLower)) ||
+            (booking.bookingId && booking.bookingId.toLowerCase().includes(searchLower)) ||
+            (booking.apartment && booking.apartment.toLowerCase().includes(searchLower)) ||
+            (booking.guestName && booking.guestName.toLowerCase().includes(searchLower));
+
+        // Filter by date range
+        const matchesDateRange =
+            isDateInRange(booking.checkIn, dateRange.startDate, dateRange.endDate) ||
+            isDateInRange(booking.checkOut, dateRange.startDate, dateRange.endDate);
+
+        return matchesFilter && matchesSearch && matchesDateRange;
+    });
+    
 
     const filters = [
         { id: 'all', label: 'All' },
@@ -305,465 +321,275 @@ export default function Bookings() {
         { id: 'expired', label: 'Expired' },
     ];
 
-    const filteredBookings = bookingsData.bookings.filter((b) => {
-        if (!b || typeof b !== 'object') return false;
-
-        // Filter by status
-        const matchesFilter = filter === 'all' || b.status === filter;
-
-        // Filter by search term
-        const searchLower = searchTerm.toLowerCase();
-        const matchesSearch =
-            !searchLower ||
-            (b.apartment && b.apartment.toLowerCase().includes(searchLower)) ||
-            (b.guestName && b.guestName.toLowerCase().includes(searchLower));
-
-        // Filter by date range
-        const matchesDateRange =
-            isDateInRange(b.checkIn, dateRange.startDate, dateRange.endDate) ||
-            isDateInRange(b.checkOut, dateRange.startDate, dateRange.endDate);
-
-        return matchesFilter && matchesSearch && matchesDateRange;
-    });
-
-    const getStatusColor = (status) => {
-        const colors = {
-            pending: "bg-yellow-200 text-yellow-900 border border-yellow-300",
-            confirmed: "bg-green-200 text-green-900 border border-green-300",
-            cancelled: "bg-red-200 text-red-900 border border-red-300",
-            expired: "bg-gray-200 text-gray-900 border border-gray-300",
-            ongoing: "bg-blue-200 text-blue-900 border border-blue-300",
-        };
-
-        return colors[status] || "bg-gray-200 text-gray-900 border border-gray-300";
-    };
-    
-
-    // ✅ Helper function to determine which buttons to show based on booking status
-    const getActionButtons = (booking) => {
-        const { status, paymentStatus } = booking;
-
-        const buttons = [
-            // Cancel button - amber warning tone
-            {
-                key: 'cancel',
-                icon: faBan,
-                label: 'Cancel',
-                onClick: (e) => { 
-                    e.stopPropagation();
-                    handleCancelBooking(booking); 
-                },
-                className:
-                    "flex items-center gap-2 bg-neutral-800 border border-neutral-700 text-gray-300 hover:bg-rose-600/20 hover:border-rose-500 hover:text-rose-400 transition-all duration-300 px-4 py-2 rounded-lg shadow-sm hover:shadow-rose-500/10 active:scale-[0.97]",
-                show: status !== 'cancelled' && status !== 'expired',
-            },
-
-            // Resend button - teal accent
-            {
-                key: 'resend',
-                icon: faEnvelope,
-                label: resendingId === booking.id ? 'Sending...' : 'Resend',
-                onClick: (e) => {
-                    e.stopPropagation();
-                    handleResendEmail(booking);
-                },
-                disabled: resendingId === booking.id,
-                className:
-                    resendingId === booking.id
-                        ? "flex items-center gap-2 bg-teal-900/50 border border-teal-700/40 text-gray-500 cursor-not-allowed px-4 py-2 rounded-lg shadow-sm"
-                        : "flex items-center gap-2 bg-neutral-800 border border-neutral-700 text-gray-300 hover:bg-teal-600/20 hover:border-teal-500 hover:text-teal-400 transition-all duration-300 px-4 py-2 rounded-lg shadow-sm hover:shadow-teal-500/10 active:scale-[0.97]",
-                show: status === 'pending',
-            },
-
-            // Pay button - strong green action button
-            {
-                key: 'pay',
-                icon: faCreditCard,
-                label: processingPayment === booking.id ? 'Processing...' : 'Pay',
-                onClick: (e) => {
-                    e.stopPropagation(); 
-                    handlePayment(booking)
-                },
-                disabled: processingPayment === booking.id,
-                className:
-                    processingPayment === booking.id
-                        ? "flex items-center gap-2 bg-green-800/50 border border-green-700/40 text-gray-500 cursor-not-allowed px-4 py-2 rounded-lg shadow-sm"
-                        : "flex items-center gap-2 bg-green-700 border border-green-600 text-white hover:bg-green-600 hover:border-green-500 transition-all duration-300 px-4 py-2 rounded-lg shadow-lg hover:shadow-green-500/20 active:scale-[0.97]",
-                show: status === 'confirmed' && paymentStatus !== 'paid',
-            },
-
-            // Delete button - red danger button
-            {
-                key: 'delete',
-                icon: faTrash,
-                label: 'Delete',
-                onClick: () => { },
-                className:
-                    "flex items-center gap-2 bg-neutral-800 border border-neutral-700 text-gray-300 hover:bg-red-600/20 hover:border-red-500 hover:text-red-400 transition-all duration-300 px-4 py-2 rounded-lg shadow-sm hover:shadow-red-500/10 active:scale-[0.97]",
-                show: status === 'expired',
-            },
-        ];
-
-        return buttons.filter(button => button.show);
-    };
-
+    // Loading skeleton for the entire page
     if (loading) {
         return (
-            <div className="h-screen text-white p-6 flex items-center justify-center"
-                style={{ maxHeight: 'calc(100vh - 96px)' }}
-            >
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+            <div className="min-h-screen bg-gradient-to-br from-neutral-900 to-neutral-950 p-6">
+                {/* Header Skeleton */}
+                <div className="mb-8">
+                    <div className="flex items-center justify-between mb-2">
+                        <div>
+                            <div className="h-8 w-48 bg-neutral-800 rounded-lg mb-2 animate-pulse"></div>
+                            <div className="h-4 w-64 bg-neutral-800 rounded animate-pulse"></div>
+                        </div>
+                        <div className="h-9 w-24 bg-neutral-800 rounded-xl animate-pulse"></div>
+                    </div>
+
+                    {/* Search and Filter Skeleton */}
+                    <SearchFilterSkeleton />
+                </div>
+
+                {/* Filter Pills Skeleton */}
+                <FilterPillsSkeleton />
+
+                {/* Bookings Grid Skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                    {[...Array(8)].map((_, i) => (
+                        <BookingCardSkeleton key={i} />
+                    ))}
+                </div>
+
+                {/* Animated Background Elements */}
+                <div className="fixed top-0 left-0 w-full h-full pointer-events-none -z-10">
+                    <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neutral-800/5 rounded-full blur-3xl"></div>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6 bg-neutral-900 min-h-screen p-6">
-            {/* Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-                <h1 className="text-2xl font-bold text-gray-100 mb-4 lg:mb-0 hover:translate-x-1 transition-transform duration-300">
-                    Bookings
-                </h1>
+        <div className="min-h-screen bg-gradient-to-br from-neutral-900 to-neutral-950 p-6">
+            {/* Header Section */}
+            <div className="mb-8">
+                <div className="flex items-center justify-between mb-2">
+                    <div>
+                        <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-400 to-teal-300 bg-clip-text text-transparent">
+                            Bookings
+                        </h1>
+                        <p className="text-neutral-400 mt-1">
+                            Manage and track all your property reservations
+                        </p>
+                    </div>
+                    <div className="text-sm px-4 py-2 bg-neutral-800/50 rounded-xl border border-neutral-700/50">
+                        <span className="text-neutral-400">Total: </span>
+                        <span className="text-teal-400 font-semibold">{bookings.length}</span>
+                    </div>
+                </div>
 
-                <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                    <div className="relative group">
+                {/* Search and Filter Bar */}
+                <div className="flex flex-col lg:flex-row gap-4 mt-6">
+                    {/* Search Input */}
+                    <div className="flex-1 relative group">
+                        <div className="absolute inset-0 bg-gradient-to-r from-teal-500/10 to-transparent rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
                         <FontAwesomeIcon
                             icon={faSearch}
-                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-teal-400 transition-colors duration-300"
+                            className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 group-focus-within:text-teal-400 transition-colors"
                         />
                         <input
                             type="text"
-                            placeholder="Search bookings..."
+                            placeholder="Search by apartment or guest name..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10 pr-4 py-2 border border-gray-700 rounded-2xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 w-full sm:w-64 bg-neutral-800 text-gray-200 placeholder-gray-400 transition-all duration-300 hover:border-gray-600 hover:bg-neutral-750"
+                            className="relative w-full pl-12 pr-4 py-3 bg-neutral-800/50 border border-neutral-700/50 rounded-xl focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/20 focus:outline-none text-neutral-100 placeholder-neutral-500 transition-all"
                         />
                     </div>
 
                     {/* Date Range Filter */}
                     <div className="relative">
                         <button
-                            className="flex items-center justify-center px-4 py-2 border border-gray-700 rounded-2xl hover:bg-neutral-800 text-gray-200 transition-all duration-300 hover:border-gray-600 hover:scale-105 active:scale-95 group"
-                            type="button"
+                            className="flex items-center gap-2 px-4 py-3 bg-neutral-800/50 border border-neutral-700/50 rounded-xl hover:bg-neutral-800 hover:border-teal-500/30 text-neutral-200 transition-all group"
                             onClick={() => setShowDatePicker(!showDatePicker)}
                         >
                             <FontAwesomeIcon
-                                icon={faFilter}
-                                className="text-gray-400 mr-2 group-hover:text-teal-400 transition-colors duration-300"
+                                icon={faCalendarAlt}
+                                className="text-neutral-400 group-hover:text-teal-400 transition-colors"
                             />
-                            Date Range
+                            <span>Date Range</span>
                             {(dateRange.startDate || dateRange.endDate) && (
-                                <span className="ml-2 w-2 h-2 bg-teal-500 rounded-full"></span>
+                                <span className="ml-1 px-2 py-1 text-xs bg-teal-500/20 text-teal-300 rounded-full">
+                                    Active
+                                </span>
                             )}
                         </button>
 
-                        {/* Date Range Picker Dropdown */}
                         {showDatePicker && (
-                            <div className="absolute top-full right-0 mt-2 bg-neutral-800 border border-gray-700 rounded-2xl p-4 shadow-2xl z-50 min-w-80 backdrop-blur-sm">
-                                <div className="flex items-center justify-between mb-3">
-                                    <h3 className="text-gray-200 font-semibold">Filter by Date Range</h3>
+                            <div className="absolute top-full right-0 mt-2 bg-neutral-800 border border-neutral-700 rounded-xl p-5 shadow-2xl shadow-black/50 backdrop-blur-sm z-50 min-w-96 animate-fadeIn">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="font-semibold text-neutral-100">Select Date Range</h3>
                                     <button
                                         onClick={() => setShowDatePicker(false)}
-                                        className="text-gray-400 hover:text-gray-200 transition-colors duration-200"
+                                        className="p-1 hover:bg-neutral-700 rounded-lg transition-colors"
                                     >
-                                        <FontAwesomeIcon icon={faTimes} />
+                                        <FontAwesomeIcon icon={faXmark} className="text-neutral-400" />
                                     </button>
                                 </div>
 
-                                <div className="space-y-3">
+                                <div className="space-y-4 mb-6">
                                     <div>
-                                        <label className="block text-sm text-gray-400 mb-1">From Date</label>
-                                        <input
-                                            type="date"
-                                            value={dateRange.startDate}
-                                            onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                                            className="w-full px-3 py-2 border border-gray-600 rounded-xl bg-neutral-700 text-gray-200 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all duration-300"
-                                        />
+                                        <label className="block text-sm font-medium text-neutral-300 mb-2">From Date</label>
+                                        <div className="relative">
+                                            <FontAwesomeIcon
+                                                icon={faCalendar}
+                                                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500"
+                                            />
+                                            <input
+                                                type="date"
+                                                value={dateRange.startDate}
+                                                onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                                                className="w-full pl-10 pr-3 py-2.5 bg-neutral-900 border border-neutral-700 rounded-lg text-neutral-100 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/30 focus:outline-none"
+                                            />
+                                        </div>
                                     </div>
-
                                     <div>
-                                        <label className="block text-sm text-gray-400 mb-1">To Date</label>
-                                        <input
-                                            type="date"
-                                            value={dateRange.endDate}
-                                            onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                                            className="w-full px-3 py-2 border border-gray-600 rounded-xl bg-neutral-700 text-gray-200 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all duration-300"
-                                        />
+                                        <label className="block text-sm font-medium text-neutral-300 mb-2">To Date</label>
+                                        <div className="relative">
+                                            <FontAwesomeIcon
+                                                icon={faCalendar}
+                                                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500"
+                                            />
+                                            <input
+                                                type="date"
+                                                value={dateRange.endDate}
+                                                onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                                                className="w-full pl-10 pr-3 py-2.5 bg-neutral-900 border border-neutral-700 rounded-lg text-neutral-100 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/30 focus:outline-none"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="flex gap-2 mt-4 pt-3 border-t border-gray-700">
+                                <div className="flex gap-3">
                                     <button
                                         onClick={handleDateRangeClear}
-                                        className="flex-1 px-4 py-2 text-sm border border-gray-600 text-gray-300 hover:bg-neutral-700 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95"
+                                        className="flex-1 px-4 py-2.5 bg-neutral-700/50 hover:bg-neutral-700 border border-neutral-600 text-neutral-300 rounded-lg transition-colors font-medium"
                                     >
-                                        Clear
+                                        Clear All
                                     </button>
                                     <button
                                         onClick={handleDateRangeApply}
-                                        className="flex-1 px-4 py-2 text-sm bg-teal-600 text-white hover:bg-teal-500 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95"
+                                        className="flex-1 px-4 py-2.5 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white rounded-lg transition-all font-medium shadow-lg shadow-teal-500/20"
                                     >
-                                        Apply
+                                        Apply Filter
                                     </button>
                                 </div>
-
-                                {/* Active Filter Indicator */}
-                                {(dateRange.startDate || dateRange.endDate) && (
-                                    <div className="mt-3 p-2 bg-teal-900/20 border border-teal-700/30 rounded-lg">
-                                        <p className="text-xs text-teal-400 text-center">
-                                            {dateRange.startDate && dateRange.endDate
-                                                ? `Showing bookings between ${dateRange.startDate} and ${dateRange.endDate}`
-                                                : dateRange.startDate
-                                                    ? `Showing bookings from ${dateRange.startDate} onwards`
-                                                    : `Showing bookings until ${dateRange.endDate}`
-                                            }
-                                        </p>
-                                    </div>
-                                )}
                             </div>
                         )}
                     </div>
                 </div>
             </div>
 
-            <FilterPills filters={filters} activeFilter={filter} onFilterChange={setFilter} />
+            {/* Active Filters Display */}
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+                <FilterPills filters={filters} activeFilter={filter} onFilterChange={setFilter} />
 
-            {/* Active Date Range Filter Pill */}
-            {(dateRange.startDate || dateRange.endDate) && (
-                <div className="flex items-center gap-2 bg-teal-900/20 border border-teal-700/30 rounded-full px-4 py-2 w-fit">
-                    <span className="text-teal-400 text-sm">
-                        {dateRange.startDate && dateRange.endDate
-                            ? `${dateRange.startDate} to ${dateRange.endDate}`
-                            : dateRange.startDate
-                                ? `From ${dateRange.startDate}`
-                                : `Until ${dateRange.endDate}`
-                        }
-                    </span>
-                    <button
-                        onClick={handleDateRangeClear}
-                        className="text-teal-400 hover:text-teal-300 transition-colors duration-200"
-                    >
-                        <FontAwesomeIcon icon={faTimes} className="text-xs" />
-                    </button>
-                </div>
-            )}
+                {(dateRange.startDate || dateRange.endDate) && (
+                    <div className="flex items-center gap-2 bg-gradient-to-r from-teal-500/10 to-transparent border border-teal-500/20 rounded-full px-4 py-2 animate-fadeIn">
+                        <FontAwesomeIcon icon={faFilter} className="text-teal-400 text-sm" />
+                        <span className="text-teal-300 text-sm font-medium">
+                            {dateRange.startDate && dateRange.endDate
+                                ? `${dateRange.startDate} → ${dateRange.endDate}`
+                                : dateRange.startDate
+                                    ? `From ${dateRange.startDate}`
+                                    : `Until ${dateRange.endDate}`}
+                        </span>
+                        <button
+                            onClick={handleDateRangeClear}
+                            className="ml-2 p-1 hover:bg-teal-500/20 rounded-full transition-colors"
+                        >
+                            <FontAwesomeIcon icon={faTimes} className="text-teal-400 text-xs" />
+                        </button>
+                    </div>
+                )}
+            </div>
 
-            {/* Bookings List */}
+            {/* Bookings Grid */}
             {filteredBookings.length === 0 ? (
-                <Card className="p-8 text-center bg-neutral-800/50 border-neutral-700/50 backdrop-blur-sm rounded-xl hover:shadow-2xl hover:shadow-black/20 transition-all duration-500 ease-out animate-fade-in">
-                    <div className="max-w-sm mx-auto">
-                        <div className="w-20 h-20 bg-gradient-to-br from-neutral-700 to-neutral-800 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg transition-all duration-500 ease-out group hover:from-neutral-600 hover:to-neutral-700 animate-soft-float">
-                            <FontAwesomeIcon
-                                icon={faSearch}
-                                className="text-gray-400 text-3xl group-hover:text-teal-400 transition-colors duration-500 ease-out"
-                            />
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-100 mb-3 group-hover:text-white transition-colors duration-500">
-                            No bookings found
-                        </h3>
-                        <p className="text-gray-400 text-sm leading-relaxed group-hover:text-gray-300 transition-colors duration-500">
-                            {dateRange.startDate || dateRange.endDate
-                                ? "Try adjusting your date range or search criteria."
-                                : "Try adjusting your search criteria or filters to find what you're looking for."
-                            }
-                        </p>
-                        {(dateRange.startDate || dateRange.endDate) && (
-                            <button
-                                onClick={handleDateRangeClear}
-                                className="mt-4 px-4 py-2 text-teal-400 hover:text-teal-300 text-sm transition-colors duration-300"
-                            >
-                                Clear date filter
-                            </button>
-                        )}
+                <div className="flex flex-col items-center justify-center py-16 px-4 bg-neutral-800/30 border-2 border-dashed border-neutral-700/50 rounded-2xl">
+                    <div className="w-20 h-20 mb-4 bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-full flex items-center justify-center border border-neutral-700/50">
+                        <FontAwesomeIcon icon={faCalendar} className="text-3xl text-neutral-500" />
                     </div>
-                </Card>
+                    <h3 className="text-xl font-semibold text-neutral-200 mb-2">No bookings found</h3>
+                    <p className="text-neutral-400 text-center max-w-md">
+                        {searchTerm || dateRange.startDate || dateRange.endDate || filter !== 'all'
+                            ? 'Try adjusting your filters or search term'
+                            : 'No bookings available yet'}
+                    </p>
+                </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {filteredBookings.map((booking, index) => {
-                        const actionButtons = getActionButtons(booking);
-
-                        return (
-                            <Card
-                                key={booking.id}
-                                className="group bg-neutral-800/50 border border-neutral-700/50 rounded-xl p-6 hover:border-neutral-600/50 hover:bg-neutral-800/70 hover:shadow-xl hover:shadow-black/10 backdrop-blur-sm transition-all duration-500 ease-out animate-fade-in-slide-up"
-                                style={{ animationDelay: `${index * 0.1}s` }}
-                                onClick={() => {
-                                    setSelectedBooking(booking);
-                                    setShowInfoModal(true);
-                                }}
-                                
-                            >
-                                {/* Header */}
-                                <div className="flex items-start justify-between mb-6">
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="text-teal-400 font-bold text-lg truncate mb-1 group-hover:text-teal-300 transition-colors duration-500">
-                                            {booking.apartment}
-                                        </h3>
-                                        <p className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors duration-500">
-                                            Booking #{booking.id}
-                                        </p>
-                                    </div>
-                                    <span
-                                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border backdrop-blur-sm transition-all duration-500 hover:scale-105 ${getStatusColor(
-                                            booking.status
-                                        )}`}
-                                    >
-                                        {booking.status}
-                                    </span>
-                                </div>
-
-                                {/* Guest Info */}
-                                <div className="flex items-center gap-3 mb-2 p-3 bg-neutral-700/30 rounded-lg group-hover:bg-neutral-700/50 transition-all duration-500 hover:scale-[1.02]">
-                                    <div className="w-10 h-10 bg-teal-500 rounded-full flex items-center justify-center text-black font-semibold text-sm transition-all duration-500 group-hover:bg-teal-400 group-hover:scale-110">
-                                        {booking.guestName.split(' ').map(n => n[0]).join('').toUpperCase()}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-gray-200 font-medium text-sm truncate group-hover:text-white transition-colors duration-500">
-                                            {booking.guestName}
-                                        </p>
-                                        <p className="text-gray-400 text-xs group-hover:text-gray-300 transition-colors duration-500">
-                                            {booking.guests} guest{booking.guests > 1 ? 's' : ''}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Booking Details */}
-                                <div className="mb-6 bg-neutral-700/20 rounded-lg group-hover:bg-neutral-700/30 transition-colors duration-500">
-                                    {[
-                                        { label: 'Check-in', value: booking.checkIn, color: 'emerald', icon: faCalendar },
-                                        { label: 'Check-out', value: booking.checkOut, color: 'rose', icon: faCalendar },
-                                        { label: 'Total', value: `₹${booking.total}`, color: 'amber', icon: faRupeeSign }
-                                    ].map((item, idx) => (
-                                        <div key={idx} className="flex items-center justify-between p-3 hover:bg-neutral-600/20 rounded-lg transition-all duration-300 hover:translate-x-1">
-                                            <div className="flex items-center gap-2">
-                                                <div className={`w-8 h-8 bg-${item.color}-500/10 rounded-lg flex items-center justify-center group-hover:bg-${item.color}-500/20 transition-all duration-500 hover:scale-110`}>
-                                                    <FontAwesomeIcon icon={item.icon} className={`text-${item.color}-400 text-sm`} />
-                                                </div>
-                                                <span className="text-gray-400 text-sm">{item.label}</span>
-                                            </div>
-                                            <span className={`text-${item.label === 'Total' ? 'lg' : 'sm'} text-gray-200 font-medium`}>
-                                                {item.value}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Actions */}
-                                <div className="flex flex-wrap gap-2">
-                                    {actionButtons.map((button) => (
-                                        <button
-                                            key={button.key}
-                                            className={`flex items-center px-4 py-2.5 text-sm rounded-xl transition-all duration-300 font-medium backdrop-blur-sm z-50 ${button.disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-neutral-700/50 active:bg-neutral-700/70 hover:scale-105'} ${button.className}`}
-                                            onClick={button.onClick}
-                                            disabled={button.disabled}
-                                        >
-                                            <FontAwesomeIcon
-                                                icon={button.icon}
-                                                className={`mr-2 transition-colors duration-500 ${button.disabled ? 'opacity-60' : 'text-gray-200'}`}
-                                            />
-                                            {button.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </Card>
-                        );
-                    })}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                    {filteredBookings.map((booking) => (
+                        <BookingCard
+                            key={booking.id}
+                            booking={booking}
+                            onViewDetails={() => {
+                                setSelectedBooking(booking);
+                                setShowInfoModal(true);
+                            }}
+                            onCancel={handleCancelBooking}
+                            onResendEmail={handleResendEmail}
+                            updateBookingInState={updateBookingInState}
+                        />
+                    ))}
                 </div>
             )}
 
-            {/* Messages */}
+            {/* Toast Messages */}
             {resendMessage && (
-                <div className="fixed bottom-4 right-4 text-center mt-4 p-3 bg-neutral-800 border border-teal-700 rounded-xl text-teal-300 text-sm font-medium shadow hover:scale-105 hover:shadow-lg transition-all duration-300">
-                    {resendMessage}
-                </div>
-            )}
-
-            {/* Payment Verification Modal */}
-            {showPaymentModal && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-neutral-800 border border-neutral-700 rounded-2xl p-8 max-w-md w-full mx-auto shadow-2xl transform transition-all duration-500 ease-out animate-fade-in-scale">
-                        <div className="text-center">
-                            {/* Loading Spinner */}
-                            {paymentStatus === 'verifying' && (
-                                <>
-                                    <div className="w-20 h-20 mx-auto mb-6 relative">
-                                        <div className="absolute inset-0 border-4 border-teal-500/20 rounded-full"></div>
-                                        <div className="absolute inset-0 border-4 border-transparent rounded-full border-t-teal-500 animate-spin"></div>
-                                        <div className="absolute inset-2 border-4 border-teal-500/10 rounded-full"></div>
-                                    </div>
-                                    <h3 className="text-2xl font-bold text-gray-100 mb-3">Verifying Payment</h3>
-                                    <p className="text-gray-400 mb-6">Please wait while we verify your payment...</p>
-                                    <div className="w-24 h-1 bg-neutral-700 rounded-full mx-auto overflow-hidden">
-                                        <div className="h-full bg-teal-500 rounded-full animate-pulse"></div>
-                                    </div>
-                                </>
-                            )}
-
-                            {/* Success State */}
-                            {paymentStatus === 'success' && (
-                                <>
-                                    <div className="w-20 h-20 mx-auto mb-6 bg-green-500/20 rounded-full flex items-center justify-center border-4 border-green-500/30">
-                                        <FontAwesomeIcon icon={faCheck} className="text-green-400 text-3xl" />
-                                    </div>
-                                    <h3 className="text-2xl font-bold text-green-400 mb-3">Payment Successful!</h3>
-                                    <p className="text-gray-400 mb-2">Your payment has been verified successfully.</p>
-                                    {paymentDetails && (
-                                        <div className="text-sm text-gray-500 mb-6 space-y-1">
-                                            <p>Booking ID: #{paymentDetails.bookingId}</p>
-                                            <p>Payment ID: {paymentDetails.paymentId}</p>
-                                        </div>
-                                    )}
-                                    <button
-                                        onClick={closePaymentModal}
-                                        className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-500 transition-all duration-300 hover:scale-105 active:scale-95"
-                                    >
-                                        Continue
-                                    </button>
-                                </>
-                            )}
-
-                            {/* Failed State */}
-                            {paymentStatus === 'failed' && (
-                                <>
-                                    <div className="w-20 h-20 mx-auto mb-6 bg-red-500/20 rounded-full flex items-center justify-center border-4 border-red-500/30">
-                                        <FontAwesomeIcon icon={faExclamationTriangle} className="text-red-400 text-3xl" />
-                                    </div>
-                                    <h3 className="text-2xl font-bold text-red-400 mb-3">Payment Failed</h3>
-                                    <p className="text-gray-400 mb-6">We couldn&apos;t verify your payment. Please try again.</p>
-                                    <div className="flex gap-3">
-                                        <button
-                                            onClick={closePaymentModal}
-                                            className="flex-1 bg-neutral-700 text-gray-300 py-3 rounded-xl font-semibold hover:bg-neutral-600 transition-all duration-300 hover:scale-105 active:scale-95"
-                                        >
-                                            Close
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                closePaymentModal();
-                                                if (paymentDetails) {
-                                                    const booking = bookingsData.bookings.find(b => b.id === paymentDetails.bookingId);
-                                                    if (booking) handlePayment(booking);
-                                                }
-                                            }}
-                                            className="flex-1 bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-500 transition-all duration-300 hover:scale-105 active:scale-95"
-                                        >
-                                            Try Again
-                                        </button>
-                                    </div>
-                                </>
-                            )}
+                <div className="fixed bottom-6 right-6 p-4 bg-gradient-to-r from-emerald-900/90 to-emerald-800/90 border border-emerald-700/50 backdrop-blur-sm rounded-xl text-emerald-100 shadow-2xl shadow-black/50 max-w-sm animate-slideIn">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-emerald-500/20 rounded-lg">
+                            <FontAwesomeIcon icon={faCheck} className="text-emerald-400" />
                         </div>
+                        <div className="flex-1">
+                            <p className="text-sm font-medium">{resendMessage}</p>
+                        </div>
+                        <button
+                            onClick={() => setResendMessage('')}
+                            className="p-1 hover:bg-emerald-700/50 rounded-lg transition-colors"
+                        >
+                            <FontAwesomeIcon icon={faTimes} className="text-sm" />
+                        </button>
                     </div>
                 </div>
             )}
+
+            {paymentMessage && (
+                <div className="fixed bottom-6 left-6 p-4 bg-gradient-to-r from-rose-900/90 to-rose-800/90 border border-rose-700/50 backdrop-blur-sm rounded-xl text-rose-100 shadow-2xl shadow-black/50 max-w-sm animate-slideIn">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-rose-500/20 rounded-lg">
+                            <FontAwesomeIcon icon={faExclamationTriangle} className="text-rose-400" />
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-sm font-medium">{paymentMessage}</p>
+                        </div>
+                        <button
+                            onClick={() => setPaymentMessage('')}
+                            className="p-1 hover:bg-rose-700/50 rounded-lg transition-colors"
+                        >
+                            <FontAwesomeIcon icon={faTimes} className="text-sm" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Booking Info Modal */}
             <BookingInfoModal
                 booking={selectedBooking}
                 isOpen={showInfoModal}
                 onClose={() => setShowInfoModal(false)}
                 onCancel={handleCancelBooking}
-                onDelete={(b) => console.log("delete", b)}
+                onDelete={() => { }}
+                updateBookingInState={updateBookingInState}
+                onDocumentUploadSuccess={handleDocumentUploadSuccess}
+                onDocumentUploadStart={handleDocumentUploadStart}
+                onDocumentUploadEnd={handleDocumentUploadEnd}
             />
 
+            {/* Animated Background Elements */}
+            <div className="fixed top-0 left-0 w-full h-full pointer-events-none -z-10">
+                <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neutral-800/5 rounded-full blur-3xl"></div>
+            </div>
         </div>
     );
 }

@@ -34,9 +34,25 @@ export async function GET(request) {
         }
 
         if (search) {
-            whereConditions.push('(u.name LIKE ? OR u.email LIKE ? OR a.title LIKE ?)');
-            queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
+            whereConditions.push(`
+                (
+                    b.id = ? OR
+                    u.name LIKE ? OR
+                    u.email LIKE ? OR
+                    a.title LIKE ?
+                )
+            `);
+
+            const searchNumber = Number(search);
+
+            queryParams.push(
+                Number.isInteger(searchNumber) ? searchNumber : -1, // for b.id
+                `%${search}%`,
+                `%${search}%`,
+                `%${search}%`
+            );
         }
+        
 
         const whereClause = whereConditions.join(' AND ');
 

@@ -6,7 +6,6 @@ import {
     faCreditCard,
     faReceipt,
     faDownload,
-    faPaperPlane,
     faCheckCircle,
     faClock,
     faTimesCircle,
@@ -23,7 +22,10 @@ import {
     faBuilding,
     faEye,
     faCircle,
-    faRedo
+    faRedo,
+    faFilter,
+    faSearch,
+    faWandSparkles
 } from '@fortawesome/free-solid-svg-icons';
 import {
     faPaypal,
@@ -32,19 +34,19 @@ import {
     faGoogle
 } from '@fortawesome/free-brands-svg-icons';
 import FilterPills from './FilterPills';
-import Card from './Card';
+import PaymentCard from './PaymentsCard';
 
 // Default empty data structure
 const DEFAULT_DATA = {
     payments: []
 };
 
-// Updated color scheme with dark colors and teal
+// Updated color scheme with amber/dark theme
 const STATUS_COLORS = {
-    paid: 'bg-green-900/20 text-green-400 border border-green-800/30',
-    refunded: 'bg-blue-900/20 text-blue-400 border border-blue-800/30',
-    cancelled: 'bg-red-900/20 text-red-400 border border-red-800/30',
-    failed: 'bg-gray-700 text-gray-300 border border-gray-600'
+    paid: 'bg-emerald-900/20 text-emerald-300 border border-emerald-800/30',
+    refunded: 'bg-blue-900/20 text-blue-300 border border-blue-800/30',
+    cancelled: 'bg-rose-900/20 text-rose-300 border border-rose-800/30',
+    failed: 'bg-neutral-800 text-neutral-300 border border-neutral-700/50'
 };
 
 const FILTERS = [
@@ -60,6 +62,54 @@ const PAYMENT_METHODS = {
     upi: 'UPI',
     netbanking: 'Net Banking',
     wallet: 'Digital Wallet'
+};
+
+// Skeleton Loading Component
+const PaymentCardSkeleton = () => {
+    return (
+        <div className="relative bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-700/50 rounded-2xl p-5 animate-pulse">
+            {/* Status Badge Skeleton */}
+            <div className="flex items-center justify-between mb-4">
+                <div className="h-6 w-20 bg-neutral-700 rounded-full"></div>
+                <div className="h-8 w-8 bg-neutral-700 rounded-lg"></div>
+            </div>
+
+            {/* Payment Info Skeleton */}
+            <div className="h-6 w-3/4 bg-neutral-700 rounded-lg mb-2"></div>
+
+            {/* Amount Skeleton */}
+            <div className="space-y-3 mb-5">
+                <div className="flex items-center gap-2">
+                    <div className="h-4 w-4 bg-neutral-700 rounded"></div>
+                    <div className="h-4 w-32 bg-neutral-700 rounded"></div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="h-4 w-4 bg-neutral-700 rounded"></div>
+                    <div className="h-4 w-40 bg-neutral-700 rounded"></div>
+                </div>
+            </div>
+
+            {/* Payment Details Skeleton */}
+            <div className="bg-neutral-800/50 rounded-xl p-4 mb-4 border border-neutral-700/30">
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <div className="h-3 w-16 bg-neutral-700 rounded mb-2"></div>
+                        <div className="h-4 w-28 bg-neutral-700 rounded"></div>
+                    </div>
+                    <div>
+                        <div className="h-3 w-16 bg-neutral-700 rounded mb-2"></div>
+                        <div className="h-4 w-28 bg-neutral-700 rounded"></div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Action Buttons Skeleton */}
+            <div className="flex gap-2">
+                <div className="flex-1 h-10 bg-neutral-700 rounded-xl"></div>
+                <div className="flex-1 h-10 bg-neutral-700 rounded-xl"></div>
+            </div>
+        </div>
+    );
 };
 
 // Safe data access helper with validation
@@ -196,16 +246,17 @@ const safePaymentMethod = (method) => {
 
 export default function Payments() {
     const [filter, setFilter] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
     const [paymentsData, setPaymentsData] = useState(DEFAULT_DATA);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [page, setPage] = useState(1);
-    const [limit] = useState(10); // You can make this configurable
+    const [limit] = useState(10);
     const [receiptHTML, setReceiptHTML] = useState('');
     const [showReceiptModal, setShowReceiptModal] = useState(false);
     const [receiptLoading, setReceiptLoading] = useState(false);
     const [downloadLoading, setDownloadLoading] = useState(false);
-    const [currentAction, setCurrentAction] = useState(''); // 'view' or 'download'
+    const [currentAction, setCurrentAction] = useState('');
     const [currentPaymentId, setCurrentPaymentId] = useState('');
 
     // Fetch payments data
@@ -276,7 +327,7 @@ export default function Payments() {
 
     const getStatusColor = useCallback((status) => {
         const safeStatus = safeToString(status);
-        return STATUS_COLORS[safeStatus] || 'bg-gray-700 text-gray-300 border border-gray-600';
+        return STATUS_COLORS[safeStatus] || 'bg-neutral-800 text-neutral-300 border border-neutral-700/50';
     }, []);
 
     // Safe payment property access
@@ -308,6 +359,8 @@ export default function Payments() {
     }, [getPaymentProperty]);
 
     const handleReceiptAction = useCallback(async (paymentId, action) => {
+        console.log(`🚀 Starting receipt action: ${action} for payment:`, paymentId);
+
         try {
             setCurrentAction(action);
             setCurrentPaymentId(paymentId);
@@ -319,48 +372,80 @@ export default function Payments() {
             }
 
             const url = `/api/test-receipt/${paymentId}`;
-            const res = await fetch(url);
+            console.log('📡 Fetching from URL:', url);
 
-            if (!res.ok) throw new Error('Failed to fetch receipt');
+            const res = await fetch(url);
+            console.log('📡 Response status:', res.status);
+
+            if (!res.ok) {
+                throw new Error(`Failed to fetch receipt (${res.status})`);
+            }
+
+            const contentType = res.headers.get('content-type');
+            console.log('📄 Content-Type:', contentType);
+
+            if (!contentType || !contentType.includes('pdf')) {
+                throw new Error('Invalid response format: Expected PDF');
+            }
 
             const pdfBlob = await res.blob();
+            console.log('📦 Blob received:', {
+                size: pdfBlob.size,
+                type: pdfBlob.type
+            });
+
+            if (pdfBlob.size === 0) {
+                throw new Error('Received empty receipt');
+            }
 
             if (action === 'view') {
-                // Create blob URL and set it in an iframe
-                const pdfUrl = URL.createObjectURL(pdfBlob);
-                setReceiptHTML(`
-                    <iframe 
-                        src="${pdfUrl}" 
-                        width="100%" 
-                        height="100%" 
-                        frameborder="0"
-                        style="border: none;"
-                    ></iframe>
-                `);
-                setShowReceiptModal(true);
-                setReceiptLoading(false);
+                // SOLUTION 1: Convert blob to data URL (more reliable than blob URL)
+                const reader = new FileReader();
+                reader.onload = function () {
+                    const dataUrl = reader.result;
+                    console.log('✅ Data URL created, length:', dataUrl.length);
+
+                    // Store the data URL
+                    setReceiptHTML(dataUrl);
+
+                    // Show modal
+                    setShowReceiptModal(true);
+                    setReceiptLoading(false);
+                };
+                reader.onerror = function (error) {
+                    console.error('❌ FileReader error:', error);
+                    throw new Error('Failed to read PDF data');
+                };
+                reader.readAsDataURL(pdfBlob);
 
             } else if (action === 'download') {
-                // Download logic
+                // Download logic remains the same
                 const downloadUrl = URL.createObjectURL(pdfBlob);
                 const a = document.createElement('a');
                 a.href = downloadUrl;
-                a.download = `receipt-${paymentId}.pdf`;
+                a.download = `receipt-${paymentId}-${Date.now()}.pdf`;
                 document.body.appendChild(a);
                 a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(downloadUrl);
+
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(downloadUrl);
+                }, 100);
+
                 setDownloadLoading(false);
+                console.log('✅ Download completed');
             }
 
         } catch (error) {
-            console.error('Receipt error:', error);
-            alert('Failed to process receipt. Please try again.');
+            console.error('❌ Receipt error:', error);
+            alert(error.message || 'Failed to process receipt. Please try again.');
             setReceiptLoading(false);
             setDownloadLoading(false);
         } finally {
             setCurrentAction('');
-            setCurrentPaymentId('');
+            if (action === 'download') {
+                setCurrentPaymentId('');
+            }
         }
     }, []);
 
@@ -372,186 +457,46 @@ export default function Payments() {
         }
     }, []);
 
-    const renderPaymentCard = useCallback((payment, index) => {
-        if (!payment || typeof payment !== 'object') return null;
-
-        const paymentId = getSafePaymentId(payment);
-        const bookingId = getPaymentProperty(payment, 'bookingId');
-        const status = getPaymentProperty(payment, 'status');
-        const amount = getPaymentProperty(payment, 'amount');
-        const method = getPaymentProperty(payment, 'method');
-        const paidAt = getPaymentProperty(payment, 'paidAt');
-        const gatewayId = getPaymentProperty(payment, 'gatewayId');
-        const refundId = getPaymentProperty(payment, 'refundId');
-        const refundTime = getPaymentProperty(payment, 'refundTime');
-        const apartmentTitle = getPaymentProperty(payment, 'apartmentTitle');
-
-        const formattedAmount = safeFormatCurrency(amount);
-        const formattedMethod = safePaymentMethod(method);
-        const formattedDate = safeFormatDate(paidAt);
-        const safeGatewayId = safeToString(gatewayId).substring(0, 20);
-
-        // Status icons mapping
-        const statusIcons = {
-            paid: faCheckCircle,
-            pending: faClock,
-            failed: faTimesCircle,
-            refunded: faUndo,
-            processing: faSyncAlt,
-            cancelled: faBan
-        };
-
-        // Payment method icons mapping
-        const methodIcons = {
-            credit_card: faCreditCard,
-            debit_card: faCreditCard,
-            paypal: faPaypal,
-            bank_transfer: faUniversity,
-            wallet: faWallet,
-            cash: faMoneyBill,
-            stripe: faStripe,
-            apple_pay: faApple,
-            google_pay: faGoogle
-        };
-
-        const StatusIcon = statusIcons[status?.toLowerCase()] || faCircle;
-        const MethodIcon = methodIcons[method?.toLowerCase()] || faCreditCard;
-
-        // Check if this payment is currently being processed
-        const isViewLoading = receiptLoading && currentPaymentId === paymentId && currentAction === 'view';
-        const isDownloadLoading = downloadLoading && currentPaymentId === paymentId && currentAction === 'download';
-
+    if (loading) {
         return (
-            <Card
-                key={paymentId}
-                className="group bg-neutral-800/50 border border-neutral-700/50 rounded-xl p-6 hover:border-neutral-600/50 hover:bg-neutral-800/70 hover:shadow-xl hover:shadow-black/10 backdrop-blur-sm transition-all duration-500 ease-out animate-fade-in-slide-up"
-                style={{ animationDelay: `${index * 0.1}s` }}
-            >
-                {/* Header */}
-                <div className="relative flex items-start justify-between mb-6">
-                    <div className="flex flex-col gap-1">
-                        {apartmentTitle && (
-                            <div className="flex items-center gap-2 group-hover:text-teal-300 transition-colors duration-500">
-                                <FontAwesomeIcon icon={faBuilding} className="text-teal-400 text-sm" />
-                                <h3 className="text-teal-400 font-semibold text-lg truncate w-[150px]">{apartmentTitle}</h3>
-                            </div>
-                        )}
-
-                        <p className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors duration-500">
-                            payment #{paymentId}
-                        </p>
+            <div className="min-h-screen bg-gradient-to-br from-neutral-900 to-neutral-950 p-6">
+                {/* Header Skeleton */}
+                <div className="mb-8">
+                    <div className="flex items-center justify-between mb-2">
+                        <div>
+                            <div className="h-8 w-48 bg-neutral-800 rounded-lg mb-2 animate-pulse"></div>
+                            <div className="h-4 w-64 bg-neutral-800 rounded animate-pulse"></div>
+                        </div>
+                        <div className="h-9 w-24 bg-neutral-800 rounded-xl animate-pulse"></div>
                     </div>
 
-                    {status && (
-                        <span
-                            className={`absolute top-0 right-0 px-3 py-1.5 rounded-full text-xs font-semibold border backdrop-blur-sm transition-all duration-500 hover:scale-105 ${getStatusColor(
-                                status
-                            )}`}
-                        >
-                            <FontAwesomeIcon
-                                icon={StatusIcon}
-                                className={`mr-1 text-xs ${status === 'processing' ? 'animate-spin' : ''}`}
-                            />
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
-                        </span>
-                    )}
+                    {/* Search Bar Skeleton */}
+                    <div className="flex flex-col lg:flex-row gap-4 mt-6 animate-pulse">
+                        <div className="flex-1">
+                            <div className="w-full h-12 bg-neutral-800/50 rounded-xl"></div>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Payment Info */}
-                <div className="mb-6 bg-neutral-700/20 rounded-lg group-hover:bg-neutral-700/30 transition-colors duration-500">
-                    {[
-                        { label: 'Amount', value: formattedAmount, color: 'emerald', icon: faMoneyBillWave },
-                        { label: 'Method', value: formattedMethod, color: 'sky', icon: faCreditCard },
-                        { label: 'Paid At', value: formattedDate, color: 'amber', icon: faCalendarCheck },
-                        { label: 'Gateway ID', value: safeGatewayId, color: 'violet', icon: faFingerprint }
-                    ].map((item, idx) => (
-                        <div
-                            key={idx}
-                            className="flex items-center justify-between p-3 hover:bg-neutral-600/20 rounded-lg transition-all duration-300 hover:translate-x-1"
-                        >
-                            <div className="flex items-center gap-2">
-                                <div
-                                    className={`w-8 h-8 bg-${item.color}-500/10 rounded-lg flex items-center justify-center group-hover:bg-${item.color}-500/20 transition-all duration-500 hover:scale-110`}
-                                >
-                                    <FontAwesomeIcon icon={item.icon} className={`text-${item.color}-400 text-sm`} />
-                                </div>
-                                <span className="text-gray-400 text-sm">{item.label}</span>
-                            </div>
-                            <span
-                                className={`text-sm text-gray-200 font-medium truncate ${item.label === 'Amount' ? 'text-base' : ''
-                                    }`}
-                            >
-                                {item.value}
-                            </span>
-                        </div>
+                {/* Filter Pills Skeleton */}
+                <div className="flex flex-wrap gap-2 mb-6 animate-pulse">
+                    {[...Array(4)].map((_, i) => (
+                        <div key={i} className="h-9 w-20 bg-neutral-800/50 rounded-full"></div>
                     ))}
                 </div>
 
-                {/* Refund Info */}
-                {refundId && refundTime && (
-                    <div className="flex items-center gap-3 p-3 mb-6 bg-blue-900/20 rounded-lg border border-blue-800/30 transition-all duration-300 hover:bg-blue-900/30 hover:border-blue-700/50 hover:shadow-lg hover:shadow-blue-500/10">
-                        <FontAwesomeIcon icon={faUndo} className="text-blue-400 text-sm animate-pulse" />
-                        <div className="flex-1">
-                            <p className="text-xs text-blue-400 font-medium">Refund: {refundId}</p>
-                            <p className="text-xs text-blue-300">{safeFormatDate(refundTime)}</p>
-                        </div>
-                    </div>
-                )}
-
-                {/* Actions */}
-                <div className="flex flex-wrap gap-3">
-                    <button
-                        className="flex-1 max-sm:hidden flex items-center justify-center gap-2 px-4 py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-500 font-medium transition-all duration-300 hover:shadow-lg hover:shadow-teal-500/25 hover:scale-105 group disabled:opacity-50 disabled:cursor-not-allowed"
-                        onClick={() => handleReceiptAction(paymentId, 'view')}
-                        disabled={isViewLoading || isDownloadLoading}
-                    >
-                        {isViewLoading ? (
-                            <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                Loading...
-                            </>
-                        ) : (
-                            <>
-                                <FontAwesomeIcon
-                                    icon={faEye}
-                                    className="text-sm transition-transform duration-300 group-hover:scale-110"
-                                />
-                                Receipt
-                            </>
-                        )}
-                    </button>
-                    <button
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-gray-500/10 hover:scale-105 group disabled:opacity-50 disabled:cursor-not-allowed"
-                        onClick={() => handleReceiptAction(paymentId, 'download')}
-                        disabled={isViewLoading || isDownloadLoading}
-                    >
-                        {isDownloadLoading ? (
-                            <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                Downloading...
-                            </>
-                        ) : (
-                            <>
-                                <FontAwesomeIcon
-                                    icon={faDownload}
-                                    className="text-sm transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-0.5"
-                                />
-                                Download
-                            </>
-                        )}
-                    </button>
+                {/* Payments Grid Skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                    {[...Array(8)].map((_, i) => (
+                        <PaymentCardSkeleton key={i} />
+                    ))}
                 </div>
-            </Card>
-        );
-    }, [getPaymentProperty, getStatusColor, getSafePaymentId, handleReceiptAction, receiptLoading, downloadLoading, currentPaymentId, currentAction]);
 
-    // Loading state
-    if (loading) {
-        return (
-            <div className="h-screen text-white p-6 flex items-center justify-center"
-                style={{ maxHeight: 'calc(100vh - 96px)' }}
-            >
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+                {/* Animated Background Elements */}
+                <div className="fixed top-0 left-0 w-full h-full pointer-events-none -z-10">
+                    <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neutral-800/5 rounded-full blur-3xl"></div>
+                </div>
             </div>
         );
     }
@@ -559,123 +504,234 @@ export default function Payments() {
     // Error state
     if (error) {
         return (
-            <div className="space-y-6">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-                    <h1 className="text-2xl font-bold text-white mb-4 lg:mb-0">Payments</h1>
-                </div>
-                <Card className="p-12 text-center bg-gray-800 border border-gray-700 backdrop-blur-sm rounded-xl">
-                    <div className="max-w-md mx-auto">
-                        <div className="w-16 h-16 bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <FontAwesomeIcon
-                                icon={faTimesCircle}
-                                className="text-red-400 text-2xl"
-                            />
+            <div className="min-h-screen bg-gradient-to-br from-neutral-900 to-neutral-950 p-6">
+                {/* Header */}
+                <div className="mb-8">
+                    <div className="flex items-center justify-between mb-2">
+                        <div>
+                            <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-400 to-amber-300 bg-clip-text text-transparent">
+                                Payments
+                            </h1>
+                            <p className="text-neutral-400 mt-1">
+                                Track and manage all your payment transactions
+                            </p>
                         </div>
-                        <h3 className="text-lg font-semibold text-white mb-2">Error Loading Payments</h3>
-                        <p className="text-gray-400 mb-4">{error}</p>
-                        <button
-                            onClick={handleRefetch}
-                            className="flex items-center justify-center gap-2 px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-500 font-medium transition-all duration-300 hover:shadow-lg hover:shadow-teal-500/25"
-                        >
-                            <FontAwesomeIcon icon={faRedo} className="text-sm" />
-                            Try Again
-                        </button>
+                        <div className="text-sm px-4 py-2 bg-neutral-800/50 rounded-xl border border-neutral-700/50">
+                            <span className="text-neutral-400">Total: </span>
+                            <span className="text-amber-400 font-semibold">{safeData.payments.length}</span>
+                        </div>
                     </div>
-                </Card>
+                </div>
+
+                {/* Error Card */}
+                <div className="flex flex-col items-center justify-center py-16 px-4 bg-gradient-to-br from-neutral-800/30 to-neutral-900/30 border-2 border-dashed border-neutral-700/50 rounded-2xl">
+                    <div className="w-20 h-20 mb-4 bg-gradient-to-br from-rose-900/20 to-rose-800/20 rounded-full flex items-center justify-center border border-rose-700/30">
+                        <FontAwesomeIcon icon={faTimesCircle} className="text-3xl text-rose-400" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-neutral-200 mb-2">Error Loading Payments</h3>
+                    <p className="text-neutral-400 text-center max-w-md mb-6">{error}</p>
+                    <button
+                        onClick={handleRefetch}
+                        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white rounded-xl font-medium transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/25"
+                    >
+                        <FontAwesomeIcon icon={faRedo} className="text-sm" />
+                        Try Again
+                    </button>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6 p-6">
-            {/* Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-                <h1 className="text-2xl font-bold text-white mb-4 lg:mb-0">Payments</h1>
-                <button
-                    onClick={handleRefetch}
-                    className="flex max-w-[120px] items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-500 font-medium transition-all duration-300 hover:shadow-lg hover:shadow-teal-500/25 hover:scale-105"
-                >
-                    <FontAwesomeIcon icon={faRedo} className="text-sm" />
-                    Refresh
-                </button>
+        <div className="min-h-screen bg-gradient-to-br from-neutral-900 to-neutral-950 p-6">
+            {/* Header Section */}
+            <div className="mb-8">
+                <div className="flex items-center justify-between mb-2">
+                    <div>
+                        <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-400 to-teal-300 bg-clip-text text-transparent">
+                            Payments
+                        </h1>
+                        <p className="text-neutral-400 mt-1">
+                            Track and manage all your payment transactions
+                        </p>
+                    </div>
+                    <div className="text-sm px-4 py-2 bg-neutral-800/50 rounded-xl border border-neutral-700/50">
+                        <span className="text-neutral-400">Total: </span>
+                        <span className="text-teal-400 font-semibold">{safeData.payments.length}</span>
+                    </div>
+                </div>
+
+                {/* Search and Filter Bar */}
+                <div className="flex flex-col lg:flex-row gap-4 mt-6">
+                    {/* Search Input */}
+                    <div className="flex-1 relative group">
+                        <div className="absolute inset-0 bg-gradient-to-r from-teal-500/10 to-transparent rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
+                        <FontAwesomeIcon
+                            icon={faSearch}
+                            className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 group-focus-within:text-teal-400 transition-colors"
+                        />
+                        <input
+                            type="text"
+                            placeholder="Search by payment ID, apartment, or gateway ID..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="relative w-full pl-12 pr-4 py-3 bg-neutral-800/50 border border-neutral-700/50 rounded-xl focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/20 focus:outline-none text-neutral-100 placeholder-neutral-500 transition-all"
+                        />
+                    </div>
+
+                    {/* Refresh Button */}
+                    <button
+                        onClick={handleRefetch}
+                        className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white rounded-xl font-medium transition-all duration-300 hover:shadow-lg hover:shadow-teal-500/25"
+                    >
+                        <FontAwesomeIcon icon={faRedo} className="text-sm" />
+                        Refresh
+                    </button>
+                </div>
             </div>
 
             {/* Filter Pills */}
-            <FilterPills
-                filters={FILTERS}
-                activeFilter={filter}
-                onFilterChange={handleFilterChange}
-            />
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+                <FilterPills filters={FILTERS} activeFilter={filter} onFilterChange={setFilter} />
+            </div>
 
             {/* Payments Grid */}
             {filteredPayments.length === 0 ? (
-                <Card className="p-12 text-center bg-gray-800 border border-gray-700 backdrop-blur-sm rounded-xl transition-all duration-500 ease-out animate-fade-in-slide-up">
-                    <div className="max-w-md mx-auto">
-                        <div className="w-16 h-16 bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-soft-float">
-                            <FontAwesomeIcon
-                                icon={faCreditCard}
-                                className="text-teal-400 text-2xl"
-                                aria-hidden="true"
-                            />
-                        </div>
-                        <h3 className="text-lg font-semibold text-white mb-2">
-                            {safeData.payments.length === 0
-                                ? 'No payments available'
-                                : 'No payments found'}
-                        </h3>
-                        <p className="text-gray-400">
-                            {safeData.payments.length === 0
-                                ? 'There are no payments to display'
-                                : 'No payments match your current filter criteria'}
-                        </p>
+                <div className="flex flex-col items-center justify-center py-16 px-4 bg-gradient-to-br from-neutral-800/30 to-neutral-900/30 border-2 border-dashed border-neutral-700/50 rounded-2xl">
+                    <div className="w-20 h-20 mb-4 bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-full flex items-center justify-center border border-neutral-700/50">
+                        <FontAwesomeIcon icon={faCreditCard} className="text-3xl text-neutral-500" />
                     </div>
-                </Card>
-
+                    <h3 className="text-xl font-semibold text-neutral-200 mb-2">No payments found</h3>
+                    <p className="text-neutral-400 text-center max-w-md">
+                        {filter !== 'all'
+                            ? 'Try adjusting your filters'
+                            : 'No payments available yet'}
+                    </p>
+                </div>
             ) : (
-                // Usage in Payments Grid
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-                    {filteredPayments.map((payment, index) => renderPaymentCard(payment, index)).filter(Boolean)}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                    {filteredPayments.map((payment, index) => (
+                        <PaymentCard
+                            key={getSafePaymentId(payment)}
+                            payment={payment}
+                            onViewReceipt={handleReceiptAction}
+                            onDownloadReceipt={handleReceiptAction}
+                            getPaymentProperty={getPaymentProperty}
+                            getSafePaymentId={getSafePaymentId}
+                            safeFormatCurrency={safeFormatCurrency}
+                            safePaymentMethod={safePaymentMethod}
+                            safeFormatDate={safeFormatDate}
+                            safeToString={safeToString}
+                            isViewLoading={receiptLoading}
+                            isDownloadLoading={downloadLoading}
+                            currentPaymentId={currentPaymentId}
+                            currentAction={currentAction}
+                        />
+                    ))}
                 </div>
             )}
 
-            {/* Receipt Modal */}
+            {/* Receipt Modal - Enhanced version */}
             {showReceiptModal && (
-                <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
-                    <div className="bg-white rounded-2xl shadow-lg w-[50vw] max-sm:w-[300px] h-[90vh] overflow-hidden relative">
-                        <button
-                            className="absolute top-3 right-3 z-10 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
-                            onClick={() => {
-                                setShowReceiptModal(false);
-                                // Clean up any blob URLs when closing
-                                if (receiptHTML.includes('blob:')) {
-                                    const blobUrl = receiptHTML.match(/src="([^"]*)"/)[1];
-                                    URL.revokeObjectURL(blobUrl);
-                                }
-                            }}
-                        >
-                            ✕
-                        </button>
+                <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="relative bg-gradient-to-br from-neutral-900 to-neutral-950 rounded-2xl shadow-2xl shadow-black/50 w-full max-w-4xl h-[85vh] overflow-hidden border border-neutral-700/50">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between p-5 border-b border-neutral-700/50 bg-neutral-900/50">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-gradient-to-br from-teal-500/10 to-teal-400/5">
+                                    <FontAwesomeIcon icon={faReceipt} className="text-teal-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-neutral-100">Payment Receipt</h3>
+                                    <p className="text-sm text-neutral-400">Payment ID: {currentPaymentId}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                {/* Add download button in modal */}
+                                <button
+                                    onClick={async () => {
+                                        // Re-fetch for download
+                                        const res = await fetch(`/api/test-receipt/${currentPaymentId}`);
+                                        const blob = await res.blob();
+                                        const url = URL.createObjectURL(blob);
+                                        const a = document.createElement('a');
+                                        a.href = url;
+                                        a.download = `receipt-${currentPaymentId}.pdf`;
+                                        a.click();
+                                        URL.revokeObjectURL(url);
+                                    }}
+                                    className="p-2 rounded-xl hover:bg-neutral-800/50 transition-colors border border-neutral-700/50"
+                                    title="Download PDF"
+                                >
+                                    <FontAwesomeIcon icon={faDownload} className="text-neutral-400 hover:text-teal-400" />
+                                </button>
+                                <button
+                                    className="p-2 rounded-xl hover:bg-neutral-800/50 transition-colors border border-neutral-700/50"
+                                    onClick={() => {
+                                        setShowReceiptModal(false);
+                                        if (receiptHTML) {
+                                            // Clean up if it's a blob URL
+                                            if (receiptHTML.startsWith('blob:')) {
+                                                URL.revokeObjectURL(receiptHTML);
+                                            }
+                                            setReceiptHTML('');
+                                        }
+                                        setCurrentPaymentId('');
+                                    }}
+                                >
+                                    <FontAwesomeIcon icon={faTimesCircle} className="text-neutral-400 hover:text-rose-400" />
+                                </button>
+                            </div>
+                        </div>
 
-                        {/* PDF Display */}
-                        <div
-                            className="w-full h-full rounded-b-2xl"
-                            dangerouslySetInnerHTML={{ __html: receiptHTML }}
-                        />
+                        {/* PDF Display - Multiple fallback options */}
+                        <div className="w-full h-[calc(100%-80px)] bg-neutral-800/30">
+                            {receiptHTML && (
+                                <>
+                                    {/* Try embed first (most reliable) */}
+                                    <embed
+                                        src={receiptHTML}
+                                        type="application/pdf"
+                                        className="w-full h-full"
+                                        style={{ border: 'none' }}
+                                    />
+
+                                    {/* Fallback message if embed fails */}
+                                    <div className="hidden only:flex flex-col items-center justify-center h-full">
+                                        <p className="text-neutral-400 mb-4">PDF cannot be displayed directly.</p>
+                                        <button
+                                            onClick={async () => {
+                                                const res = await fetch(`/api/test-receipt/${currentPaymentId}`);
+                                                const blob = await res.blob();
+                                                const url = URL.createObjectURL(blob);
+                                                window.open(url, '_blank');
+                                            }}
+                                            className="px-4 py-2 bg-gradient-to-r from-teal-600 to-teal-500 text-white rounded-lg"
+                                        >
+                                            Open in New Tab
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
 
             {/* Global Loading Modal for Receipt Actions */}
             {(receiptLoading || downloadLoading) && (
-                <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
-                    <div className="bg-gray-800 rounded-2xl shadow-lg p-8 max-w-md mx-4">
+                <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center">
+                    <div className="bg-gradient-to-br from-neutral-900 to-neutral-950 rounded-2xl shadow-2xl shadow-black/50 p-8 max-w-md mx-4 border border-neutral-700/50">
                         <div className="flex flex-col items-center justify-center gap-4">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-400"></div>
+                            <div className="relative">
+                                <div className="w-16 h-16 border-4 border-teal-500/20 rounded-full"></div>
+                                <div className="absolute top-0 left-0 w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                            </div>
                             <div className="text-center">
-                                <h3 className="text-lg font-semibold text-white mb-2">
+                                <h3 className="text-lg font-semibold text-neutral-100 mb-2">
                                     {currentAction === 'view' ? 'Loading Receipt' : 'Downloading Receipt'}
                                 </h3>
-                                <p className="text-gray-400 text-sm">
+                                <p className="text-neutral-400 text-sm">
                                     {currentAction === 'view'
                                         ? 'Please wait while we prepare your receipt...'
                                         : 'Your download will start shortly...'
@@ -686,6 +742,12 @@ export default function Payments() {
                     </div>
                 </div>
             )}
+
+            {/* Animated Background Elements */}
+            <div className="fixed top-0 left-0 w-full h-full pointer-events-none -z-10">
+                <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neutral-800/5 rounded-full blur-3xl"></div>
+            </div>
         </div>
     );
 }

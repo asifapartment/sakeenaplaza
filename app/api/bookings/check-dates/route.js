@@ -1,5 +1,6 @@
 import { verifyToken } from "@/lib/jwt";
 import { query } from "@/lib/mysql-wrapper";
+import { updateBookingStatus } from "@/lib/updateBookingStatus";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -24,16 +25,7 @@ export async function POST(request) {
         }
 
         // 🔥 STEP 1: Expire stale bookings
-        await query(
-            `
-            UPDATE bookings
-            SET status = 'expired',
-                expired_at = NOW()
-            WHERE status IN ('pending', 'confirmed', 'ongoing')
-              AND expires_at IS NOT NULL
-              AND expires_at <= NOW();
-            `
-        );
+        await updateBookingStatus();
 
         const body = await request.json();
         const { checkin, checkout, apartment_id } = body;

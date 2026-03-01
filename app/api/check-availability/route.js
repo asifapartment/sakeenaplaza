@@ -43,14 +43,27 @@ export async function POST(req) {
             checkins.add(startStr);
             checkouts.add(endStr);
 
-            let night = new Date(start);
+            // number of nights
+            const nights =
+                (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
 
-            // block occupied nights (hotel style)
-            while (night < end) {
-                blockedSet.add(localDate(night));
-                night.setDate(night.getDate() + 1);
+            let day = new Date(start);
+
+            // ✅ only block check-in if it's a 1-night stay
+            if (nights === 1) {
+                blockedSet.add(localDate(day));
+                continue;
+            }
+
+            // ✅ block interior occupied nights (NOT the check-in day)
+            day.setDate(day.getDate() + 1);
+
+            while (day < end) {
+                blockedSet.add(localDate(day));
+                day.setDate(day.getDate() + 1);
             }
         }
+        
 
         // block touching boundaries (no same-day turnover)
         for (const d of checkins) {

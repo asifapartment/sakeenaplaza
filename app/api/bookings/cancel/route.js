@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/mysql-wrapper";
 import { verifyToken } from "@/lib/jwt";
-import { cookies } from "next/headers";
+import { parseCookies } from "@/lib/cookies";
 
 export async function PATCH(req) {
     try {
         const { booking_id } = await req.json();
-        const token = cookies().get("token")?.value;
-
+        const cookieHeader = req.headers.get('cookie');
+        const cookies = parseCookies(cookieHeader);
+        const token = cookies.token;
         if (!token) {
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }

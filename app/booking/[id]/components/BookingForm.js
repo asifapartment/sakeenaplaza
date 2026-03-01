@@ -248,11 +248,9 @@ function BookingForm({ apartmentId, disabledRanges, lockedRanges, dailyRate = 20
         border border-white/10
         shadow-2xl shadow-black/40
         space-y-8
+        w-full max-w-md
     "
             >
-                {/* Soft glow */}
-                <div className="absolute inset-0 bg-gradient-to-r from-teal-500/5 via-transparent to-indigo-500/5 pointer-events-none" />
-
                 {/* Error Toast */}
                 {(formError || error) && (
                     <div className="animate-fade-in">
@@ -313,15 +311,7 @@ function BookingForm({ apartmentId, disabledRanges, lockedRanges, dailyRate = 20
 
                 {/* Booking Form */}
                 <div>
-                    <div className="text-center mb-8">
-                        <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                            <Calendar className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                            Book Your Stay
-                        </h2>
-                        <p className="text-gray-400 text-sm mt-2">Select dates and guests to proceed</p>
-                    </div>
-
-                    <form onSubmit={handleSubmit} className="space-y-8">
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Calendar Section */}
                         <div className="p-4 max-sm:p-0">
                             <BookingCalendar
@@ -332,28 +322,31 @@ function BookingForm({ apartmentId, disabledRanges, lockedRanges, dailyRate = 20
                             />
                         </div>
 
-                        {/* Check-in/out Times */}
-                        <div className="bg-neutral-800/50 rounded-xl p-4 border border-white/10">
-                            <h3 className="font-semibold text-white mb-4">Check-in & Check-out Times</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                                        <label className="text-sm text-gray-300">Check-in</label>
+                        {/* Check-in/out Times - Compact */}
+                        <div className="bg-neutral-800/50 rounded-xl p-3 border border-white/10">
+                            <h3 className="font-semibold text-white text-sm mb-3">Check-in & Check-out</h3>
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-1.5 mb-1">
+                                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                        <span className="text-xs text-gray-300">Check-in</span>
                                     </div>
-                                    <div className="p-4 rounded-lg bg-gradient-to-r from-neutral-800 to-neutral-900 border border-white/10">
-                                        <div className="text-xl font-bold text-white">{fixedCheckinTime}</div>
-                                        <div className="text-sm text-gray-400 mt-1">3:00 PM • Fixed time</div>
+                                    <div className="p-3 rounded-lg bg-gradient-to-r from-neutral-800 to-neutral-900 border border-white/10">
+                                        <div className="text-lg font-bold text-white">{fixedCheckinTime}</div>
+                                        <div className="text-xs text-gray-400 mt-0.5">3:00 PM • Fixed</div>
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                                        <label className="text-sm text-gray-300">Check-out</label>
+
+                                <div className="text-gray-400 text-xs">→</div>
+
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-1.5 mb-1">
+                                        <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                                        <span className="text-xs text-gray-300">Check-out</span>
                                     </div>
-                                    <div className="p-4 rounded-lg bg-gradient-to-r from-neutral-800 to-neutral-900 border border-white/10">
-                                        <div className="text-xl font-bold text-white">{fixedCheckoutTime}</div>
-                                        <div className="text-sm text-gray-400 mt-1">11:00 AM • Fixed time</div>
+                                    <div className="p-3 rounded-lg bg-gradient-to-r from-neutral-800 to-neutral-900 border border-white/10">
+                                        <div className="text-lg font-bold text-white">{fixedCheckoutTime}</div>
+                                        <div className="text-xs text-gray-400 mt-0.5">11:00 AM • Fixed</div>
                                     </div>
                                 </div>
                             </div>

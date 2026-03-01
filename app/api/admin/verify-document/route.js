@@ -109,7 +109,7 @@ export async function POST(request) {
 
                 documentId = result.insertId;
             }
-            
+
 
             // 2. Update booking status to confirmed
             await connection.query(
@@ -260,7 +260,7 @@ export async function GET(request) {
                     image_urls: images
                 };
             });
-            
+
 
             return NextResponse.json({
                 success: true,

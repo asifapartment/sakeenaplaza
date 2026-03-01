@@ -1,5 +1,5 @@
-// Its a api for rejecting the documents 
 // app/api/admin/reject-document/route.js
+
 import { NextResponse } from 'next/server';
 import { verifyAdmin } from '@/lib/adminAuth';
 import { parseCookies } from '@/lib/cookies';
@@ -10,48 +10,30 @@ export async function POST(request) {
         const cookies = parseCookies(request.headers.get("cookie"));
         const token = cookies.token;
 
-        // ✅ Use adminAuth helper
         const { valid, decoded, error } = await verifyAdmin(token);
         if (!valid) {
             return NextResponse.json({ error }, { status: 401 });
         }
 
-        const data = await request.json();
         const {
             user_id,
             booking_id,
             document_type,
-            document_data,
-            status , // 'approved' or 'rejected'
-            review_message = '',
-            verification_notes = ''
-        } = data;
+            status = "rejected",
+            review_message = "",
+            verification_notes = ""
+        } = await request.json();
 
-        // Validation
-        if (!user_id || !booking_id || !document_type || !document_data) {
+        if (!user_id || !booking_id || !document_type) {
             return NextResponse.json(
-                {
-                    success: false,
-                    message: 'Missing required fields: user_id, booking_id, document_type, document_data'
-                },
+                { success: false, message: "user_id, booking_id, document_type required" },
                 { status: 400 }
             );
         }
 
         const validDocumentTypes = ['aadhaar', 'pan', 'driving_license', 'passport', 'voter_id'];
         if (!validDocumentTypes.includes(document_type)) {
-            return NextResponse.json(
-                { success: false, message: 'Invalid document type' },
-                { status: 400 }
-            );
-        }
-
-        const validStatuses = ['pending', 'approved', 'rejected'];
-        if (!validStatuses.includes(status)) {
-            return NextResponse.json(
-                { success: false, message: 'Invalid status' },
-                { status: 400 }
-            );
+            return NextResponse.json({ success: false, message: "Invalid document type" }, { status: 400 });
         }
 
         const reviewer_id = decoded.id;
@@ -60,70 +42,78 @@ export async function POST(request) {
         try {
             await connection.beginTransaction();
 
-            // 1. Insert or update document verification record
-            const [existingDoc] = await connection.query(
-                `SELECT id FROM user_documents 
+            // 🔹 Load existing document safely
+            const [rows] = await connection.query(
+                `SELECT id, document_data FROM user_documents
          WHERE user_id = ? AND booking_id = ?`,
                 [user_id, booking_id]
             );
 
-            let documentId;
-
-            if (existingDoc.length > 0) {
-                documentId = existingDoc[0].id;
-
-                await connection.execute(
-                    `UPDATE user_documents
-                     SET document_type = ?,
-                         document_data = ?,
-                         status = ?,
-                         reviewer_id = ?,
-                         review_message = ?,
-                         verification_notes = ?,
-                         updated_at = NOW()
-                     WHERE id = ?`,
-                    [
-                        document_type,
-                        JSON.stringify(document_data),
-                        status,
-                        reviewer_id,
-                        review_message,
-                        verification_notes,
-                        documentId
-                    ]
+            if (!rows.length) {
+                return NextResponse.json(
+                    { success: false, message: "Document not found" },
+                    { status: 404 }
                 );
-            } else {
-                const [result] = await connection.execute(
-                    `INSERT INTO user_documents
-                     (user_id, booking_id, document_type, document_data, status, reviewer_id, review_message, verification_notes, created_at)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
-                    [
-                        user_id,
-                        booking_id,
-                        document_type,
-                        JSON.stringify(document_data),
-                        status,
-                        reviewer_id,
-                        review_message,
-                        verification_notes
-                    ]
-                );
-
-                documentId = result.insertId;
             }
-            
 
-            // 2. Log the action (optional but recommended)
+            const documentId = rows[0].id;
+
+            const existingData =
+                typeof rows[0].document_data === "string"
+                    ? JSON.parse(rows[0].document_data)
+                    : rows[0].document_data;
+
+            // 🛡 Safety guard (prevents corruption forever)
+            if (
+                JSON.stringify(existingData).includes("cloudinary") &&
+                !JSON.stringify(existingData).includes("public_id")
+            ) {
+                throw new Error("Corrupted document data — public_id missing");
+            }
+
+            // 🔹 Only annotate — never replace
+            const mergedData = {
+                ...existingData,
+                review: {
+                    status: "rejected",
+                    reviewer_id,
+                    review_message,
+                    verification_notes,
+                    reviewed_at: new Date().toISOString()
+                }
+            };
+
+            await connection.execute(
+                `UPDATE user_documents
+         SET document_type = ?,
+             document_data = ?,
+             status = 'rejected',
+             reviewer_id = ?,
+             review_message = ?,
+             verification_notes = ?,
+             updated_at = NOW()
+         WHERE id = ?`,
+                [
+                    document_type,
+                    JSON.stringify(mergedData),
+                    reviewer_id,
+                    review_message,
+                    verification_notes,
+                    documentId
+                ]
+            );
+
+            // 🔹 Audit log
             await connection.query(
-                `INSERT INTO admin_activity_logs 
-         (admin_id, action_type, target_type, target_id, description, metadata) 
+                `INSERT INTO admin_activity_logs
+         (admin_id, action_type, target_type, target_id, description, metadata)
          VALUES (?, ?, ?, ?, ?, ?)`,
                 [
                     reviewer_id,
-                    'document_verification',
+                    'document_rejected',
                     'booking',
                     booking_id,
-                    `Document verified and booking confirmed - Status: ${status}`,
+                    'Document rejected',
                     JSON.stringify({
                         document_type,
                         document_id: documentId,
@@ -136,23 +126,24 @@ export async function POST(request) {
 
             return NextResponse.json({
                 success: true,
-                message: 'Document verified and booking confirmed successfully',
+                message: "Document rejected successfully",
                 document_id: documentId
             });
 
-        } catch (error) {
+        } catch (err) {
             await connection.rollback();
-            throw error;
+            throw err;
         } finally {
             connection.release();
         }
 
     } catch (error) {
-        console.error('Document verification error:', error);
+        console.error("Reject document error:", error);
+
         return NextResponse.json(
             {
                 success: false,
-                message: 'Failed to verify document',
+                message: "Reject failed",
                 error: error.message
             },
             { status: 500 }
