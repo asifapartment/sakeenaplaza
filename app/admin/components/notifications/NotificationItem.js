@@ -37,6 +37,7 @@ export default function NotificationItem({ item, refresh }) {
     const markAsRead = async () => {
         await fetch(`/api/admin/notifications/read?id=${item.id}`, {
             method: "PUT",
+            credentials: 'include'
         });
         refresh();
     };
@@ -44,6 +45,7 @@ export default function NotificationItem({ item, refresh }) {
     const handleDelete = async () => {
         await fetch(`/api/admin/notifications/delete?id=${item.id}`, {
             method: "DELETE",
+            credentials: 'include'
         });
         setShowDeleteModal(false);
         refresh();

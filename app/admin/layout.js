@@ -1,15 +1,17 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faHome, faUsers, faCalendar, faCreditCard,
     faBars, faXmark, faRightFromBracket, faBuilding,
     faChevronDown, faChevronUp, faImages,
-    faEnvelope,faMessage,
-    faBell,
-    faTags
+    faEnvelope, faMessage,
+    faBell, faBellSlash,
+    faTags, faCircle, faCheckCircle, faClock,
+    faInfoCircle, faExclamationTriangle, faExclamationCircle
 } from '@fortawesome/free-solid-svg-icons';
+import { formatDistanceToNow } from 'date-fns';
 
 const navItems = [
     { id: 'overview', label: 'Overview', icon: faHome, path: '/admin' },
@@ -23,6 +25,41 @@ const navItems = [
     { id: 'offers', label: 'Offers', icon: faTags, path: '/admin/offers' },
 ];
 
+// Notification type to route mapping (based on your enum values)
+const notificationRoutes = {
+    booking: '/admin/bookings',
+    payment: '/admin/payments',
+    message: '/admin/messages',
+    feedback: '/admin/feedback-reviews',
+    system: '/admin/notifications',
+    review: '/admin/feedback-reviews',
+};
+
+// Level-based styling and icons
+const levelConfig = {
+    info: {
+        bgColor: 'bg-blue-500/10',
+        textColor: 'text-blue-400',
+        borderColor: 'border-blue-500/20',
+        icon: faInfoCircle,
+        dotColor: 'text-blue-500'
+    },
+    warning: {
+        bgColor: 'bg-yellow-500/10',
+        textColor: 'text-yellow-400',
+        borderColor: 'border-yellow-500/20',
+        icon: faExclamationTriangle,
+        dotColor: 'text-yellow-500'
+    },
+    danger: {
+        bgColor: 'bg-red-500/10',
+        textColor: 'text-red-400',
+        borderColor: 'border-red-500/20',
+        icon: faExclamationCircle,
+        dotColor: 'text-red-500'
+    }
+};
+
 export default function AdminLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -31,8 +68,217 @@ export default function AdminLayout({ children }) {
     const [logoHover, setLogoHover] = useState(false);
     const [collapseHover, setCollapseHover] = useState(false);
 
+    // Notification states
+    const [notifications, setNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [markingAsRead, setMarkingAsRead] = useState(null);
+
+    // NEW: Separate counts for bookings and payments
+    const [bookingCount, setBookingCount] = useState(0);
+    const [paymentCount, setPaymentCount] = useState(0);
+    const [lastOpenedPages, setLastOpenedPages] = useState({});
+
+    const notificationRef = useRef(null);
     const pathname = usePathname();
     const router = useRouter();
+
+    // Fetch notifications and calculate counts
+    const fetchNotifications = async () => {
+        try {
+            setLoading(true);
+            // Fetch unread notifications with limit
+            const response = await fetch('/api/admin/notifications?unread=true&limit=50', {
+                credentials: 'include' // Ensure cookies are sent for authentication
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                setNotifications(data.notifications);
+
+                // Calculate unread count from fetched notifications
+                const unread = data.notifications.filter(n => !n.is_read).length;
+                setUnreadCount(unread);
+
+                // Calculate booking and payment counts from unread notifications
+                const bookings = data.notifications.filter(
+                    n => !n.is_read && n.type === 'booking'
+                ).length;
+
+                const payments = data.notifications.filter(
+                    n => !n.is_read && n.type === 'payment'
+                ).length;
+
+                setBookingCount(bookings);
+                setPaymentCount(payments);
+            }
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Initial fetch and polling setup
+    useEffect(() => {
+        fetchNotifications();
+
+        // Poll for new notifications every 30 seconds
+        const interval = setInterval(fetchNotifications, 30000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    // Mark notification as read
+    const markAsRead = async (notificationId, event) => {
+        event.stopPropagation();
+
+        try {
+            setMarkingAsRead(notificationId);
+            const response = await fetch(`/api/admin/notifications/read?id=${notificationId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Find the notification to check its type
+                const notification = notifications.find(n => n.id === notificationId);
+
+                // Update local state
+                setNotifications(prev =>
+                    prev.map(n =>
+                        n.id === notificationId ? { ...n, is_read: 1 } : n
+                    )
+                );
+
+                // Update specific counts based on notification type
+                if (notification?.type === 'booking') {
+                    setBookingCount(prev => Math.max(0, prev - 1));
+                } else if (notification?.type === 'payment') {
+                    setPaymentCount(prev => Math.max(0, prev - 1));
+                }
+
+                setUnreadCount(prev => Math.max(0, prev - 1));
+            } else {
+                console.error('Failed to mark as read:', data.error);
+            }
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+        } finally {
+            setMarkingAsRead(null);
+        }
+    };
+
+    // Handle notification click
+    const handleNotificationClick = async (notification) => {
+        // Mark as read if not already read
+        if (!notification.is_read) {
+            await markAsRead(notification.id, { stopPropagation: () => { } });
+        }
+
+        // Navigate based on notification type
+        const baseRoute = notificationRoutes[notification.type] || '/admin/notifications';
+        let route = baseRoute;
+
+        // Parse meta JSON if it exists
+        let meta = {};
+        if (notification.meta) {
+            try {
+                meta = typeof notification.meta === 'string'
+                    ? JSON.parse(notification.meta)
+                    : notification.meta;
+            } catch (e) {
+                console.error('Error parsing meta:', e);
+            }
+        }
+
+        // Add query parameters based on notification data
+        const params = new URLSearchParams();
+        if (notification.booking_id) params.set('booking_id', notification.booking_id);
+        if (notification.user_id) params.set('user_id', notification.user_id);
+
+        // Add any additional IDs from meta
+        if (meta.payment_id) params.set('payment_id', meta.payment_id);
+        if (meta.review_id) params.set('review_id', meta.review_id);
+        if (meta.offer_id) params.set('offer_id', meta.offer_id);
+
+        const queryString = params.toString();
+        if (queryString) {
+            route += `?${queryString}`;
+        }
+
+        router.push(route);
+        setShowNotifications(false);
+    };
+
+    // Mark all as read
+    const markAllAsRead = async () => {
+        try {
+            const response = await fetch('/api/admin/notifications/read-all', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                setNotifications(prev => prev.map(n => ({ ...n, is_read: 1 })));
+                setUnreadCount(0);
+                setBookingCount(0);
+                setPaymentCount(0);
+            }
+        } catch (error) {
+            console.error('Error marking all as read:', error);
+        }
+    };
+    const markNotificationsByType = async (type) => {
+        try {
+            await fetch('/api/admin/notifications/read-by-type', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ type })
+            });
+
+            setNotifications(prev =>
+                prev.map(n =>
+                    n.type === type ? { ...n, is_read: 1 } : n
+                )
+            );
+
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    };
+    useEffect(() => {
+
+        if (pathname.startsWith('/admin/bookings') && bookingCount > 0) {
+            setBookingCount(0);
+            markNotificationsByType('booking');
+        }
+
+        if (pathname.startsWith('/admin/payments') && paymentCount > 0) {
+            setPaymentCount(0);
+            markNotificationsByType('payment');
+        }
+
+    }, [pathname]);
+
+    // Handle click outside to close notification dropdown
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+                setShowNotifications(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     // Handle scroll for navbar shadow
     useEffect(() => {
@@ -47,6 +293,7 @@ export default function AdminLayout({ children }) {
     useEffect(() => {
         setSidebarOpen(false);
         setMobileDropdownOpen(false);
+        setShowNotifications(false);
     }, [pathname]);
 
     // Close sidebar on escape key
@@ -55,6 +302,7 @@ export default function AdminLayout({ children }) {
             if (e.key === 'Escape') {
                 setSidebarOpen(false);
                 setMobileDropdownOpen(false);
+                setShowNotifications(false);
             }
         };
         document.addEventListener('keydown', handleEscape);
@@ -89,12 +337,136 @@ export default function AdminLayout({ children }) {
         return navItems.find(item => item.path === pathname)?.label || 'Dashboard';
     };
 
+    // Get level-specific styling
+    const getLevelStyle = (level = 'info') => {
+        return levelConfig[level] || levelConfig.info;
+    };
+
+    // Notification Dropdown Component
+    const NotificationDropdown = () => (
+        <div
+            ref={notificationRef}
+            className="absolute right-0 mt-2 w-96 bg-neutral-800 rounded-lg shadow-2xl border border-gray-700 overflow-hidden z-50"
+        >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700 bg-neutral-900">
+                <div className="flex items-center gap-2">
+                    <FontAwesomeIcon icon={faBell} className="w-4 h-4 text-gray-400" />
+                    <h3 className="font-semibold text-white">Notifications</h3>
+                    {unreadCount > 0 && (
+                        <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                            {unreadCount} new
+                        </span>
+                    )}
+                </div>
+                {unreadCount > 0 && (
+                    <button
+                        onClick={markAllAsRead}
+                        className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                        Mark all as read
+                    </button>
+                )}
+            </div>
+
+            {/* Notification List */}
+            <div className="max-h-96 overflow-y-auto">
+                {loading && notifications.length === 0 ? (
+                    <div className="flex items-center justify-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    </div>
+                ) : notifications.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                        <FontAwesomeIcon icon={faBellSlash} className="w-12 h-12 text-gray-600 mb-3" />
+                        <p className="text-gray-400 text-sm">No notifications yet</p>
+                        <p className="text-gray-500 text-xs mt-1">We'll notify you when something arrives</p>
+                    </div>
+                ) : (
+                    notifications.map((notification) => {
+                        const levelStyle = getLevelStyle(notification.level);
+
+                        return (
+                            <div
+                                key={notification.id}
+                                onClick={() => handleNotificationClick(notification)}
+                                className={`relative px-4 py-3 border-b border-gray-700 hover:bg-neutral-700 cursor-pointer transition-colors ${!notification.is_read ? 'bg-neutral-750' : ''
+                                    }`}
+                            >
+                                <div className="flex gap-3">
+                                    {/* Status Indicator with level-based color */}
+                                    {!notification.is_read && (
+                                        <FontAwesomeIcon
+                                            icon={faCircle}
+                                            className={`w-2 h-2 ${levelStyle.dotColor} absolute top-3 left-2`}
+                                        />
+                                    )}
+
+                                    {/* Level Icon */}
+                                    <div className={`mt-0.5 ${levelStyle.textColor}`}>
+                                        <FontAwesomeIcon icon={levelStyle.icon} className="w-4 h-4" />
+                                    </div>
+
+                                    {/* Content */}
+                                    <div className="flex-1">
+                                        <p className={`text-sm font-medium ${!notification.is_read ? 'text-white' : 'text-gray-300'}`}>
+                                            {notification.title}
+                                        </p>
+                                        {notification.content && (
+                                            <p className="text-xs text-gray-400 mt-1 line-clamp-2">
+                                                {notification.content}
+                                            </p>
+                                        )}
+                                        <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                                            <FontAwesomeIcon icon={faClock} className="w-3 h-3" />
+                                            {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                                            <span className="mx-1">•</span>
+                                            <span className="capitalize">{notification.type}</span>
+                                        </p>
+                                    </div>
+
+                                    {/* Mark as read button */}
+                                    {!notification.is_read && (
+                                        <button
+                                            onClick={(e) => markAsRead(notification.id, e)}
+                                            disabled={markingAsRead === notification.id}
+                                            className="text-gray-400 hover:text-blue-400 transition-colors self-center"
+                                            title="Mark as read"
+                                        >
+                                            {markingAsRead === notification.id ? (
+                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                                            ) : (
+                                                <FontAwesomeIcon icon={faCheckCircle} className="w-4 h-4" />
+                                            )}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-4 py-3 border-t border-gray-700 bg-neutral-900">
+                <button
+                    onClick={() => {
+                        router.push('/admin/notifications');
+                        setShowNotifications(false);
+                    }}
+                    className="w-full text-center text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                    View all notifications
+                </button>
+            </div>
+        </div>
+    );
+
     const Sidebar = (
         <aside
             className={`bg-neutral-900 border-r border-gray-700 h-full flex flex-col transition-all duration-200 ${sidebarCollapsed ? 'w-16' : 'w-72'}`}
             aria-label="Rooms4u sidebar"
         >
-            {/* Sidebar Header */}
+            {/* Sidebar Header - unchanged */}
             <div className="p-3 flex border-b border-gray-700 items-center justify-between">
                 <div className="flex items-center gap-3">
                     <button
@@ -152,34 +524,75 @@ export default function AdminLayout({ children }) {
                 </div>
             </div>
 
-            {/* Navigation */}
+            {/* Navigation - MODIFIED to show counts on bookings and payments */}
             <nav className="flex-1 p-2 space-y-1">
                 {navItems.map(({ id, label, icon, path }) => (
                     <button
                         key={id}
                         onClick={() => router.push(path)}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-150 ${pathname === path
-                            ? 'bg-neutral-700 text-white shadow-sm'
-                            : 'text-gray-300 hover:bg-neutral-800 hover:text-white'
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-150 relative ${pathname === path
+                                ? 'bg-neutral-700 text-white shadow-sm'
+                                : 'text-gray-300 hover:bg-neutral-800 hover:text-white'
                             } ${sidebarCollapsed ? 'justify-center' : ''}`}
                         title={sidebarCollapsed ? label : ''}
                     >
-                        <FontAwesomeIcon
-                            icon={icon}
-                            className={`w-4 h-4 transition-transform duration-200 ${pathname === path ? 'scale-110' : 'group-hover:scale-105'}`}
-                        />
+                        <div className="relative">
+                            <FontAwesomeIcon
+                                icon={icon}
+                                className={`w-4 h-4 transition-transform duration-200 ${pathname === path ? 'scale-110' : 'group-hover:scale-105'
+                                    }`}
+                            />
+
+                            {/* Show count badges only for bookings and payments */}
+                            {!sidebarCollapsed && id === 'bookings' && bookingCount > 0 && (
+                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                    {bookingCount}
+                                </span>
+                            )}
+
+                            {!sidebarCollapsed && id === 'payments' && paymentCount > 0 && (
+                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                    {paymentCount}
+                                </span>
+                            )}
+                            {!sidebarCollapsed && id === 'notifications' && unreadCount > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                    {unreadCount}
+                                </span>
+                            )}
+                        </div>
+
                         {!sidebarCollapsed && (
                             <span className="font-medium text-sm">{label}</span>
+                        )}
+
+                        {/* For collapsed sidebar - show badge as separate element */}
+                        {sidebarCollapsed && id === 'bookings' && bookingCount > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                {bookingCount}
+                            </span>
+                        )}
+
+                        {sidebarCollapsed && id === 'payments' && paymentCount > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                {paymentCount}
+                            </span>
+                        )}
+                        {sidebarCollapsed && id === 'notifications' && unreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                {unreadCount}
+                            </span>
                         )}
                     </button>
                 ))}
             </nav>
 
-            {/* Logout Section */}
+            {/* Logout Section - unchanged */}
             <div className="p-2 border-t border-gray-700">
                 <button
                     onClick={handleLogout}
-                    className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg bg-red-700/10 hover:bg-red-700/20 text-red-300 hover:text-red-200 transition-all duration-150 border border-red-700/20 ${sidebarCollapsed ? 'justify-center' : ''}`}
+                    className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg bg-red-700/10 hover:bg-red-700/20 text-red-300 hover:text-red-200 transition-all duration-150 border border-red-700/20 ${sidebarCollapsed ? 'justify-center' : ''
+                        }`}
                     title={sidebarCollapsed ? 'Logout' : ''}
                 >
                     <FontAwesomeIcon icon={faRightFromBracket} className="w-4 h-4" />
@@ -192,7 +605,8 @@ export default function AdminLayout({ children }) {
     );
 
     const MobileNavbar = (
-        <nav className={`fixed md:hidden top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-neutral-800" : "bg-neutral-900"}`}>
+        <nav className={`fixed md:hidden top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-neutral-800" : "bg-neutral-900"
+            }`}>
             <div className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-4">
                     <button
@@ -223,12 +637,25 @@ export default function AdminLayout({ children }) {
                                             router.push(path);
                                             setMobileDropdownOpen(false);
                                         }}
-                                        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${pathname === path
-                                            ? 'bg-neutral-800 text-white'
-                                            : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                                        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors relative ${pathname === path
+                                                ? 'bg-neutral-800 text-white'
+                                                : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                                             } first:rounded-t-lg last:rounded-b-lg`}
                                     >
-                                        <FontAwesomeIcon icon={icon} className="w-4 h-4" />
+                                        <div className="relative">
+                                            <FontAwesomeIcon icon={icon} className="w-4 h-4" />
+                                            {/* Show count badges for mobile dropdown */}
+                                            {id === 'bookings' && bookingCount > 0 && (
+                                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                                                    {bookingCount}
+                                                </span>
+                                            )}
+                                            {id === 'payments' && paymentCount > 0 && (
+                                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                                                    {paymentCount}
+                                                </span>
+                                            )}
+                                        </div>
                                         <span>{label}</span>
                                     </button>
                                 ))}
@@ -260,13 +687,15 @@ export default function AdminLayout({ children }) {
             )}
 
             {/* Sidebar */}
-            <div className={`fixed inset-y-0 left-0 z-50 transform transition-transform duration-200 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+            <div className={`fixed inset-y-0 left-0 z-50 transform transition-transform duration-200 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                } md:translate-x-0`}>
                 {Sidebar}
             </div>
 
             {/* Main Content */}
-            <div className={`h-full transition-all duration-200 ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-72'} max-md:pt-16`}>
-                {/* Desktop Header */}
+            <div className={`h-full transition-all duration-200 ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-72'
+                } max-md:pt-16`}>
+                {/* Desktop Header with Notification Bell */}
                 <header className={`hidden md:flex items-center h-[96px] justify-between p-6 border-b border-gray-700 bg-neutral-900`}>
                     <div className="flex items-center gap-4">
                         <button
@@ -282,7 +711,28 @@ export default function AdminLayout({ children }) {
                             </p>
                         </div>
                     </div>
+
+                    {/* Notification Bell and User Info */}
                     <div className="flex items-center gap-4">
+                        {/* Notification Bell */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowNotifications(!showNotifications)}
+                                className="relative p-2 text-gray-300 hover:text-white transition-colors focus:outline-none"
+                                aria-label="Notifications"
+                            >
+                                <FontAwesomeIcon icon={faBell} className="w-5 h-5" />
+                                {unreadCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                        {unreadCount}
+                                    </span>
+                                )}
+                            </button>
+
+                            {/* Notification Dropdown */}
+                            {showNotifications && <NotificationDropdown />}
+                        </div>
+
                         <span className="text-gray-300">Welcome back, Admin</span>
                     </div>
                 </header>
@@ -293,7 +743,6 @@ export default function AdminLayout({ children }) {
                     style={{ maxHeight: 'calc(100vh - 96px)' }}
                 >
                     <div className="mx-auto overflow-hidden">
-                        {/* Error boundary for each page */}
                         {children}
                     </div>
                 </main>

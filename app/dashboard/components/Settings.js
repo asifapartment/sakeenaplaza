@@ -29,6 +29,7 @@ import {
     faChevronRight
 } from '@fortawesome/free-solid-svg-icons';
 import UserActivity from './UserActivity';
+import { useCsrf } from '@/context/CsrfContext';
 
 /* Validation utilities */
 const validateEmail = (email) => {
@@ -109,6 +110,7 @@ export default function Settings() {
         phone: '',
         altPhone: ''
     });
+    const {csrfToken} = useCsrf();
     const [originalData, setOriginalData] = useState({});
     const [activities, setActivities] = useState([]);
     const [validationErrors, setValidationErrors] = useState({});
@@ -183,7 +185,70 @@ export default function Settings() {
             setValidationErrors(prev => ({ ...prev, [field]: undefined }));
         }
     };
+    
+    // In your SettingsIndividual.js component, update the performAccountDeletion function:
 
+    const performAccountDeletion = async () => {
+        setIsDeleting(true);
+        setValidationErrors(prev => ({ ...prev, delete: undefined }));
+
+        try {
+            if (!csrfToken) {
+                throw new Error('CSRF token not found. Please refresh the page.');
+            }
+
+            const password = window.prompt('Please enter your password to confirm account deletion:');
+
+            if (!password) {
+                setIsDeleting(false);
+                return;
+            }
+
+            const confirmText = window.prompt('Type "DELETE" to confirm permanent account deletion:');
+
+            if (confirmText !== 'DELETE') {
+                setValidationErrors(prev => ({
+                    ...prev,
+                    delete: 'Please type DELETE to confirm account deletion'
+                }));
+                setIsDeleting(false);
+                return;
+            }
+
+            const response = await fetch('/api/dashboard/settings', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken,
+                },
+                body: JSON.stringify({
+                    password,
+                    confirmText
+                }),
+                credentials: 'include'
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to delete account');
+            }
+
+            alert('Your account has been deleted successfully. You will be redirected to the home page.');
+            router.push('/');
+
+        } catch (error) {
+            console.error('Account deletion error:', error);
+            setValidationErrors(prev => ({
+                ...prev,
+                delete: error.message || 'Failed to delete account. Please try again.'
+            }));
+        } finally {
+            setIsDeleting(false);
+            setIsDeleteModalOpen(false);
+        }
+    };
+    
     const handleSave = async (field) => {
         const value = formData[field];
         const error = validateField(field, value);

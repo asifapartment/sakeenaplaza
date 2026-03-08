@@ -5,7 +5,6 @@ import { verifyAdmin } from "@/lib/adminAuth";
 
 export async function PUT(req) {
     try {
-
         const cookieStore = await cookies();
         const token = cookieStore.get("token")?.value;
 
@@ -16,36 +15,31 @@ export async function PUT(req) {
 
         const admin_id = auth.decoded.id;
 
-        const url = new URL(req.url);
-        const id = url.searchParams.get("id");
-
-        if (!id || !admin_id) {
+        if (!admin_id) {
             return NextResponse.json(
-                { error: "Missing notification id or admin id" },
+                { error: "Missing admin id" },
                 { status: 400 }
             );
         }
 
-        const connection = await pool.getConnection();
-
-        await connection.query(
+        const [result] = await pool.query(
             `
             INSERT INTO admin_notification_reads (notification_id, admin_id)
-            VALUES (?, ?)
+            SELECT id, ?
+            FROM admin_notifications
             ON DUPLICATE KEY UPDATE read_at = CURRENT_TIMESTAMP
             `,
-            [id, admin_id]
+            [admin_id]
         );
-
-        connection.release();
 
         return NextResponse.json({
             success: true,
-            message: "Notification marked as read"
+            message: "All notifications marked as read",
+            affectedRows: result.affectedRows
         });
 
     } catch (err) {
-        console.error("❌ Mark Read Error:", err);
+        console.error("❌ Mark All Read Error:", err);
         return NextResponse.json(
             { error: "Server error" },
             { status: 500 }

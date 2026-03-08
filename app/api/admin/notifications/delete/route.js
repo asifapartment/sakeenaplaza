@@ -10,23 +10,25 @@ export async function DELETE(req) {
             return NextResponse.json({ error: "Missing notification id" }, { status: 400 });
         }
 
-        const connection = await pool.getConnection();
-
-        const [result] = await connection.query(
+        const [result] = await pool.query(
             `DELETE FROM admin_notifications WHERE id = ?`,
             [id]
         );
-
-        connection.release();
 
         if (result.affectedRows === 0) {
             return NextResponse.json({ error: "Notification not found" }, { status: 404 });
         }
 
-        return NextResponse.json({ success: true, message: "Notification deleted" });
+        return NextResponse.json({
+            success: true,
+            message: "Notification deleted"
+        });
 
     } catch (error) {
         console.error("❌ Notification Delete Error:", error);
-        return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
+        return NextResponse.json(
+            { error: "Failed to delete" },
+            { status: 500 }
+        );
     }
 }

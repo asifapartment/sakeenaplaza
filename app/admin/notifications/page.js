@@ -26,7 +26,9 @@ export default function NotificationsPage() {
             if (value) params.append(key, value);
         });
 
-        const res = await fetch(`/api/admin/notifications?${params.toString()}`);
+        const res = await fetch(`/api/admin/notifications?${params.toString()}`,{
+            credentials: 'include'
+        });
         const data = await res.json();
         setNotifications(data.notifications || []);
         setLoading(false);

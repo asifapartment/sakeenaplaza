@@ -16,12 +16,11 @@ export async function PUT(req) {
 
         const admin_id = auth.decoded.id;
 
-        const url = new URL(req.url);
-        const id = url.searchParams.get("id");
+        const { type } = await req.json();
 
-        if (!id || !admin_id) {
+        if (!type) {
             return NextResponse.json(
-                { error: "Missing notification id or admin id" },
+                { error: "Notification type required" },
                 { status: 400 }
             );
         }
@@ -31,21 +30,25 @@ export async function PUT(req) {
         await connection.query(
             `
             INSERT INTO admin_notification_reads (notification_id, admin_id)
-            VALUES (?, ?)
-            ON DUPLICATE KEY UPDATE read_at = CURRENT_TIMESTAMP
+            SELECT n.id, ?
+            FROM admin_notifications n
+            LEFT JOIN admin_notification_reads r
+                ON n.id = r.notification_id AND r.admin_id = ?
+            WHERE n.type = ?
+            AND r.notification_id IS NULL
             `,
-            [id, admin_id]
+            [admin_id, admin_id, type]
         );
 
         connection.release();
 
         return NextResponse.json({
             success: true,
-            message: "Notification marked as read"
+            message: `All ${type} notifications marked as read`
         });
 
     } catch (err) {
-        console.error("❌ Mark Read Error:", err);
+        console.error("❌ Mark Read By Type Error:", err);
         return NextResponse.json(
             { error: "Server error" },
             { status: 500 }

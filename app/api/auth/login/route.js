@@ -13,18 +13,27 @@ export async function POST(req) {
             return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
         }
 
-        const users = await query(`SELECT id, email, password, role FROM users WHERE email = ?`, [
+        const users = await query(`SELECT id, email, password, role, is_active FROM users WHERE email = ?`, [
             email.toLowerCase().trim(),
         ]);
 
-        if (!users.length)
+        if (!users.length) {
             return NextResponse.json({ error: 'Incorrect email or password' }, { status: 404 });
+        }
 
         const user = users[0];
 
+        // Check if account is deleted (is_active = 0)
+        if (user.is_active === 0) {
+            return NextResponse.json({
+                error: 'Your account has been deleted. Please contact the administrator to recover your account.'
+            }, { status: 403 });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch)
+        if (!isMatch) {
             return NextResponse.json({ error: 'Incorrect email or password' }, { status: 401 });
+        }
 
         // ─── Generate JWT with exp claim ───────────────────────────
         const token = generateToken({
@@ -68,7 +77,7 @@ export async function POST(req) {
             sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
             maxAge: 60 * 60 * 24 * 7,
             path: '/',
-        });          
+        });
 
         await logActivity(user.id, 'Logged in successfully');
         return response;
