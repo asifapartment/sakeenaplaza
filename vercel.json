@@ -2,7 +2,7 @@
     "crons": [
         {
             "path": "/api/system/cleanup-images?secret=YOUR_SECRET",
-            "schedule": "* * * * *"
+            "schedule": "0 * * * *"
         }
     ]
 }
