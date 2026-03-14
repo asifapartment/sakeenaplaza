@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faChevronDown, faCheckCircle, faBan, faTrash, faTimes, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
+import { faEye, faChevronDown, faCheckCircle, faBan, faTrash, faTimes, faExclamationTriangle, faPlusCircle } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
 import NoBookingsEmptyState from "./EmptyBooking";
 
@@ -185,22 +185,15 @@ const BookingsList = ({
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [cancelReason, setCancelReason] = useState("");
     const [actionLoading, setActionLoading] = useState(false);
-    // First, create a state for the document handling
     const [documentType, setDocumentType] = useState('');
     const [documentData, setDocumentData] = useState({});
     const [documentErrors, setDocumentErrors] = useState({});
-    // Add to your existing useState declarations
     const [documentUrls, setDocumentUrls] = useState({});
     const [loadingDocuments, setLoadingDocuments] = useState(false);
     const [activeDocumentTab, setActiveDocumentTab] = useState('front');
     const [initialDocumentData, setInitialDocumentData] = useState({});
-    const [showDuplicateDocModal, setShowDuplicateDocModal] = useState(false);
-    const [existingDocData, setExistingDocData] = useState(null);
-    // Add this near your other useState declarations
-    const [userDocuments, setUserDocuments] = useState([]);
-    const [showDocumentList, setShowDocumentList] = useState(false);
-    const [selectedDocumentId, setSelectedDocumentId] = useState(null);
-    // Add documentSchemas to your component or import it
+    const [selectedBookingDocument, setSelectedBookingDocument] = useState(null);
+
     const documentSchemas = {
         aadhaar: {
             required: ['aadhaar_number', 'name', 'dob', 'gender', 'address', 'state', 'pincode', 'front_image_url', 'back_image_url'],
@@ -265,6 +258,17 @@ const BookingsList = ({
         }
     };
 
+    const getDocumentTypeLabel = (type) => {
+        const labels = {
+            aadhaar: "Aadhaar Card",
+            pan: "PAN Card",
+            driving_license: "Driving License",
+            passport: "Passport",
+            voter_id: "Voter ID"
+        };
+        return labels[type] || type;
+    };
+
     const getDocumentActionConfig = (documentStatus) => {
         switch (documentStatus) {
             case "approved":
@@ -292,19 +296,16 @@ const BookingsList = ({
     };
 
     const canShowCancelButton = (bookingStatus) => {
-        return !["confirmed", "expired", "ongoing","cancelled"].includes(bookingStatus);
+        return !["confirmed", "expired", "ongoing", "cancelled"].includes(bookingStatus);
     };
-    
-    // Update the handleDocumentTypeChange function
+
     const handleDocumentTypeChange = (type) => {
         setDocumentType(type);
-        // Initialize document data with empty values
         const initialData = {};
         documentSchemas[type]?.required.forEach(field => {
             initialData[field] = '';
         });
 
-        // Auto-fill URL fields from initialDocumentData
         Object.entries(initialDocumentData).forEach(([fieldName, url]) => {
             if (documentSchemas[type]?.required.includes(fieldName)) {
                 initialData[fieldName] = url;
@@ -321,7 +322,6 @@ const BookingsList = ({
             [field]: value
         }));
 
-        // Clear error when user starts typing
         if (documentErrors[field]) {
             setDocumentErrors(prev => ({
                 ...prev,
@@ -386,6 +386,75 @@ const BookingsList = ({
         );
     };
 
+    // New function to fetch document directly by booking ID
+    const fetchDocumentByBookingId = async (bookingId) => {
+        try {
+            setLoadingDocuments(true);
+            const response = await fetch(`/api/admin/documents?booking_id=${bookingId}`);
+            const data = await response.json();
+
+            if (data.success && data.documents && data.documents.length > 0) {
+                // Get the most recent document for this booking
+                const document = data.documents.sort((a, b) =>
+                    new Date(b.created_at) - new Date(a.created_at)
+                )[0];
+
+                setSelectedBookingDocument(document);
+
+                // Set document type
+                setDocumentType(document.document_type);
+
+                // Parse document data
+                let docData = {};
+                try {
+                    docData = typeof document.document_data === 'string'
+                        ? JSON.parse(document.document_data)
+                        : { ...document.document_data };
+                } catch {
+                    docData = {};
+                }
+
+                // Extract URLs
+                const urls = {};
+                if (docData.front_image_url) urls.front = docData.front_image_url;
+                if (docData.back_image_url) urls.back = docData.back_image_url;
+                if (docData.photo_image_url) urls.photo = docData.photo_image_url;
+
+                // Handle nested structure if present
+                if (!docData.front_image_url && docData.front?.url) {
+                    docData.front_image_url = docData.front.url;
+                    urls.front = docData.front.url;
+                }
+                if (!docData.back_image_url && docData.back?.url) {
+                    docData.back_image_url = docData.back.url;
+                    urls.back = docData.back.url;
+                }
+                if (!docData.photo_image_url && docData.photo?.url) {
+                    docData.photo_image_url = docData.photo.url;
+                    urls.photo = docData.photo.url;
+                }
+
+                setDocumentUrls(urls);
+                setDocumentData(docData);
+
+                // Set active tab to first available
+                const availableTabs = Object.keys(urls);
+                if (availableTabs.length > 0) {
+                    setActiveDocumentTab(availableTabs[0]);
+                }
+
+                setShowConfirmModal(true);
+            } else {
+                alert('No document found for this booking');
+            }
+        } catch (error) {
+            console.error('Error fetching document:', error);
+            alert('Failed to fetch document');
+        } finally {
+            setLoadingDocuments(false);
+        }
+    };
+
     const handleQuickStatusUpdate = async (bookingId, newStatus) => {
         if (newStatus === "cancelled") {
             setSelectedBooking(bookingId);
@@ -393,41 +462,16 @@ const BookingsList = ({
             setShowCancelModal(true);
         } else if (newStatus === "confirmed") {
             const booking = bookings.find(b => b.id === bookingId);
-            if (booking && booking.user_id) {
+            if (booking) {
                 setSelectedBooking(bookingId);
-                // First fetch all documents to show the list
-                await fetchAllUserDocuments(booking.user_id);
-                // Don't show confirm modal immediately - let user select from list
+                // Directly fetch document for this booking ID
+                await fetchDocumentByBookingId(bookingId);
             }
         } else {
             await onStatusUpdate(bookingId, newStatus);
         }
     };
 
-    const fetchAllUserDocuments = async (userId) => {
-        try {
-            setLoadingDocuments(true);
-            const response = await fetch(`/api/admin/verify-document?user_id=${userId}`);
-            const data = await response.json();
-
-            if (data.success) {
-                // Sort documents by created_at (latest first)
-                const sortedDocs = data.documents.sort((a, b) =>
-                    new Date(b.created_at) - new Date(a.created_at)
-                );
-                setUserDocuments(sortedDocs);
-                setShowDocumentList(true);
-            } else {
-                setUserDocuments([]);
-                alert('No documents found for this user');
-            }
-        } catch (error) {
-            console.error('Error fetching documents:', error);
-            alert('Failed to fetch documents');
-        } finally {
-            setLoadingDocuments(false);
-        }
-    };
     const handleConfirmBooking = async () => {
         if (!validateDocument()) {
             alert('Please fill all required document fields correctly');
@@ -436,11 +480,40 @@ const BookingsList = ({
 
         setActionLoading(true);
         try {
-            // Get the booking to extract user_id
             const booking = bookings.find(b => b.id === selectedBooking);
 
-            if (booking && booking.user_id) {
-                // Call the document verification API
+            if (!selectedBookingDocument) {
+                throw new Error('No document found for this booking');
+            }
+
+            const isFirstTimeBooking = selectedBookingDocument.booking_id &&
+                selectedBookingDocument.booking_id.toString().startsWith('TEMP_');
+
+            if (isFirstTimeBooking) {
+                console.log('Processing first-time booking with temp reference:', selectedBookingDocument.booking_id);
+
+                // Create the booking first
+                const bookingResponse = await fetch('/api/bookings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: booking.user_id,
+                        vehicle_id: booking.vehicle_id,
+                        start_date: booking.start_date,
+                        end_date: booking.end_date,
+                        document_reference: selectedBookingDocument.booking_id,
+                        document_id: selectedBookingDocument.id
+                    })
+                });
+
+                const newBooking = await bookingResponse.json();
+
+                if (!newBooking.success && !newBooking.id) {
+                    throw new Error(newBooking.message || 'Failed to create booking');
+                }
+
                 const verificationResponse = await fetch('/api/admin/verify-document', {
                     method: 'POST',
                     headers: {
@@ -448,7 +521,7 @@ const BookingsList = ({
                     },
                     body: JSON.stringify({
                         user_id: booking.user_id,
-                        booking_id: selectedBooking,
+                        booking_id: newBooking.id,
                         document_type: documentType,
                         document_data: documentData,
                         status: 'approved',
@@ -463,15 +536,67 @@ const BookingsList = ({
                     throw new Error(verificationData.message || 'Document verification failed');
                 }
 
-                // Only after successful verification, update booking status
-                await onStatusUpdate(selectedBooking, "confirmed");
+                const linkResponse = await fetch('/api/documents/link-to-booking', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        temp_reference: selectedBookingDocument.booking_id,
+                        real_booking_id: newBooking.id,
+                        document_id: selectedBookingDocument.id,
+                        user_id: booking.user_id
+                    })
+                });
 
-                // Show success message
+                const linkData = await linkResponse.json();
+
+                if (!linkData.success) {
+                    console.warn('Document linking warning:', linkData.message);
+                }
+
+                if (onStatusUpdate) {
+                    await onStatusUpdate(newBooking.id, "confirmed");
+                }
+
+                alert('Booking created and document verified successfully!');
+
+            } else if (booking) {
+                console.log('Processing verification for existing booking:', selectedBooking);
+
+                const verificationResponse = await fetch('/api/admin/verify-document', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: booking.user_id,
+                        booking_id: selectedBooking,
+                        document_type: documentType,
+                        document_data: documentData,
+                        status: 'approved',
+                        verification_notes: 'Document verified',
+                        review_message: 'Document verified successfully'
+                    })
+                });
+
+                const verificationData = await verificationResponse.json();
+
+                if (!verificationData.success) {
+                    throw new Error(verificationData.message || 'Document verification failed');
+                }
+
+                if (onStatusUpdate) {
+                    await onStatusUpdate(selectedBooking, "confirmed");
+                }
+
                 alert('Booking confirmed and document verified successfully!');
-
-                // Reset states
-                closeModals();
+            } else {
+                throw new Error('Unable to process: Missing booking information');
             }
+
+            closeModals();
+
         } catch (error) {
             console.error('Error confirming booking:', error);
             alert(`Failed to confirm booking: ${error.message}`);
@@ -479,91 +604,6 @@ const BookingsList = ({
             setActionLoading(false);
         }
     };
-
-    // Update the fetchDocumentImages function again
-    const fetchDocumentImages = async (userId) => {
-        try {
-            setLoadingDocuments(true);
-            const response = await fetch(`/api/admin/documents?user_id=${userId}`);
-            const data = await response.json();
-
-            if (data.success && data.documents.length > 0) {
-                // Find the most recent document with images
-                const documentWithImages = data.documents.find(doc => doc.urls && Object.keys(doc.urls).length > 0);
-                if (documentWithImages) {
-                    setDocumentUrls(documentWithImages.urls);
-
-                    // Store the URLs for later use when document type is selected
-                    const urlMapping = {
-                        'front': 'front_image_url',
-                        'back': 'back_image_url',
-                        'photo': 'photo_url'
-                    };
-
-                    const extractedUrls = {};
-                    Object.entries(documentWithImages.urls).forEach(([key, url]) => {
-                        const fieldName = urlMapping[key] || key;
-                        extractedUrls[fieldName] = url;
-                    });
-
-                    setInitialDocumentData(extractedUrls);
-
-                    // Auto-select first available tab
-                    const availableTabs = Object.keys(documentWithImages.urls);
-                    if (availableTabs.length > 0) {
-                        setActiveDocumentTab(availableTabs[0]);
-                    }
-                } else {
-                    setDocumentUrls({});
-                    setInitialDocumentData({});
-                }
-            } else {
-                setDocumentUrls({});
-                setInitialDocumentData({});
-            }
-        } catch (error) {
-            console.error('Error fetching document images:', error);
-            setDocumentUrls({});
-            setInitialDocumentData({});
-        } finally {
-            setLoadingDocuments(false);
-        }
-    };
-
-    // const handleUseExistingDocument = () => {
-    //     if (existingDocData) {
-    //         // Auto-fill the form with existing verified data
-    //         setDocumentType(existingDocData.document_type);
-    //         setDocumentData(existingDocData.document_data);
-
-    //         // IMPORTANT: Make sure documentUrls already contains images from verify-document API
-    //         // (they were set in fetchDocumentVerificationHistory)
-
-    //         // Close the modal
-    //         setShowDuplicateDocModal(false);
-    //         setExistingDocData(null);
-    //     }
-    // };
-
-    // const handleUseNewDocument = () => {
-    //     // Clear the form
-    //     setDocumentType('');
-    //     setDocumentData({});
-    //     setDocumentErrors({});
-
-    //     // IMPORTANT: Re-fetch images from document API for new verification
-    //     const booking = bookings.find(b => b.id === selectedBooking);
-    //     if (booking && booking.user_id) {
-    //         fetchDocumentImages(booking.user_id);
-    //     }
-
-    //     // Clear existing data
-    //     setExistingDocData(null);
-    //     setShowDuplicateDocModal(false);
-
-    //     // Optionally show a message
-    //     alert('You can now enter new document information. Loading fresh document images...');
-    // };
 
     const handleRejectDocument = async () => {
         if (!window.confirm('Are you sure you want to reject this document? This will mark the document as rejected but you can still proceed with booking confirmation.')) {
@@ -598,6 +638,7 @@ const BookingsList = ({
                 }
 
                 alert('Document marked as rejected. You can still confirm the booking.');
+                closeModals();
             }
         } catch (error) {
             console.error('Error rejecting document:', error);
@@ -643,306 +684,18 @@ const BookingsList = ({
         setShowCancelModal(false);
         setShowDeleteModal(false);
         setShowConfirmModal(false);
-        setShowDuplicateDocModal(false);
-        setShowDocumentList(false);
         setSelectedBooking(null);
         setCancelReason("");
         setActionLoading(false);
-
-        // Reset document states - but keep documentUrls if we need to show them again
         setLoadingDocuments(false);
         setActiveDocumentTab('front');
         setDocumentType('');
         setDocumentData({});
         setDocumentErrors({});
-        setExistingDocData(null);
-    // NOTE: We're NOT clearing documentUrls here so they persist between modal openings
-    // unless you want a fresh fetch each time
+        setDocumentUrls({});
+        setSelectedBookingDocument(null);
     };
-    const DocumentListModal = () => {
-        if (!showDocumentList) return null;
 
-        const handleDocumentSelect = (doc) => {
-            setDocumentType(doc.document_type);
-            setSelectedDocumentId(doc.id);
-
-            let data = {};
-
-            try {
-                data = typeof doc.document_data === 'string'
-                    ? JSON.parse(doc.document_data)
-                    : { ...doc.document_data };
-            } catch {
-                data = {};
-            }
-
-            // ==============================
-            // 🔥 NORMALIZE IMAGE URL FIELDS
-            // ==============================
-
-            // FRONT
-            if (!data.front_image_url && data.front?.url) {
-                data.front_image_url = data.front.url;
-            }
-
-            // BACK
-            if (!data.back_image_url && data.back?.url) {
-                data.back_image_url = data.back.url;
-            }
-
-            // PHOTO (optional / future-proof)
-            if (!data.photo_image_url && data.photo?.url) {
-                data.photo_image_url = data.photo.url;
-            }
-
-            // ❌ Remove nested objects once flat keys exist
-            if (data.front_image_url) delete data.front;
-            if (data.back_image_url) delete data.back;
-            if (data.photo_image_url) delete data.photo;
-
-            // ==============================
-            // ✅ SET FORM DATA (SCHEMA SAFE)
-            // ==============================
-            setDocumentData(data);
-            
-            // ==============================
-            // ✅ SET IMAGE URL TABS
-            // ==============================
-            const extractedUrls = {};
-
-            if (data.front_image_url) extractedUrls.front = data.front_image_url;
-            if (data.back_image_url) extractedUrls.back = data.back_image_url;
-            if (data.photo_image_url) extractedUrls.photo = data.photo_image_url;
-
-            setDocumentUrls(extractedUrls);
-
-            // ==============================
-            // UI FLOW
-            // ==============================
-            setShowDocumentList(false);
-
-            if (doc.status === 'pending') {
-                const booking = bookings.find(b => b.id === selectedBooking);
-                if (booking?.user_id) {
-                    fetchDocumentImages(booking.user_id);
-                }
-            }
-
-            setShowConfirmModal(true);
-        };
-        
-
-        const handleNewDocument = () => {
-            setShowDocumentList(false);
-            setShowConfirmModal(true);
-        };
-
-        const getStatusBadge = (status) => {
-            const statusConfig = {
-                approved: { class: "bg-green-500/20 text-green-400", label: "Verified" },
-                rejected: { class: "bg-red-500/20 text-red-400", label: "Rejected" },
-                pending: { class: "bg-yellow-500/20 text-yellow-400", label: "Pending" }
-            };
-            const config = statusConfig[status] || { class: "bg-gray-500/20 text-gray-400", label: "Unknown" };
-
-            return (
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.class}`}>
-                    {config.label}
-                </span>
-            );
-        };
-
-        const getDocumentTypeLabel = (type) => {
-            const labels = {
-                aadhaar: "Aadhaar Card",
-                pan: "PAN Card",
-                driving_license: "Driving License",
-                passport: "Passport",
-                voter_id: "Voter ID"
-            };
-            return labels[type] || type;
-        };
-
-        // Helper function to extract image URL for thumbnail
-        const getThumbnailUrl = (documentData) => {
-            if (!documentData) return null;
-
-            const data = typeof documentData === 'string'
-                ? JSON.parse(documentData)
-                : documentData;
-
-            // Check for front image in various formats
-            if (data.front_image_url) return data.front_image_url;
-            if (data.front && data.front.url) return data.front.url;
-
-            // Check for any image URL
-            for (const [key, value] of Object.entries(data)) {
-                if (typeof value === 'string' && value.startsWith('http')) {
-                    if (key.includes('front') || key.includes('image') || key.includes('url')) {
-                        return value;
-                    }
-                }
-            }
-
-            return null;
-        };
-
-        // Helper function to get document info for display
-        const getDocumentDisplayInfo = (doc) => {
-            if (!doc.document_data) return { name: 'No name available', idNumber: 'N/A' };
-
-            const data = typeof doc.document_data === 'string'
-                ? JSON.parse(doc.document_data)
-                : doc.document_data;
-
-            // Try to get name from various possible fields
-            const name = data.name || data.full_name || data.customer_name || 'No name available';
-
-            // Try to get ID number based on document type
-            let idNumber = 'N/A';
-            if (doc.document_type === 'aadhaar') {
-                idNumber = data.aadhaar_number || data.number || 'N/A';
-            } else if (doc.document_type === 'pan') {
-                idNumber = data.pan_number || data.number || 'N/A';
-            } else if (doc.document_type === 'passport') {
-                idNumber = data.passport_number || data.number || 'N/A';
-            } else if (doc.document_type === 'driving_license') {
-                idNumber = data.license_number || data.number || 'N/A';
-            } else if (doc.document_type === 'voter_id') {
-                idNumber = data.voter_id || data.number || 'N/A';
-            } else {
-                idNumber = data.number || data.id_number || 'N/A';
-            }
-
-            return { name, idNumber };
-        };
-
-        return (
-            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                <div className="bg-neutral-900 rounded-xl border border-neutral-800 p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center">
-                            <div className="bg-blue-500/20 p-2 rounded-lg mr-3">
-                                <FontAwesomeIcon icon={faEye} className="w-6 h-6 text-blue-400" />
-                            </div>
-                            <h3 className="text-lg font-semibold text-neutral-200">
-                                Select Document for Verification
-                            </h3>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                            <button
-                                onClick={handleNewDocument}
-                                className="flex items-center px-4 py-2 bg-green-500/10 text-green-400 hover:bg-green-500/20 rounded-lg transition"
-                            >
-                                <FontAwesomeIcon icon={faCheckCircle} className="w-4 h-4 mr-2" />
-                                New Document
-                            </button>
-                            <button
-                                onClick={() => setShowDocumentList(false)}
-                                className="text-neutral-400 hover:text-neutral-300 transition"
-                            >
-                                <FontAwesomeIcon icon={faTimes} className="w-5 h-5" />
-                            </button>
-                        </div>
-                    </div>
-
-                    {loadingDocuments ? (
-                        <div className="flex justify-center items-center py-8">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                        </div>
-                    ) : userDocuments.length === 0 ? (
-                        <div className="text-center py-8">
-                            <p className="text-neutral-400">No documents found for this user</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-3">
-                            {userDocuments.map((doc) => {
-                                const { name, idNumber } = getDocumentDisplayInfo(doc);
-                                const thumbnailUrl = getThumbnailUrl(doc.document_data);
-
-                                return (
-                                    <div
-                                        key={doc.id}
-                                        className={`flex items-center p-4 rounded-lg border transition-all cursor-pointer hover:bg-neutral-800/50 ${selectedDocumentId === doc.id
-                                                ? 'border-blue-500 bg-blue-500/10'
-                                                : 'border-neutral-700'
-                                            }`}
-                                        onClick={() => handleDocumentSelect(doc)}
-                                    >
-                                        {/* Document Image Thumbnail */}
-                                        <div className="w-16 h-16 flex-shrink-0 mr-4">
-                                            {thumbnailUrl ? (
-                                                <img
-                                                    src={thumbnailUrl}
-                                                    alt="Document"
-                                                    className="w-full h-full object-cover rounded-lg border border-neutral-700"
-                                                    onError={(e) => {
-                                                        e.target.onerror = null;
-                                                        e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23222'/%3E%3Ctext x='32' y='32' text-anchor='middle' fill='%23666' font-family='Arial' font-size='10'%3ENo Image%3C/text%3E%3C/svg%3E";
-                                                    }}
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full bg-neutral-800 rounded-lg border border-neutral-700 flex items-center justify-center">
-                                                    <FontAwesomeIcon icon={faEye} className="w-6 h-6 text-neutral-600" />
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Document Details */}
-                                        <div className="flex-grow">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <h4 className="text-md font-medium text-neutral-200">
-                                                        {getDocumentTypeLabel(doc.document_type)}
-                                                    </h4>
-                                                    <p className="text-sm text-neutral-400">
-                                                        {name}
-                                                    </p>
-                                                </div>
-                                                <div className="flex items-center space-x-3">
-                                                    {getStatusBadge(doc.status)}
-                                                    <span className="text-xs text-neutral-500">
-                                                        {new Date(doc.created_at).toLocaleString()}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center justify-between mt-2">
-                                                <div className="text-xs text-neutral-500">
-                                                    ID: {idNumber}
-                                                </div>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDocumentSelect(doc);
-                                                    }}
-                                                    className={`text-sm font-medium px-3 py-1 rounded transition ${doc.status === 'approved'
-                                                            ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20'
-                                                            : doc.status === 'pending'
-                                                                ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'
-                                                                : 'bg-gray-500/10 text-gray-400 hover:bg-gray-500/20'
-                                                        }`}
-                                                >
-                                                    {doc.status === 'approved' ? 'Use Verified' :
-                                                        doc.status === 'pending' ? 'Verify Now' : 'View Details'}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-
-                    <div className="mt-6 pt-4 border-t border-neutral-800 text-sm text-neutral-500">
-                        <p>• Select a document to use for verification</p>
-                        <p>• Click "New Document" to enter fresh information</p>
-                        <p>• Verified documents can be reused for quick confirmation</p>
-                    </div>
-                </div>
-            </div>
-        );
-    };
     const ActionButton = ({
         onClick,
         icon,
@@ -971,284 +724,284 @@ const BookingsList = ({
 
     if (bookings.length === 0 && !loading) {
         return (
-            <NoBookingsEmptyState/>
+            <NoBookingsEmptyState />
         );
     }
+
     return (
         <>
-            <DocumentListModal />
             {loading ? (
-                <TableSkeleton/>
-            ):(
-                    <div className="bg-neutral-900 rounded-xl shadow-xl overflow-hidden border border-neutral-700/50 backdrop-blur-sm">
-                        {/* Enhanced Pagination - Now at the top */}
-                        {pagination?.pages > 1 && (
-                            <div className="bg-gradient-to-r from-neutral-900 to-neutral-950 px-6 py-4 border-b border-neutral-800/70">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm text-neutral-400 font-medium">
-                                            Page {pagination.page} of {pagination.pages}
-                                        </span>
-                                        <span className="text-xs text-neutral-500">•</span>
-                                        <span className="text-sm text-neutral-400">
-                                            {pagination.total || bookings.length} total bookings
-                                        </span>
-                                    </div>
+                <TableSkeleton />
+            ) : (
+                <div className="bg-neutral-900 rounded-xl shadow-xl overflow-hidden border border-neutral-700/50 backdrop-blur-sm">
+                    {/* Enhanced Pagination - Now at the top */}
+                    {pagination?.pages > 1 && (
+                        <div className="bg-gradient-to-r from-neutral-900 to-neutral-950 px-6 py-4 border-b border-neutral-800/70">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-neutral-400 font-medium">
+                                        Page {pagination.page} of {pagination.pages}
+                                    </span>
+                                    <span className="text-xs text-neutral-500">•</span>
+                                    <span className="text-sm text-neutral-400">
+                                        {pagination.total || bookings.length} total bookings
+                                    </span>
+                                </div>
 
-                                    <div className="flex items-center gap-2">
-                                        {/* Previous Button */}
-                                        <button
-                                            onClick={() => onPageChange(pagination.page - 1)}
-                                            disabled={pagination.page === 1}
-                                            className="relative group inline-flex items-center px-3 py-2 rounded-lg border border-neutral-800 bg-neutral-900 text-sm font-medium text-neutral-400 hover:text-white hover:border-neutral-700 hover:bg-neutral-800/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 transform hover:-translate-x-0.5 disabled:hover:translate-x-0"
-                                        >
-                                            <svg className="w-4 h-4 mr-1 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                            </svg>
-                                            Prev
-                                        </button>
+                                <div className="flex items-center gap-2">
+                                    {/* Previous Button */}
+                                    <button
+                                        onClick={() => onPageChange(pagination.page - 1)}
+                                        disabled={pagination.page === 1}
+                                        className="relative group inline-flex items-center px-3 py-2 rounded-lg border border-neutral-800 bg-neutral-900 text-sm font-medium text-neutral-400 hover:text-white hover:border-neutral-700 hover:bg-neutral-800/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 transform hover:-translate-x-0.5 disabled:hover:translate-x-0"
+                                    >
+                                        <svg className="w-4 h-4 mr-1 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                        Prev
+                                    </button>
 
-                                        {/* Page Numbers with Animation */}
-                                        <div className="flex items-center gap-1">
-                                            {(() => {
-                                                const pages = Array.from({ length: pagination.pages }, (_, i) => i + 1);
-                                                const maxVisible = 5;
-                                                let visiblePages = pages;
+                                    {/* Page Numbers with Animation */}
+                                    <div className="flex items-center gap-1">
+                                        {(() => {
+                                            const pages = Array.from({ length: pagination.pages }, (_, i) => i + 1);
+                                            const maxVisible = 5;
+                                            let visiblePages = pages;
 
-                                                if (pagination.pages > maxVisible) {
-                                                    const current = pagination.page;
-                                                    let start = Math.max(1, current - 2);
-                                                    let end = Math.min(pagination.pages, current + 2);
+                                            if (pagination.pages > maxVisible) {
+                                                const current = pagination.page;
+                                                let start = Math.max(1, current - 2);
+                                                let end = Math.min(pagination.pages, current + 2);
 
-                                                    if (current <= 3) {
-                                                        end = maxVisible;
-                                                    } else if (current >= pagination.pages - 2) {
-                                                        start = pagination.pages - maxVisible + 1;
-                                                    }
-
-                                                    visiblePages = pages.slice(start - 1, end);
-
-                                                    if (start > 1) {
-                                                        visiblePages = [1, '...', ...visiblePages.slice(1)];
-                                                    }
-                                                    if (end < pagination.pages) {
-                                                        visiblePages = [...visiblePages.slice(0, -1), '...', pagination.pages];
-                                                    }
+                                                if (current <= 3) {
+                                                    end = maxVisible;
+                                                } else if (current >= pagination.pages - 2) {
+                                                    start = pagination.pages - maxVisible + 1;
                                                 }
 
-                                                return visiblePages.map((pageNum, idx) => (
-                                                    <button
-                                                        key={idx}
-                                                        onClick={() => typeof pageNum === 'number' && onPageChange(pageNum)}
-                                                        disabled={typeof pageNum !== 'number'}
-                                                        className={`relative min-w-[2.5rem] h-10 flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 ${typeof pageNum === 'number'
-                                                            ? pageNum === pagination.page
-                                                                ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/20 scale-105"
-                                                                : "bg-neutral-900 border border-neutral-800 text-neutral-400 hover:bg-neutral-800 hover:text-white hover:border-neutral-700"
-                                                            : "text-neutral-600 cursor-default"
-                                                            }`}
-                                                    >
-                                                        {pageNum}
-                                                    </button>
-                                                ));
-                                            })()}
-                                        </div>
+                                                visiblePages = pages.slice(start - 1, end);
 
-                                        {/* Next Button */}
-                                        <button
-                                            onClick={() => onPageChange(pagination.page + 1)}
-                                            disabled={pagination.page === pagination.pages}
-                                            className="relative group inline-flex items-center px-3 py-2 rounded-lg border border-neutral-800 bg-neutral-900 text-sm font-medium text-neutral-400 hover:text-white hover:border-neutral-700 hover:bg-neutral-800/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 transform hover:translate-x-0.5 disabled:hover:translate-x-0"
-                                        >
-                                            Next
-                                            <svg className="w-4 h-4 ml-1 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </button>
+                                                if (start > 1) {
+                                                    visiblePages = [1, '...', ...visiblePages.slice(1)];
+                                                }
+                                                if (end < pagination.pages) {
+                                                    visiblePages = [...visiblePages.slice(0, -1), '...', pagination.pages];
+                                                }
+                                            }
+
+                                            return visiblePages.map((pageNum, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    onClick={() => typeof pageNum === 'number' && onPageChange(pageNum)}
+                                                    disabled={typeof pageNum !== 'number'}
+                                                    className={`relative min-w-[2.5rem] h-10 flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 ${typeof pageNum === 'number'
+                                                        ? pageNum === pagination.page
+                                                            ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/20 scale-105"
+                                                            : "bg-neutral-900 border border-neutral-800 text-neutral-400 hover:bg-neutral-800 hover:text-white hover:border-neutral-700"
+                                                        : "text-neutral-600 cursor-default"
+                                                        }`}
+                                                >
+                                                    {pageNum}
+                                                </button>
+                                            ));
+                                        })()}
                                     </div>
+
+                                    {/* Next Button */}
+                                    <button
+                                        onClick={() => onPageChange(pagination.page + 1)}
+                                        disabled={pagination.page === pagination.pages}
+                                        className="relative group inline-flex items-center px-3 py-2 rounded-lg border border-neutral-800 bg-neutral-900 text-sm font-medium text-neutral-400 hover:text-white hover:border-neutral-700 hover:bg-neutral-800/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 transform hover:translate-x-0.5 disabled:hover:translate-x-0"
+                                    >
+                                        Next
+                                        <svg className="w-4 h-4 ml-1 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
-                        )}
-
-                        {/* Scrollable Table with Enhanced Styling */}
-                        <div
-                            style={{
-                                maxHeight: "calc(100vh - 320px)",
-                                overflowY: "auto",
-                                overflowX: "auto"
-                            }}
-                            className="scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-neutral-900 hover:scrollbar-thumb-neutral-600"
-                        >
-                            <table className="w-full text-left border-collapse text-neutral-50 min-w-[1024px]">
-                                <thead className="bg-gradient-to-r from-neutral-900 to-neutral-950 sticky top-0 z-20 text-sm border-b border-neutral-800/70">
-                                    <tr>
-                                        {[
-                                            "Booking ID",
-                                            "User",
-                                            "Apartment",
-                                            "Dates",
-                                            "Status",
-                                            "Payment",
-                                            "Amount",
-                                            "Actions",
-                                        ].map((th, idx) => (
-                                            <th
-                                                key={idx}
-                                                className="p-4 text-left font-semibold text-neutral-300 uppercase tracking-wide group"
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    {th}
-                                                    <svg className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                                                    </svg>
-                                                </div>
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
-
-                                <tbody className="divide-y divide-neutral-700/50 bg-gradient-to-r from-neutral-900 to-neutral-950">
-                                    {bookings.map((booking, index) => (
-                                        <tr
-                                            key={booking.id}
-                                            className="group hover:bg-neutral-800/80 transition-all duration-300 animate-fadeIn"
-                                            style={{ animationDelay: `${index * 0.05}s` }}
-                                        >
-                                            <td className="p-4 whitespace-nowrap">
-                                                <div className="flex items-center gap-3">
-                                                    <div>
-                                                        <div className="text-sm font-medium text-neutral-200 group-hover:text-white transition-colors">
-                                                            #{booking.id}
-                                                        </div>
-                                                        <div className="text-xs text-neutral-500 group-hover:text-neutral-400 transition-colors">
-                                                            {new Date(booking.created_at).toLocaleDateString()}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-
-                                            {/* User Column */}
-                                            <td className="p-4 whitespace-nowrap">
-                                                <div className="space-y-1">
-                                                    <div className="text-sm font-medium text-neutral-200 group-hover:text-white transition-colors">
-                                                        {booking.user_name}
-                                                    </div>
-                                                    <div className="text-xs text-neutral-500 group-hover:text-neutral-400 transition-colors">
-                                                        {booking.user_email}
-                                                    </div>
-                                                    <div className="text-xs text-neutral-500 group-hover:text-neutral-400 transition-colors">
-                                                        {booking.user_phone}
-                                                    </div>
-                                                    {(() => {
-                                                        const docStatus = booking.document_status || "pending";
-
-                                                        const statusStyles = {
-                                                            approved:
-                                                                "bg-gradient-to-r from-green-500/20 to-green-600/10 text-green-400 border border-green-500/30",
-                                                            rejected:
-                                                                "bg-gradient-to-r from-red-500/20 to-red-600/10 text-red-400 border border-red-500/30",
-                                                            pending:
-                                                                "bg-gradient-to-r from-yellow-500/20 to-yellow-600/10 text-yellow-400 border border-yellow-500/30",
-                                                        };
-
-                                                        return (
-                                                            <div
-                                                                className={`text-xs mt-1 px-2 py-0.5 rounded-full inline-block transition-all duration-300 hover:scale-105 ${statusStyles[docStatus]}`}
-                                                            >
-                                                                Doc: {docStatus.charAt(0).toUpperCase() + docStatus.slice(1)}
-                                                            </div>
-                                                        );
-                                                    })()}
-
-                                                </div>
-                                            </td>
-                                            <td className="p-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-neutral-200">
-                                                    {booking.apartment_title}
-                                                </div>
-                                                <div className="text-xs text-neutral-400">
-                                                    {booking.total_nights} nights
-                                                </div>
-                                            </td>
-                                            <td className="p-4 whitespace-nowrap">
-                                                <div className="text-sm text-neutral-200">
-                                                    {new Date(booking.start_date).toLocaleDateString()}
-                                                </div>
-                                                <div className="text-xs text-neutral-500 text-center">
-                                                    to
-                                                </div>
-                                                <div className="text-sm text-neutral-200">
-                                                    {new Date(booking.end_date).toLocaleDateString()}
-                                                </div>
-                                            </td>
-                                            <td className="p-4 whitespace-nowrap">
-                                                {getStatusBadge(booking.status)}
-                                            </td>
-                                            <td className="p-4 whitespace-nowrap">
-                                                {getPaymentBadge(booking.payment_status)}
-                                            </td>
-                                            <td className="p-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-neutral-200">
-                                                    ₹{booking.total_amount || booking.paid_amount || "0"}
-                                                </div>
-                                                {booking.paid_amount && (
-                                                    <div className="text-xs text-neutral-400">
-                                                        Paid: ₹{booking.paid_amount}
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="p-4 whitespace-nowrap">
-                                                <div className="flex flex-wrap gap-2">
-                                                    <ActionButton
-                                                        onClick={() => onViewBooking(booking)}
-                                                        icon={faEye}
-                                                        label="View"
-                                                        variant="default"
-                                                    />
-
-                                                    {/* Document Verify / Verified Button */}
-                                                    {(() => {
-                                                        const docConfig = getDocumentActionConfig(booking.document_status);
-                                                        return (
-                                                            <ActionButton
-                                                                onClick={() => {
-                                                                    if (!docConfig.disabled) {
-                                                                        handleQuickStatusUpdate(booking.id, "confirmed");
-                                                                    }
-                                                                }}
-                                                                icon={docConfig.icon}
-                                                                label={docConfig.label}
-                                                                variant={docConfig.variant}
-                                                                disabled={docConfig.disabled}
-                                                            />
-                                                        );
-                                                    })()}
-
-                                                    {/* Cancel button — fully hidden when not allowed */}
-                                                    {canShowCancelButton(booking.status) && (
-                                                        <ActionButton
-                                                            onClick={() => handleQuickStatusUpdate(booking.id, "cancelled")}
-                                                            icon={faBan}
-                                                            label="Cancel"
-                                                            variant="cancel"
-                                                        />
-                                                    )}
-
-                                                    <ActionButton
-                                                        onClick={() => handleDeleteClick(booking.id)}
-                                                        icon={faTrash}
-                                                        label="Delete"
-                                                        variant="delete"
-                                                    />
-                                                </div>
-                                            </td>
-
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
                         </div>
+                    )}
+
+                    {/* Scrollable Table with Enhanced Styling */}
+                    <div
+                        style={{
+                            maxHeight: "calc(100vh - 320px)",
+                            overflowY: "auto",
+                            overflowX: "auto"
+                        }}
+                        className="scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-neutral-900 hover:scrollbar-thumb-neutral-600"
+                    >
+                        <table className="w-full text-left border-collapse text-neutral-50 min-w-[1024px]">
+                            <thead className="bg-gradient-to-r from-neutral-900 to-neutral-950 sticky top-0 z-20 text-sm border-b border-neutral-800/70">
+                                <tr>
+                                    {[
+                                        "Booking ID",
+                                        "User",
+                                        "Apartment",
+                                        "Dates",
+                                        "Status",
+                                        "Payment",
+                                        "Amount",
+                                        "Actions",
+                                    ].map((th, idx) => (
+                                        <th
+                                            key={idx}
+                                            className="p-4 text-left font-semibold text-neutral-300 uppercase tracking-wide group"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                {th}
+                                                <svg className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                                </svg>
+                                            </div>
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+
+                            <tbody className="divide-y divide-neutral-700/50 bg-gradient-to-r from-neutral-900 to-neutral-950">
+                                {bookings.map((booking, index) => (
+                                    <tr
+                                        key={booking.id}
+                                        className="group hover:bg-neutral-800/80 transition-all duration-300 animate-fadeIn"
+                                        style={{ animationDelay: `${index * 0.05}s` }}
+                                    >
+                                        <td className="p-4 whitespace-nowrap">
+                                            <div className="flex items-center gap-3">
+                                                <div>
+                                                    <div className="text-sm font-medium text-neutral-200 group-hover:text-white transition-colors">
+                                                        #{booking.id}
+                                                    </div>
+                                                    <div className="text-xs text-neutral-500 group-hover:text-neutral-400 transition-colors">
+                                                        {new Date(booking.created_at).toLocaleDateString()}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        {/* User Column */}
+                                        <td className="p-4 whitespace-nowrap">
+                                            <div className="space-y-1">
+                                                <div className="text-sm font-medium text-neutral-200 group-hover:text-white transition-colors">
+                                                    {booking.user_name}
+                                                </div>
+                                                <div className="text-xs text-neutral-500 group-hover:text-neutral-400 transition-colors">
+                                                    {booking.user_email}
+                                                </div>
+                                                <div className="text-xs text-neutral-500 group-hover:text-neutral-400 transition-colors">
+                                                    {booking.user_phone}
+                                                </div>
+                                                {(() => {
+                                                    const docStatus = booking.document_status || "pending";
+
+                                                    const statusStyles = {
+                                                        approved:
+                                                            "bg-gradient-to-r from-green-500/20 to-green-600/10 text-green-400 border border-green-500/30",
+                                                        rejected:
+                                                            "bg-gradient-to-r from-red-500/20 to-red-600/10 text-red-400 border border-red-500/30",
+                                                        pending:
+                                                            "bg-gradient-to-r from-yellow-500/20 to-yellow-600/10 text-yellow-400 border border-yellow-500/30",
+                                                    };
+
+                                                    return (
+                                                        <div
+                                                            className={`text-xs mt-1 px-2 py-0.5 rounded-full inline-block transition-all duration-300 hover:scale-105 ${statusStyles[docStatus]}`}
+                                                        >
+                                                            Doc: {docStatus.charAt(0).toUpperCase() + docStatus.slice(1)}
+                                                        </div>
+                                                    );
+                                                })()}
+
+                                            </div>
+                                        </td>
+                                        <td className="p-4 whitespace-nowrap">
+                                            <div className="text-sm font-medium text-neutral-200">
+                                                {booking.apartment_title}
+                                            </div>
+                                            <div className="text-xs text-neutral-400">
+                                                {booking.total_nights} nights
+                                            </div>
+                                        </td>
+                                        <td className="p-4 whitespace-nowrap">
+                                            <div className="text-sm text-neutral-200">
+                                                {new Date(booking.start_date).toLocaleDateString()}
+                                            </div>
+                                            <div className="text-xs text-neutral-500 text-center">
+                                                to
+                                            </div>
+                                            <div className="text-sm text-neutral-200">
+                                                {new Date(booking.end_date).toLocaleDateString()}
+                                            </div>
+                                        </td>
+                                        <td className="p-4 whitespace-nowrap">
+                                            {getStatusBadge(booking.status)}
+                                        </td>
+                                        <td className="p-4 whitespace-nowrap">
+                                            {getPaymentBadge(booking.payment_status)}
+                                        </td>
+                                        <td className="p-4 whitespace-nowrap">
+                                            <div className="text-sm font-medium text-neutral-200">
+                                                ₹{booking.total_amount || booking.paid_amount || "0"}
+                                            </div>
+                                            {booking.paid_amount && (
+                                                <div className="text-xs text-neutral-400">
+                                                    Paid: ₹{booking.paid_amount}
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="p-4 whitespace-nowrap">
+                                            <div className="flex flex-wrap gap-2">
+                                                <ActionButton
+                                                    onClick={() => onViewBooking(booking)}
+                                                    icon={faEye}
+                                                    label="View"
+                                                    variant="default"
+                                                />
+
+                                                {/* Document Verify / Verified Button */}
+                                                {(() => {
+                                                    const docConfig = getDocumentActionConfig(booking.document_status);
+                                                    return (
+                                                        <ActionButton
+                                                            onClick={() => {
+                                                                if (!docConfig.disabled) {
+                                                                    handleQuickStatusUpdate(booking.id, "confirmed");
+                                                                }
+                                                            }}
+                                                            icon={docConfig.icon}
+                                                            label={docConfig.label}
+                                                            variant={docConfig.variant}
+                                                            disabled={docConfig.disabled}
+                                                        />
+                                                    );
+                                                })()}
+
+                                                {/* Cancel button — fully hidden when not allowed */}
+                                                {canShowCancelButton(booking.status) && (
+                                                    <ActionButton
+                                                        onClick={() => handleQuickStatusUpdate(booking.id, "cancelled")}
+                                                        icon={faBan}
+                                                        label="Cancel"
+                                                        variant="cancel"
+                                                    />
+                                                )}
+
+                                                <ActionButton
+                                                    onClick={() => handleDeleteClick(booking.id)}
+                                                    icon={faTrash}
+                                                    label="Delete"
+                                                    variant="delete"
+                                                />
+                                            </div>
+                                        </td>
+
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
+                </div>
             )}
 
             {showConfirmModal && (
@@ -1344,9 +1097,9 @@ const BookingsList = ({
                                 ) : (
                                     <div className="flex flex-col items-center justify-center h-64 bg-neutral-800/50 rounded-lg border border-neutral-700 p-4">
                                         <FontAwesomeIcon icon={faExclamationTriangle} className="w-12 h-12 text-neutral-600 mb-3" />
-                                        <p className="text-neutral-400 text-center">No document images found for this user</p>
+                                        <p className="text-neutral-400 text-center">No document images found for this booking</p>
                                         <p className="text-neutral-500 text-sm text-center mt-1">
-                                            The user may not have uploaded any documents yet.
+                                            The user may not have uploaded any documents for this booking.
                                         </p>
                                     </div>
                                 )}
@@ -1362,6 +1115,19 @@ const BookingsList = ({
                                         Verify against the images
                                     </span>
                                 </div>
+
+                                {/* Document Type Display */}
+                                {selectedBookingDocument && (
+                                    <div className="bg-neutral-800/30 rounded-lg p-4 border border-neutral-700">
+                                        <p className="text-sm text-neutral-300">
+                                            <span className="font-medium">Document Type:</span>{' '}
+                                            {getDocumentTypeLabel(selectedBookingDocument.document_type)}
+                                        </p>
+                                        <p className="text-xs text-neutral-400 mt-1">
+                                            Uploaded: {new Date(selectedBookingDocument.created_at).toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                )}
 
                                 {/* Document Type Selection */}
                                 <div>
@@ -1450,7 +1216,8 @@ const BookingsList = ({
                                 )}
                             </button>
                             <button
-                            onClick={handleRejectDocument}
+                                onClick={handleRejectDocument}
+                                className="flex items-center px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition disabled:opacity-50"
                             >
                                 Reject
                             </button>
@@ -1458,8 +1225,6 @@ const BookingsList = ({
                     </div>
                 </div>
             )}
-
-            {/* Duplicate Document Modal */}
 
             {/* Cancel Modal */}
             {showCancelModal && (
@@ -1483,7 +1248,6 @@ const BookingsList = ({
                             className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                             rows="3"
                         />
-                        {/* In the confirm modal button section, replace the single confirm button with: */}
                         <div className="flex justify-end space-x-3 pt-6 mt-6 border-t border-neutral-800">
                             <button
                                 onClick={closeModals}
@@ -1493,8 +1257,6 @@ const BookingsList = ({
                                 <FontAwesomeIcon icon={faTimes} className="w-4 h-4 mr-2" />
                                 Cancel
                             </button>
-
-                            {/* Reject Button (Optional) */}
                             <button
                                 onClick={handleConfirmCancel}
                                 disabled={actionLoading}

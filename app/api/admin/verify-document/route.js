@@ -58,12 +58,26 @@ export async function POST(request) {
         try {
             await connection.beginTransaction();
 
-            // 1. Insert or update document verification record
-            const [existingDoc] = await connection.query(
-                `SELECT id FROM user_documents 
-         WHERE user_id = ? AND booking_id = ?`,
-                [user_id, booking_id]
-            );
+            // Check if booking_id is a TEMP reference or real booking ID
+            const isTempReference = booking_id.toString().startsWith('TEMP_');
+
+            // 1. Handle document verification
+            let documentQuery;
+            let documentParams;
+
+            if (isTempReference) {
+                // For temp references, find document by temp booking_id
+                documentQuery = `SELECT id FROM user_documents 
+                                 WHERE user_id = ? AND booking_id = ?`;
+                documentParams = [user_id, booking_id];
+            } else {
+                // For real bookings, find by user_id and booking_id
+                documentQuery = `SELECT id FROM user_documents 
+                                 WHERE user_id = ? AND booking_id = ?`;
+                documentParams = [user_id, booking_id];
+            }
+
+            const [existingDoc] = await connection.query(documentQuery, documentParams);
 
             let documentId;
 
@@ -91,6 +105,7 @@ export async function POST(request) {
                     ]
                 );
             } else {
+                // This should rarely happen, but just in case
                 const [result] = await connection.execute(
                     `INSERT INTO user_documents
                      (user_id, booking_id, document_type, document_data, status, reviewer_id, review_message, verification_notes, created_at)
@@ -110,30 +125,45 @@ export async function POST(request) {
                 documentId = result.insertId;
             }
 
+            // 2. Update booking status ONLY if it's a real booking ID (not TEMP)
+            if (!isTempReference) {
+                // Check if booking exists first
+                const [bookingExists] = await connection.query(
+                    'SELECT id FROM bookings WHERE id = ?',
+                    [booking_id]
+                );
 
-            // 2. Update booking status to confirmed
-            await connection.query(
-                `UPDATE bookings 
-         SET status = 'confirmed', 
-             updated_at = NOW() 
-         WHERE id = ?`,
-                [booking_id]
-            );
+                if (bookingExists.length > 0) {
+                    await connection.query(
+                        `UPDATE bookings 
+                         SET status = 'confirmed', 
+                             updated_at = NOW() 
+                         WHERE id = ?`,
+                        [booking_id]
+                    );
+                } else {
+                    console.warn(`Booking ${booking_id} not found, skipping status update`);
+                }
+            } else {
+                console.log(`Temp reference ${booking_id} detected, skipping booking status update`);
+            }
 
             // 3. Log the action (optional but recommended)
             await connection.query(
                 `INSERT INTO admin_activity_logs 
-         (admin_id, action_type, target_type, target_id, description, metadata) 
-         VALUES (?, ?, ?, ?, ?, ?)`,
+                 (admin_id, action_type, target_type, target_id, description, metadata) 
+                 VALUES (?, ?, ?, ?, ?, ?)`,
                 [
                     reviewer_id,
                     'document_verification',
-                    'booking',
-                    booking_id,
-                    `Document verified and booking confirmed - Status: ${status}`,
+                    isTempReference ? 'temp_document' : 'booking',
+                    isTempReference ? documentId : booking_id,
+                    `Document verified - Status: ${status}${isTempReference ? ' (Temp Reference)' : ''}`,
                     JSON.stringify({
                         document_type,
                         document_id: documentId,
+                        booking_id,
+                        is_temp_reference: isTempReference,
                         verification_notes
                     })
                 ]
@@ -143,8 +173,12 @@ export async function POST(request) {
 
             return NextResponse.json({
                 success: true,
-                message: 'Document verified and booking confirmed successfully',
-                document_id: documentId
+                message: isTempReference
+                    ? 'Document verified successfully (awaiting booking creation)'
+                    : 'Document verified and booking confirmed successfully',
+                document_id: documentId,
+                booking_id: booking_id,
+                is_temp_reference: isTempReference
             });
 
         } catch (error) {
@@ -201,7 +235,6 @@ export async function GET(request) {
         const cookies = parseCookies(request.headers.get("cookie"));
         const token = cookies.token;
 
-        // ✅ Use adminAuth helper
         const { valid, decoded, error } = await verifyAdmin(token);
         if (!valid) {
             return NextResponse.json({ error }, { status: 401 });
@@ -210,6 +243,7 @@ export async function GET(request) {
         const { searchParams } = new URL(request.url);
         const user_id = searchParams.get('user_id');
         const booking_id = searchParams.get('booking_id');
+        const include_temp = searchParams.get('include_temp') === 'true';
 
         const connection = await pool.getConnection();
 
@@ -237,8 +271,19 @@ export async function GET(request) {
             }
 
             if (booking_id) {
-                query += ' AND ud.booking_id = ?';
-                params.push(booking_id);
+                if (include_temp) {
+                    // For temp references, do a LIKE search
+                    query += ' AND (ud.booking_id = ? OR ud.booking_id LIKE ?)';
+                    params.push(booking_id, `TEMP_%`);
+                } else {
+                    query += ' AND ud.booking_id = ?';
+                    params.push(booking_id);
+                }
+            }
+
+            // Optionally filter out temp references if not needed
+            if (!include_temp) {
+                query += " AND ud.booking_id NOT LIKE 'TEMP_%'";
             }
 
             query += ' ORDER BY ud.created_at DESC';
@@ -254,17 +299,22 @@ export async function GET(request) {
 
                 const { data, images } = normalizeDocumentData(rawData);
 
+                // Add a flag to indicate if this is a temp document
+                const isTempDocument = doc.booking_id && doc.booking_id.toString().startsWith('TEMP_');
+
                 return {
                     ...doc,
                     document_data: data,
-                    image_urls: images
+                    image_urls: images,
+                    is_temp_document: isTempDocument
                 };
             });
 
-
             return NextResponse.json({
                 success: true,
-                documents: parsedDocuments
+                documents: parsedDocuments,
+                count: parsedDocuments.length,
+                include_temp: include_temp
             });
 
         } finally {

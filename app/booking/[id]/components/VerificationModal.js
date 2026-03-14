@@ -126,12 +126,13 @@ export default function VerificationModal({ isOpen, onClose, onConfirm, bookingI
             if (!result.success) {
                 throw new Error(result.error || "Upload failed");
             }
-
+            console.log("Upload successful, response:", result);
             // Call parent callback with results
             onConfirm({
                 documentType: selectedDoc,
                 front: result.data.front,
-                back: result.data.back
+                back: result.data.back,
+                referenceId: result.booking_id
             });
 
             // Reset state

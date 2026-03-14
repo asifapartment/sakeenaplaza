@@ -43,7 +43,7 @@ export async function POST(request) {
         }
 
         const userId = tokenResult.decoded.id;
-
+        const document_reference = body.document_reference;
         // === 3. RATE LIMITING ===
         const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
         const identifier = sessionToken || ip || 'anonymous';
@@ -69,7 +69,7 @@ export async function POST(request) {
         }
 
         // === 5. CREATE TEMPORARY BOOKING ===
-        const bookingResult = await createTempBooking(validation.data,userId);
+        const bookingResult = await createTempBooking(validation.data, document_reference,userId);
         console.log('Booking Result:', bookingResult.bookingId);
         if (!bookingResult.success) {
             return NextResponse.json(

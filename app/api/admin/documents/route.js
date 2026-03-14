@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
-// ✅ Strict extractor: exactly one URL per side
+// Extract URLs from stored JSON
 function extractUrls(documentData) {
     const urls = {};
 
@@ -18,7 +18,7 @@ function extractUrls(documentData) {
         urls.back = documentData.back.url;
     }
 
-    // Fallback: single-image documents
+    // Fallback for single-image documents
     if (!urls.front && documentData.url) {
         urls.front = documentData.url;
     }
@@ -26,53 +26,48 @@ function extractUrls(documentData) {
     return urls;
 }
 
-
 export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
-        const userId = searchParams.get('user_id');
 
-        if (!userId) {
+        // ✅ Correct parameter
+        const bookingId = searchParams.get('booking_id');
+
+        if (!bookingId) {
             return NextResponse.json(
-                { error: 'user_id parameter is required' },
+                { error: 'booking_id parameter is required' },
                 { status: 400 }
             );
         }
 
-        // Get latest document for every document_type
+        // ✅ Fetch documents for this booking
         const [documents] = await pool.query(
             `
-            SELECT ud.*
-            FROM user_documents ud
-            INNER JOIN (
-                SELECT document_type, MAX(created_at) AS latest_time
-                FROM user_documents
-                WHERE user_id = ?
-                GROUP BY document_type
-            ) latest_docs
-            ON ud.document_type = latest_docs.document_type
-            AND ud.created_at = latest_docs.latest_time
-            WHERE ud.user_id = ?
-            ORDER BY ud.created_at DESC;
+            SELECT *
+            FROM user_documents
+            WHERE booking_id = ?
+            ORDER BY created_at DESC
             `,
-            [userId, userId]
+            [bookingId]
         );
 
-        if (documents.length === 0) {
+        if (!documents || documents.length === 0) {
             return NextResponse.json(
-                { message: 'No documents found for this user' },
+                { success: false, message: 'No documents found for this booking' },
                 { status: 404 }
             );
         }
 
         // Process documents
         const processedDocuments = documents.map(doc => {
-            let documentData;
+
+            let documentData = {};
 
             try {
-                documentData = typeof doc.document_data === 'string'
-                    ? JSON.parse(doc.document_data)
-                    : doc.document_data;
+                documentData =
+                    typeof doc.document_data === 'string'
+                        ? JSON.parse(doc.document_data)
+                        : doc.document_data;
             } catch {
                 documentData = {};
             }
@@ -82,8 +77,10 @@ export async function GET(request) {
             return {
                 id: doc.id,
                 user_id: doc.user_id,
+                booking_id: doc.booking_id,
                 document_type: doc.document_type,
                 status: doc.status,
+                document_data: documentData, // ✅ frontend needs this
                 urls: urls,
                 has_images: Object.keys(urls).length > 0,
                 review_message: doc.review_message,
@@ -94,15 +91,20 @@ export async function GET(request) {
 
         return NextResponse.json({
             success: true,
-            user_id: parseInt(userId),
+            booking_id: bookingId,
             documents_count: processedDocuments.length,
             documents: processedDocuments
         });
 
     } catch (error) {
         console.error('Error fetching documents:', error);
+
         return NextResponse.json(
-            { error: 'Failed to fetch documents', details: error.message },
+            {
+                success: false,
+                error: 'Failed to fetch documents',
+                details: error.message
+            },
             { status: 500 }
         );
     }

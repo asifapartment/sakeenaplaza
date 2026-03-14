@@ -175,10 +175,10 @@ function BookingForm({ apartmentId, disabledRanges, lockedRanges, dailyRate = 20
         }
     };
 
-    const handleConfirmBooking = async () => {
+    const handleConfirmBooking = async (referenceId) => {
         try {
             setLoading(true);
-
+            console.log("Reference ID from verification:", referenceId);
             if (!formData.guests || formData.guests < 1) {
                 setFormError("Please select number of guests.");
                 setShowVerificationModal(false);
@@ -213,6 +213,7 @@ function BookingForm({ apartmentId, disabledRanges, lockedRanges, dailyRate = 20
                     total_amount: Number(bookingSummary.total),
                     nights: Number(bookingSummary.nights),
                     guest_details: guestsInfo,
+                    document_reference: referenceId
                 }),
             });
 
@@ -602,7 +603,7 @@ function BookingForm({ apartmentId, disabledRanges, lockedRanges, dailyRate = 20
                     setLoadCallender={setLoadCallender}
                     isOpen={showVerificationModal}
                     onClose={() => setShowVerificationModal(false)}
-                    onConfirm={handleConfirmBooking}
+                    onConfirm={(data) => handleConfirmBooking(data.referenceId)}
                     loading={loading}
                     bookingId={id}
                 />
