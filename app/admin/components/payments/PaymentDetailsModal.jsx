@@ -42,7 +42,7 @@ const PaymentDetailsModal = ({ payment, onClose }) => {
 
     return (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fadeIn">
-            <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-700/50 rounded-2xl shadow-2xl w-full max-w-lg transform transition-all animate-slideUp">
+            <div className="bg-black border border-neutral-700/50 rounded-2xl shadow-2xl w-full max-w-lg transform transition-all animate-slideUp">
                 {/* Header */}
                 <div className="flex justify-between items-center p-6 border-b border-neutral-700/50">
                     <div className="flex items-center gap-3">
@@ -94,7 +94,7 @@ const PaymentDetailsModal = ({ payment, onClose }) => {
                     </div>
 
                     {/* User Information */}
-                    <div className="bg-neutral-800/50 rounded-xl p-4 border border-neutral-700/50">
+                    <div className="bg-black rounded-xl p-4 border border-neutral-700/50">
                         <h3 className="text-sm font-semibold text-neutral-200 mb-3 flex items-center gap-2">
                             <FontAwesomeIcon icon={faUser} className="text-neutral-400 text-xs" />
                             User Information
@@ -107,7 +107,7 @@ const PaymentDetailsModal = ({ payment, onClose }) => {
                     </div>
 
                     {/* Transaction Details */}
-                    <div className="bg-neutral-800/50 rounded-xl p-4 border border-neutral-700/50">
+                    <div className="bg-black rounded-xl p-4 border border-neutral-700/50">
                         <h3 className="text-sm font-semibold text-neutral-200 mb-3 flex items-center gap-2">
                             <FontAwesomeIcon icon={faMoneyCheck} className="text-neutral-400 text-xs" />
                             Transaction Details
@@ -146,15 +146,8 @@ const PaymentDetailsModal = ({ payment, onClose }) => {
                     )}
                 </div>
 
-                {/* Footer */}
-                <div className="flex justify-between items-center p-6 border-t border-neutral-700/50 bg-neutral-800/30 rounded-b-2xl">
-                    <button
-                        className="text-neutral-400 hover:text-neutral-200 text-sm flex items-center gap-2 transition-colors duration-200"
-                        onClick={onClose}
-                    >
-                        <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
-                        Back to Payments
-                    </button>
+                {/* Footer
+                <div className="flex justify-between items-center p-2 border-t border-neutral-700/50 bg-black rounded-b-2xl">
                     <button
                         className="bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 flex items-center gap-2"
                         onClick={onClose}
@@ -162,7 +155,7 @@ const PaymentDetailsModal = ({ payment, onClose }) => {
                         <FontAwesomeIcon icon={faTimes} />
                         Close
                     </button>
-                </div>
+                </div> */}
             </div>
         </div>
     );

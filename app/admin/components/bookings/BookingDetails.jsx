@@ -97,7 +97,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
     const timelineStatus = getTimelineStatus();
 
     return (
-        <div className="bg-neutral-900 text-neutral-200 rounded-xl shadow-lg border border-neutral-800 overflow-y-auto max-h-[700px]">
+        <div className="bg-black text-neutral-200 rounded-xl shadow-lg border border-neutral-800 overflow-y-auto max-h-[700px]">
             {/* Header with Timeline Status */}
             <div className="relative bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 border-b border-neutral-800">
                 <div className="px-6 py-8 pt-16 text-center">
@@ -126,11 +126,11 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
             </div>
 
             {/* Action Buttons */}
-            <div className="px-6 py-4 border-b border-neutral-800 bg-neutral-800/50 flex justify-between items-center">
+            <div className="px-6 py-4 border-b border-neutral-800 bg-black flex justify-between items-center">
                 <div className='flex'>
                     <button
                         onClick={() => onBack()}
-                        className="px-6 py-3 bg-neutral-900/40 hover:bg-neutral-800/60 text-neutral-200 hover:text-white rounded-xl transition-all duration-300 font-semibold flex items-center gap-3 border border-neutral-600/30 hover:border-neutral-400/50 shadow-lg hover:shadow-neutral-900/40 backdrop-blur-md group"
+                        className="px-6 py-3 bg-black/40 hover:bg-neutral-800/60 text-neutral-200 hover:text-white rounded-xl transition-all duration-300 font-semibold flex items-center gap-3 border border-neutral-600/30 hover:border-neutral-400/50 shadow-lg hover:shadow-neutral-900/40 backdrop-blur-md group"
                     >
                         <FontAwesomeIcon
                             icon={faListUl}
@@ -165,7 +165,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                     {/* Left Column - Booking & Timeline */}
                     <div className="lg:col-span-2 space-y-8">
                         {/* Booking Summary Card */}
-                        <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl p-6">
+                        <div className="bg-black border border-white/20 rounded-xl p-6">
                             <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
                                 <Calendar size={20} />
                                 Booking Summary
@@ -217,7 +217,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                         </div>
 
                         {/* Apartment Details Card */}
-                        <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl p-6">
+                        <div className="bg-black border border-white/20 rounded-xl p-6">
                             <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
                                 <Home size={20} />
                                 Apartment Details
@@ -257,7 +257,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                         </div>
                         {/* Document Details */}
                         {booking.document?.data && (
-                            <div className="bg-neutral-800/50 p-4 rounded-xl border border-neutral-700">
+                            <div className="bg-black p-4 rounded-xl border border-white/20">
                                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-indigo-400">
                                     <FontAwesomeIcon icon={faAddressCard} />
                                     Document Details ({booking.document.type.toUpperCase()})
@@ -281,15 +281,19 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                                 {/* Document Fields */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-300">
                                     {Object.entries(booking.document.data).map(([key, value]) => {
-                                        if (key.includes("image")) return null;
+
+                                        // Skip image objects
+                                        if (typeof value === "object" && value?.url) return null;
 
                                         return (
                                             <div
                                                 key={key}
-                                                className="p-3 bg-neutral-900/50 border border-neutral-700 rounded-xl"
+                                                className="p-3 bg-black/50 border border-white/20 rounded-xl"
                                             >
                                                 <p className="text-xs text-gray-400">{formatDocLabel(key)}</p>
-                                                <p className="text-sm break-all">{value}</p>
+                                                <p className="text-sm break-all">
+                                                    {typeof value === "object" ? JSON.stringify(value) : value}
+                                                </p>
                                             </div>
                                         );
                                     })}
@@ -298,7 +302,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                                 {/* Images */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
                                     {booking.document.data.front_image_url && (
-                                        <div className="bg-neutral-900/40 border border-neutral-700 rounded-xl p-3">
+                                        <div className="bg-black/40 border border-white/20 rounded-xl p-3">
                                             <p className="text-xs text-gray-400 mb-2">Front Image</p>
                                             <img
                                                 src={booking.document.data.front_image_url}
@@ -309,7 +313,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                                     )}
 
                                     {booking.document.data.back_image_url && (
-                                        <div className="bg-neutral-900/40 border border-neutral-700 rounded-xl p-3">
+                                        <div className="bg-black/40 border border-white/20 rounded-xl p-3">
                                             <p className="text-xs text-gray-400 mb-2">Back Image</p>
                                             <img
                                                 src={booking.document.data.back_image_url}
@@ -322,7 +326,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
 
                                 {/* Reviewer Message */}
                                 {booking.document.reviewMessage && (
-                                    <div className="mt-4 p-3 bg-neutral-900/60 border border-neutral-700 rounded-xl text-sm text-gray-300">
+                                    <div className="mt-4 p-3 bg-black/60 border border-white/20 rounded-xl text-sm text-gray-300">
                                         <p className="text-xs text-gray-400 mb-1">Reviewer Note</p>
                                         {booking.document.reviewMessage}
                                     </div>
@@ -334,7 +338,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                     {/* Right Column - User & Payment Info */}
                     <div className="space-y-8">
                         {/* User Information Card */}
-                        <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl p-6">
+                        <div className="bg-black border border-white/20 rounded-xl p-6">
                             <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
                                 <User size={20} />
                                 User Information
@@ -365,14 +369,14 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                         </div>
                         {/* Guest Details Card */}
                         {guestDetails.length > 0 && (
-                            <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl p-6">
+                            <div className="bg-black border border-white/20 rounded-xl p-6">
                                 <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
                                     <Users size={20} />
                                     Guest Details
                                 </h3>
                                 <div className="space-y-4">
                                     {guestDetails.map((guest, index) => (
-                                        <div key={index} className="bg-neutral-900/50 rounded-lg p-4 border border-neutral-700">
+                                        <div key={index} className="bg-black/50 rounded-lg p-4 border border-white/20">
                                             <div className="flex items-center justify-between mb-3">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
@@ -397,7 +401,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                                                     <span className="ml-2 text-white">{guest.phone}</span>
                                                 </div>
                                             </div>
-                                            <div className="mt-3 pt-3 border-t border-neutral-700">
+                                            <div className="mt-3 pt-3 border-t border-white/20">
                                                 <div className="text-xs text-neutral-400">
                                                     <span className={`inline-block px-2 py-1 rounded ${guest.age >= 18 ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
                                                         {guest.age >= 18 ? 'Adult' : 'Minor'}
@@ -410,7 +414,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                             </div>
                         )}
                         {/* Payment Information Card */}
-                        <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl p-6">
+                        <div className="bg-black border border-white/20 rounded-xl p-6">
                             <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
                                 <CreditCard size={20} />
                                 Payment Details
@@ -420,7 +424,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                                     <span className="text-neutral-400">Payment Status:</span>
                                     {getPaymentBadge(booking.payment_status)}
                                 </div>
-                                <div className="pt-4 border-t border-neutral-700">
+                                <div className="pt-4 border-t border-white/20">
                                     <div className="space-y-3">
                                         <div className="flex justify-between">
                                             <span className="text-neutral-400">Price per night:</span>
@@ -436,7 +440,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                                                 <span>{formatCurrency(booking.price_per_night * calculateStayDuration() * booking.guests)}</span>
                                             </div>
                                         )}
-                                        <div className="pt-3 border-t border-neutral-700">
+                                        <div className="pt-3 border-t border-white/20">
                                             <div className="flex justify-between text-lg font-semibold">
                                                 <span className="text-white">Total Amount:</span>
                                                 <span className="text-white">{formatCurrency(booking.total_amount)}</span>
@@ -445,7 +449,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                                     </div>
                                 </div>
                                 {booking.payment_method && (
-                                    <div className="pt-4 border-t border-neutral-700">
+                                    <div className="pt-4 border-t border-white/20">
                                         <div className="space-y-2 text-sm">
                                             <div className="flex justify-between">
                                                 <span className="text-neutral-400">Payment Method:</span>
@@ -477,24 +481,24 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                         </div>
 
                         {/* Quick Stats */}
-                        <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl p-6">
+                        <div className="bg-black border border-white/20 rounded-xl p-6">
                             <h3 className="text-lg font-semibold text-white mb-6">Quick Stats</h3>
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="text-center p-3 bg-neutral-900/50 rounded-lg">
+                                <div className="text-center p-3 bg-black/50 rounded-lg">
                                     <div className="text-2xl font-bold text-white">{booking.guests}</div>
                                     <div className="text-xs text-neutral-400 mt-1">Guests</div>
                                 </div>
-                                <div className="text-center p-3 bg-neutral-900/50 rounded-lg">
+                                <div className="text-center p-3 bg-black/50 rounded-lg">
                                     <div className="text-2xl font-bold text-white">{calculateStayDuration()}</div>
                                     <div className="text-xs text-neutral-400 mt-1">Nights</div>
                                 </div>
-                                <div className="text-center p-3 bg-neutral-900/50 rounded-lg">
+                                <div className="text-center p-3 bg-black/50 rounded-lg">
                                     <div className="text-2xl font-bold text-white">
                                         {guestDetails.filter(g => g.age >= 18).length}
                                     </div>
                                     <div className="text-xs text-neutral-400 mt-1">Adults</div>
                                 </div>
-                                <div className="text-center p-3 bg-neutral-900/50 rounded-lg">
+                                <div className="text-center p-3 bg-black/50 rounded-lg">
                                     <div className="text-2xl font-bold text-white">
                                         {guestDetails.filter(g => g.age < 18).length}
                                     </div>
@@ -510,7 +514,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
             {/* Status Update Modal */}
             {showStatusModal && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-                    <div className="bg-neutral-900 border border-neutral-700 rounded-xl p-6 w-full max-w-md">
+                    <div className="bg-black border border-white/20 rounded-xl p-6 w-full max-w-md">
                         <h3 className="text-lg font-semibold text-white mb-2">
                             Update Booking Status
                         </h3>
@@ -527,7 +531,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                                     value={adminNotes}
                                     onChange={(e) => setAdminNotes(e.target.value)}
                                     rows="3"
-                                    className="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full px-3 py-2 bg-neutral-800 border border-white/20 rounded-lg text-neutral-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     placeholder="Enter reason for cancellation..."
                                 />
                             </div>
@@ -536,7 +540,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                         <div className="flex justify-end space-x-3">
                             <button
                                 onClick={() => setShowStatusModal(false)}
-                                className="px-4 py-2 border border-neutral-700 text-neutral-300 rounded-lg hover:bg-neutral-800 transition font-medium"
+                                className="px-4 py-2 border border-white/20 text-neutral-300 rounded-lg hover:bg-neutral-800 transition font-medium"
                             >
                                 Cancel
                             </button>

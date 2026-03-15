@@ -18,7 +18,7 @@ export default function DocumentList({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
 
             {/* Modal */}
-            <div className="bg-neutral-900 w-[700px] max-h-[80vh] rounded-xl p-6 overflow-y-auto border border-neutral-700">
+            <div className="bg-black w-[700px] max-h-[80vh] rounded-xl p-6 overflow-y-auto border border-neutral-700">
 
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">

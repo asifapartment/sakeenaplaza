@@ -58,7 +58,7 @@ const CustomTooltip = ({ active = false, payload = [], label = '', chartKey }) =
         const displayLabel = labelMap[chartKey] || "Value";
 
         return (
-            <div className="bg-gradient-to-br from-neutral-900 to-neutral-800 backdrop-blur-sm border border-neutral-700 rounded-xl p-4 shadow-2xl">
+            <div className="bg-black backdrop-blur-sm border border-neutral-700 rounded-xl p-4 shadow-2xl">
                 <p className="text-neutral-100 font-semibold mb-2">{`${label}`}</p>
                 {payload.map((entry, index) => (
                     <p key={index} className="text-sm font-medium" style={{ color: entry.color }}>
@@ -581,7 +581,7 @@ export default function AdminDashboardStats() {
 
     if (loading) {
         return (
-            <section className="overflow-y-auto p-4 sm:p-6 bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950"
+            <section className="overflow-y-auto p-4 sm:p-6 bg-black"
                 style={{ maxHeight: 'calc(100vh - 96px)' }}
             >
                 <div className="space-y-6">
@@ -625,7 +625,7 @@ export default function AdminDashboardStats() {
     }
 
     return (
-        <section className="overflow-y-auto p-4 sm:p-6 bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950"
+        <section className="overflow-y-auto p-4 sm:p-6 bg-black"
             style={{ maxHeight: 'calc(100vh - 96px)' }}
         >
             {/* Main Summary Cards */}

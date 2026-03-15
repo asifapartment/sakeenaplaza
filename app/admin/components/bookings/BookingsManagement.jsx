@@ -159,7 +159,7 @@ const BookingsManagement = () => {
     }
 
     return (
-        <div className="h-full min-h-screen p-4 sm:p-6 max-sm:pb-16 bg-gradient-to-r from-neutral-900 to-neutral-950 text-neutral-200">
+        <div className="h-full min-h-screen p-4 sm:p-6 max-sm:pb-16 bg-black text-neutral-200">
 
             {error && <Toast message={error} onClose={() => setError('')} />}
             {success && <Toast message={success} type="success" onClose={() => setSuccess('')} />}

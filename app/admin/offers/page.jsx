@@ -456,58 +456,203 @@ export default function OffersPage() {
         );
     };
 
-    // Skeleton Loading Components
+    // Skeleton Loading Component - Matches InteractiveFlipCard structure
     const SkeletonCard = () => (
-        <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-lg overflow-hidden animate-pulse">
-            <div className="h-32 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-neutral-700 dark:to-neutral-600"></div>
-            <div className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                    <div className="space-y-3 flex-1">
-                        <div className="h-6 bg-gray-200 dark:bg-neutral-700 rounded w-3/4"></div>
-                        <div className="h-4 bg-gray-200 dark:bg-neutral-700 rounded w-1/2"></div>
+        <div className="flip-card animate-pulse">
+            <div className="flip-card-inner">
+                {/* Front Skeleton */}
+                <div className="flip-card-front bg-gradient-to-r from-gray-300 to-gray-400 dark:from-neutral-700 dark:to-neutral-600 p-6 flex flex-col items-center justify-between">
+                    {/* Decorative elements */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
+
+                    {/* Content skeleton */}
+                    <div className="relative z-10 w-full">
+                        <div className="flex justify-between items-start mb-4">
+                            <div className="h-4 bg-white/30 rounded w-20"></div>
+                            <div className="h-6 bg-white/30 rounded-full w-16"></div>
+                        </div>
+
+                        <div className="text-center mb-6">
+                            <div className="h-16 bg-white/30 rounded-lg w-24 mx-auto mb-2"></div>
+                            <div className="h-8 bg-white/30 rounded w-16 mx-auto mb-1"></div>
+                            <div className="h-6 bg-white/30 rounded w-32 mx-auto"></div>
+                        </div>
+
+                        <div className="h-4 bg-white/30 rounded w-40 mx-auto"></div>
                     </div>
-                    <div className="h-12 w-12 bg-gray-200 dark:bg-neutral-700 rounded-xl"></div>
+
+                    <div className="h-3 bg-white/30 rounded w-24 mx-auto"></div>
                 </div>
-                <div className="space-y-3">
-                    <div className="h-4 bg-gray-200 dark:bg-neutral-700 rounded w-full"></div>
-                    <div className="h-4 bg-gray-200 dark:bg-neutral-700 rounded w-2/3"></div>
-                </div>
-                <div className="mt-6 flex gap-2">
-                    <div className="h-10 bg-gray-200 dark:bg-neutral-700 rounded-lg flex-1"></div>
-                    <div className="h-10 bg-gray-200 dark:bg-neutral-700 rounded-lg flex-1"></div>
-                    <div className="h-10 bg-gray-200 dark:bg-neutral-700 rounded-lg flex-1"></div>
+
+                {/* Back Skeleton */}
+                <div className="flip-card-back bg-gradient-to-r from-gray-400 to-gray-500 dark:from-neutral-600 dark:to-neutral-700 p-6 flex flex-col justify-between">
+                    <div className="absolute top-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mt-16"></div>
+                    <div className="absolute bottom-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mb-12"></div>
+
+                    <div className="relative z-10">
+                        <div className="h-6 bg-white/30 rounded w-32 mx-auto mb-4"></div>
+
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 bg-white/30 rounded"></div>
+                                <div className="h-4 bg-white/30 rounded flex-1"></div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 bg-white/30 rounded"></div>
+                                <div className="h-4 bg-white/30 rounded flex-1"></div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 bg-white/30 rounded"></div>
+                                <div className="h-4 bg-white/30 rounded flex-1"></div>
+                            </div>
+
+                            <div className="mt-3 pt-3 border-t border-white/20">
+                                <div className="h-4 bg-white/30 rounded w-full"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Action buttons skeleton */}
+                    <div className="relative z-10 flex justify-center gap-3 mt-4">
+                        <div className="w-10 h-10 bg-white/30 rounded-full"></div>
+                        <div className="w-10 h-10 bg-white/30 rounded-full"></div>
+                        <div className="w-10 h-10 bg-white/30 rounded-full"></div>
+                    </div>
                 </div>
             </div>
+        </div>
+    );
+
+    // Header Skeleton Component
+    const HeaderSkeleton = () => (
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8 animate-pulse">
+            <div className="space-y-2">
+                <div className="h-8 bg-gray-300 dark:bg-neutral-700 rounded w-48"></div>
+                <div className="h-4 bg-gray-200 dark:bg-neutral-700 rounded w-64"></div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex bg-gray-200 dark:bg-neutral-800 rounded-lg p-1">
+                    <div className="px-4 py-2 rounded-lg bg-gray-300 dark:bg-neutral-700 w-16"></div>
+                    <div className="px-4 py-2 rounded-lg w-16"></div>
+                </div>
+                <div className="h-10 bg-gray-300 dark:bg-neutral-700 rounded-lg w-32"></div>
+            </div>
+        </div>
+    );
+
+    // Filter Tabs Skeleton
+    const FilterSkeleton = () => (
+        <div className="flex flex-wrap gap-2 mb-6 animate-pulse">
+            {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-10 bg-gray-200 dark:bg-neutral-800 rounded-xl w-24"></div>
+            ))}
+        </div>
+    );
+
+    // Stats Cards Skeleton
+    const StatsSkeleton = () => (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 animate-pulse">
+            {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-gradient-to-r from-gray-300 to-gray-400 dark:from-neutral-700 dark:to-neutral-600 rounded-2xl p-6">
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="w-12 h-12 bg-white/30 rounded-xl"></div>
+                        <div className="w-12 h-8 bg-white/30 rounded"></div>
+                    </div>
+                    <div className="h-4 bg-white/30 rounded w-20"></div>
+                </div>
+            ))}
+        </div>
+    );
+
+    // Grid View Skeleton
+    const GridSkeleton = () => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+                <SkeletonCard key={i} />
+            ))}
+        </div>
+    );
+
+    // Compact List View Skeleton
+    const CompactListSkeleton = () => (
+        <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-lg overflow-hidden animate-pulse">
+            {/* Header */}
+            <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-200 dark:bg-neutral-700/50 border-b dark:border-neutral-700">
+                {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className={`h-4 bg-gray-300 dark:bg-neutral-600 rounded ${i === 1 ? 'col-span-4' : 'col-span-2'}`}></div>
+                ))}
+            </div>
+
+            {/* Rows */}
+            {[1, 2, 3, 4].map((row) => (
+                <div key={row} className="grid grid-cols-12 gap-4 px-6 py-4 items-center border-b dark:border-neutral-700">
+                    <div className="col-span-4 space-y-2">
+                        <div className="h-4 bg-gray-200 dark:bg-neutral-700 rounded w-3/4"></div>
+                        <div className="h-3 bg-gray-200 dark:bg-neutral-700 rounded w-1/2"></div>
+                    </div>
+                    <div className="col-span-2">
+                        <div className="h-6 bg-gray-200 dark:bg-neutral-700 rounded w-16"></div>
+                    </div>
+                    <div className="col-span-2 space-y-1">
+                        <div className="h-3 bg-gray-200 dark:bg-neutral-700 rounded w-12"></div>
+                        <div className="h-3 bg-gray-200 dark:bg-neutral-700 rounded w-16"></div>
+                    </div>
+                    <div className="col-span-2">
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-gray-300 dark:bg-neutral-600 rounded-full"></div>
+                            <div className="h-4 bg-gray-200 dark:bg-neutral-700 rounded w-12"></div>
+                        </div>
+                    </div>
+                    <div className="col-span-2 flex justify-end gap-2">
+                        <div className="w-8 h-8 bg-gray-200 dark:bg-neutral-700 rounded-lg"></div>
+                        <div className="w-8 h-8 bg-gray-200 dark:bg-neutral-700 rounded-lg"></div>
+                        <div className="w-8 h-8 bg-gray-200 dark:bg-neutral-700 rounded-lg"></div>
+                    </div>
+                </div>
+            ))}
         </div>
     );
 
     if (loading) {
         return (
             <div className="container mx-auto px-4 py-8">
-                {/* Header Skeleton */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 animate-pulse">
-                    <div className="space-y-3">
-                        <div className="h-8 bg-gray-300 dark:bg-neutral-700 rounded w-48"></div>
-                        <div className="h-4 bg-gray-200 dark:bg-neutral-700 rounded w-64"></div>
-                    </div>
-                    <div className="mt-4 md:mt-0">
-                        <div className="h-12 bg-gray-300 dark:bg-neutral-700 rounded-lg w-40"></div>
-                    </div>
-                </div>
+                {/* Add flip card styles for skeleton too */}
+                <style jsx global>{`
+                    .flip-card {
+                        background-color: transparent;
+                        perspective: 1000px;
+                        height: 280px;
+                    }
+                    .flip-card-inner {
+                        position: relative;
+                        width: 100%;
+                        height: 100%;
+                        transform-style: preserve-3d;
+                    }
+                    .flip-card-front, .flip-card-back {
+                        position: absolute;
+                        width: 100%;
+                        height: 100%;
+                        backface-visibility: hidden;
+                        -webkit-backface-visibility: hidden;
+                        border-radius: 1rem;
+                        overflow: hidden;
+                    }
+                    .flip-card-front {
+                        transform: rotateY(0deg);
+                    }
+                    .flip-card-back {
+                        transform: rotateY(180deg);
+                    }
+                `}</style>
 
-                {/* Filters Skeleton */}
-                <div className="flex gap-4 mb-6 animate-pulse">
-                    <div className="h-10 bg-gray-200 dark:bg-neutral-700 rounded-lg w-24"></div>
-                    <div className="h-10 bg-gray-200 dark:bg-neutral-700 rounded-lg w-24"></div>
-                    <div className="h-10 bg-gray-200 dark:bg-neutral-700 rounded-lg w-24"></div>
-                </div>
+                <HeaderSkeleton />
+                <FilterSkeleton />
+                <StatsSkeleton />
 
-                {/* Cards Grid Skeleton */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[1, 2, 3, 4, 5, 6].map((i) => (
-                        <SkeletonCard key={i} />
-                    ))}
-                </div>
+                {/* Conditionally show grid or list skeleton based on viewMode */}
+                {viewMode === 'grid' ? <GridSkeleton /> : <CompactListSkeleton />}
             </div>
         );
     }

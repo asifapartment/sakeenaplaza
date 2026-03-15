@@ -349,7 +349,7 @@ export default function AdminLayout({ children }) {
             className="absolute right-0 mt-2 w-96 bg-neutral-800 rounded-lg shadow-2xl border border-gray-700 overflow-hidden z-50"
         >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700 bg-neutral-900">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700 bg-black">
                 <div className="flex items-center gap-2">
                     <FontAwesomeIcon icon={faBell} className="w-4 h-4 text-gray-400" />
                     <h3 className="font-semibold text-white">Notifications</h3>
@@ -447,7 +447,7 @@ export default function AdminLayout({ children }) {
             </div>
 
             {/* Footer */}
-            <div className="px-4 py-3 border-t border-gray-700 bg-neutral-900">
+            <div className="px-4 py-3 border-t border-gray-700 bg-black">
                 <button
                     onClick={() => {
                         router.push('/admin/notifications');
@@ -463,7 +463,7 @@ export default function AdminLayout({ children }) {
 
     const Sidebar = (
         <aside
-            className={`bg-neutral-900 border-r border-gray-700 h-full flex flex-col transition-all duration-200 ${sidebarCollapsed ? 'w-16' : 'w-72'}`}
+            className={`bg-black border-r border-gray-700 h-full flex flex-col transition-all duration-200 ${sidebarCollapsed ? 'w-16' : 'w-72'}`}
             aria-label="Rooms4u sidebar"
         >
             {/* Sidebar Header - unchanged */}
@@ -525,61 +525,87 @@ export default function AdminLayout({ children }) {
             </div>
 
             {/* Navigation - MODIFIED to show counts on bookings and payments */}
-            <nav className="flex-1 p-2 space-y-1">
+            <nav className="flex-1 p-3 space-y-1">
                 {navItems.map(({ id, label, icon, path }) => (
                     <button
                         key={id}
                         onClick={() => router.push(path)}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-150 relative ${pathname === path
-                                ? 'bg-neutral-700 text-white shadow-sm'
-                                : 'text-gray-300 hover:bg-neutral-800 hover:text-white'
-                            } ${sidebarCollapsed ? 'justify-center' : ''}`}
+                        className={`
+            w-full flex items-center gap-3 px-3 py-2.5 
+            rounded-md transition-all duration-150 relative
+            ${pathname === path
+                                ? 'text-white bg-white/10 font-medium'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            }
+            ${sidebarCollapsed ? 'justify-center' : ''}
+            group
+        `}
                         title={sidebarCollapsed ? label : ''}
                     >
                         <div className="relative">
                             <FontAwesomeIcon
                                 icon={icon}
-                                className={`w-4 h-4 transition-transform duration-200 ${pathname === path ? 'scale-110' : 'group-hover:scale-105'
-                                    }`}
+                                className={`
+                    w-4.5 h-4.5 transition-all duration-200
+                    ${pathname === path
+                                        ? 'text-white'
+                                        : 'text-gray-400 group-hover:text-white'
+                                    }
+                `}
                             />
 
-                            {/* Show count badges only for bookings and payments */}
+                            {/* Badges with Vercel-style design */}
                             {!sidebarCollapsed && id === 'bookings' && bookingCount > 0 && (
-                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-medium rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 border border-black/20 shadow-sm">
                                     {bookingCount}
                                 </span>
                             )}
 
                             {!sidebarCollapsed && id === 'payments' && paymentCount > 0 && (
-                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-medium rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 border border-black/20 shadow-sm">
                                     {paymentCount}
                                 </span>
                             )}
+
                             {!sidebarCollapsed && id === 'notifications' && unreadCount > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-medium rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 border border-black/20 shadow-sm">
                                     {unreadCount}
                                 </span>
                             )}
                         </div>
 
                         {!sidebarCollapsed && (
-                            <span className="font-medium text-sm">{label}</span>
+                            <span className={`
+                text-sm transition-all duration-200
+                ${pathname === path
+                                    ? 'text-white font-medium'
+                                    : 'text-gray-400 group-hover:text-white'
+                                }
+            `}>
+                                {label}
+                            </span>
                         )}
 
-                        {/* For collapsed sidebar - show badge as separate element */}
+                        {/* Active indicator line (Vercel-style) */}
+                        {!sidebarCollapsed && pathname === path && (
+                            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-white rounded-full" />
+                        )}
+
+                        {/* For collapsed sidebar - show badges */}
                         {sidebarCollapsed && id === 'bookings' && bookingCount > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-medium rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 border border-black/20 shadow-sm">
                                 {bookingCount}
                             </span>
                         )}
 
                         {sidebarCollapsed && id === 'payments' && paymentCount > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-medium rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 border border-black/20 shadow-sm">
                                 {paymentCount}
                             </span>
                         )}
+
                         {sidebarCollapsed && id === 'notifications' && unreadCount > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-medium rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 border border-black/20 shadow-sm">
                                 {unreadCount}
                             </span>
                         )}
@@ -605,7 +631,7 @@ export default function AdminLayout({ children }) {
     );
 
     const MobileNavbar = (
-        <nav className={`fixed md:hidden top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-neutral-800" : "bg-neutral-900"
+        <nav className={`fixed md:hidden top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-neutral-800" : "bg-black"
             }`}>
             <div className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-4">
@@ -629,7 +655,7 @@ export default function AdminLayout({ children }) {
                         </button>
 
                         {mobileDropdownOpen && (
-                            <div className="absolute top-full left-0 mt-2 w-48 bg-neutral-900 border border-white/10 rounded-lg shadow-xl z-60">
+                            <div className="absolute top-full left-0 mt-2 w-48 bg-black border border-white/10 rounded-lg shadow-xl z-60">
                                 {navItems.map(({ id, label, icon, path }) => (
                                     <button
                                         key={id}
@@ -674,7 +700,7 @@ export default function AdminLayout({ children }) {
     );
 
     return (
-        <div className="min-h-screen bg-neutral-900 text-white">
+        <div className="min-h-screen bg-black text-white">
             {/* Mobile Navbar */}
             {MobileNavbar}
 
@@ -696,7 +722,7 @@ export default function AdminLayout({ children }) {
             <div className={`h-full transition-all duration-200 ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-72'
                 } max-md:pt-16`}>
                 {/* Desktop Header with Notification Bell */}
-                <header className={`hidden md:flex items-center h-[96px] justify-between p-6 border-b border-gray-700 bg-neutral-900`}>
+                <header className={`hidden md:flex items-center h-[96px] justify-between p-6 border-b border-gray-700 bg-black`}>
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}

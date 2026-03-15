@@ -93,7 +93,7 @@ const DocumentConfirmModal = ({
 
     return (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-neutral-900 rounded-xl border border-neutral-800 p-6 w-full max-w-5xl my-8">
+            <div className="bg-black rounded-xl border border-neutral-800 p-6 w-full max-w-5xl my-8">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center">

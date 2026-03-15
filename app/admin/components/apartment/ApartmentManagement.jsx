@@ -353,31 +353,7 @@ const ApartmentsManager = () => {
 
     return (
         <section className="max-sm:pb-16 h-full p-4 sm:p-6">
-            {/* Header with stats */}
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-white mb-2">Apartments Manager</h1>
-                <div className="flex flex-wrap gap-4">
-                    <div className="bg-neutral-800/50 backdrop-blur-sm border border-neutral-700 rounded-xl px-4 py-3 min-w-[180px]">
-                        <p className="text-sm text-neutral-400 mb-1">Total Apartments</p>
-                        <p className="text-2xl font-bold text-white">{apartments.length}</p>
-                    </div>
-                    <div className="bg-neutral-800/50 backdrop-blur-sm border border-neutral-700 rounded-xl px-4 py-3 min-w-[180px]">
-                        <p className="text-sm text-neutral-400 mb-1">Available</p>
-                        <p className="text-2xl font-bold text-green-400">
-                            {apartments.filter(a => a.available).length}
-                        </p>
-                    </div>
-                    <div className="bg-neutral-800/50 backdrop-blur-sm border border-neutral-700 rounded-xl px-4 py-3 min-w-[180px]">
-                        <p className="text-sm text-neutral-400 mb-1">Showing</p>
-                        <p className="text-2xl font-bold text-blue-400">
-                            {paginatedApartments.length}
-                            <span className="text-sm text-neutral-400 font-normal ml-1">
-                                / {filteredAndSortedApartments.length}
-                            </span>
-                        </p>
-                    </div>
-                </div>
-            </div>
+
 
             {/* Action Bar */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -393,7 +369,7 @@ const ApartmentsManager = () => {
                     {/* Filter Button for Small Screens */}
                     <button
                         onClick={toggleFilters}
-                        className="md:hidden bg-gradient-to-r from-neutral-800 to-neutral-900 border border-neutral-700 hover:border-neutral-600 px-4 py-2.5 rounded-xl flex items-center space-x-2 text-neutral-50 font-medium transition-all duration-200 hover:shadow-lg"
+                        className="md:hidden bg-gradient-to-r from-neutral-800 to-neutral-900 border border-white/20 hover:border-neutral-600 px-4 py-2.5 rounded-xl flex items-center space-x-2 text-neutral-50 font-medium transition-all duration-200 hover:shadow-lg"
                     >
                         <FontAwesomeIcon icon={faFilter} />
                         <span className="text-sm">Filters</span>
@@ -411,7 +387,7 @@ const ApartmentsManager = () => {
             </div>
 
             {/* Filters Panel */}
-            <div className={`bg-neutral-800/50 backdrop-blur-sm border border-neutral-700 rounded-xl p-5 mb-6 shadow-lg transition-all duration-300 ${showFilters ? 'block' : 'hidden md:block'
+            <div className={`bg-black backdrop-blur-sm border border-white/20 rounded-xl p-5 mb-6 shadow-lg transition-all duration-300 ${showFilters ? 'block' : 'hidden md:block'
                 }`}>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div className="relative">
@@ -458,7 +434,7 @@ const ApartmentsManager = () => {
                     </div>
                 </div>
 
-                <div className="flex justify-between items-center pt-4 border-t border-neutral-700">
+                <div className="flex justify-between items-center pt-4 border-t border-white/20">
                     <button
                         className="text-neutral-400 hover:text-neutral-50 text-sm flex items-center space-x-2 p-2.5 bg-neutral-700/50 hover:bg-neutral-700 rounded-lg transition-all duration-200"
                         onClick={clearFilters}
@@ -479,7 +455,7 @@ const ApartmentsManager = () => {
             </div>
 
             {/* Apartments Table */}
-            <div className="bg-neutral-800/50 backdrop-blur-sm border border-neutral-700 rounded-xl shadow-xl overflow-hidden mb-6">
+            <div className="bg-black backdrop-blur-sm border border-white/20 rounded-xl shadow-xl overflow-hidden mb-6">
                 <div
                     className="overflow-y-auto overflow-x-auto"
                     style={{
@@ -488,7 +464,7 @@ const ApartmentsManager = () => {
                 >
                     <table className="w-full text-left border-collapse text-neutral-50 min-w-[768px]">
                         {/* ---------- Table Header ---------- */}
-                        <thead className="bg-gradient-to-r from-neutral-800 to-neutral-900 sticky top-0 z-20">
+                        <thead className="bg-black border-b border-white/20 sticky top-0 z-20">
                             <tr>
                                 <th
                                     className="p-4 cursor-pointer text-sm font-semibold text-neutral-300 hover:text-white transition-colors group"
@@ -555,7 +531,7 @@ const ApartmentsManager = () => {
                                         className="p-8 text-center"
                                     >
                                         <div className="flex flex-col items-center justify-center space-y-4">
-                                            <div className="w-16 h-16 rounded-full bg-neutral-800/50 border border-neutral-700 flex items-center justify-center">
+                                            <div className="w-16 h-16 rounded-full bg-black border border-white/20 flex items-center justify-center">
                                                 <FontAwesomeIcon icon={faSearch} className="text-2xl text-neutral-500" />
                                             </div>
                                             <div>
@@ -591,7 +567,7 @@ const ApartmentsManager = () => {
 
             {/* Pagination */}
             {filteredAndSortedApartments.length > 0 && (
-                <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 bg-neutral-800/50 backdrop-blur-sm border border-neutral-700 rounded-xl p-5">
+                <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 bg-black backdrop-blur-sm border border-white/20 rounded-xl p-5">
                     {/* Items per page selector */}
                     <div className="flex items-center space-x-3">
                         <span className="text-sm text-neutral-400">Show</span>
@@ -714,7 +690,7 @@ const SkeletonLoader = () => (
             <div className="h-8 bg-neutral-800 rounded-xl w-64 mb-4 animate-pulse"></div>
             <div className="flex flex-wrap gap-4">
                 {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-neutral-800/50 border border-neutral-700 rounded-xl px-4 py-3 min-w-[180px]">
+                    <div key={i} className="bg-black border border-white/20 rounded-xl px-4 py-3 min-w-[180px]">
                         <div className="h-4 bg-neutral-700 rounded w-24 mb-2 animate-pulse"></div>
                         <div className="h-8 bg-neutral-700 rounded w-16 animate-pulse"></div>
                     </div>
@@ -732,7 +708,7 @@ const SkeletonLoader = () => (
         </div>
 
         {/* Filters Skeleton */}
-        <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl p-5 mb-6">
+        <div className="bg-black border border-white/20 rounded-xl p-5 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="h-12 bg-neutral-900/50 rounded-lg animate-pulse"></div>
@@ -742,8 +718,8 @@ const SkeletonLoader = () => (
         </div>
 
         {/* Table Skeleton */}
-        <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl overflow-hidden mb-6">
-            <div className="p-4 border-b border-neutral-700">
+        <div className="bg-black border border-white/20 rounded-xl overflow-hidden mb-6">
+            <div className="p-4 border-b border-white/20">
                 <div className="h-6 bg-neutral-700 rounded w-32 animate-pulse"></div>
             </div>
             <div className="p-4 space-y-4">
@@ -764,7 +740,7 @@ const SkeletonLoader = () => (
         </div>
 
         {/* Pagination Skeleton */}
-        <div className="flex justify-between items-center bg-neutral-800/50 border border-neutral-700 rounded-xl p-5">
+        <div className="flex justify-between items-center bg-black border border-white/20 rounded-xl p-5">
             <div className="h-8 bg-neutral-700 rounded w-48 animate-pulse"></div>
             <div className="flex items-center space-x-2">
                 <div className="h-9 bg-neutral-700 rounded-lg w-9 animate-pulse"></div>
@@ -779,7 +755,7 @@ const SkeletonLoader = () => (
 
 // Table Row Skeleton
 const TableRowSkeleton = () => (
-    <tr className="border-b border-neutral-700/50">
+    <tr className="border-b border-white/20/50">
         <td className="p-4">
             <div className="h-4 bg-neutral-800 rounded w-8 animate-pulse"></div>
         </td>
@@ -817,7 +793,7 @@ const TableRowSkeleton = () => (
 // Other skeleton components remain similar but with updated styling
 const FormSkeleton = () => (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-neutral-900/90 border border-neutral-700 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="bg-neutral-900/90 border border-white/20 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
             <div className="animate-pulse space-y-4 p-6">
                 <div className="h-8 bg-neutral-800 rounded-xl w-48 mb-6"></div>
                 <div className="grid grid-cols-2 gap-4">
@@ -833,7 +809,7 @@ const FormSkeleton = () => (
 
 const ConfirmModalSkeleton = () => (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-neutral-900/90 border border-neutral-700 rounded-2xl w-full max-w-md animate-pulse">
+        <div className="bg-neutral-900/90 border border-white/20 rounded-2xl w-full max-w-md animate-pulse">
             <div className="p-6">
                 <div className="h-6 bg-neutral-800 rounded-xl w-32 mb-4"></div>
                 <div className="h-16 bg-neutral-800 rounded-lg mb-6"></div>
@@ -848,7 +824,7 @@ const ConfirmModalSkeleton = () => (
 
 const DetailsModalSkeleton = () => (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-neutral-900/90 border border-neutral-700 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto animate-pulse">
+        <div className="bg-neutral-900/90 border border-white/20 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto animate-pulse">
             <div className="p-6">
                 <div className="h-8 bg-neutral-800 rounded-xl w-48 mb-6"></div>
                 <div className="h-64 bg-neutral-800 rounded-xl mb-6"></div>

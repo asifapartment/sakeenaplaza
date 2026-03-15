@@ -92,7 +92,7 @@ const BookingSearchBar = ({ filters, onFilterChange }) => {
     return (
         <div className="w-full space-y-2 mb-4">
             {/* Main Search Bar Row */}
-            <div className="flex items-center gap-2 p-2 bg-neutral-900 rounded-xl border border-neutral-700">
+            <div className="flex items-center gap-2 p-2 bg-black rounded-xl border border-neutral-700">
                 {/* Search Input - Takes most space */}
                 <div className="flex-1 relative">
                     <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400">
@@ -127,7 +127,7 @@ const BookingSearchBar = ({ filters, onFilterChange }) => {
                     </button>
 
                     {showStatusDropdown && (
-                        <div className="absolute right-0 top-full mt-1 z-10 w-40 bg-neutral-900 border border-neutral-700 rounded-lg shadow-lg overflow-hidden">
+                        <div className="absolute right-0 top-full mt-1 z-10 w-40 bg-black border border-neutral-700 rounded-lg shadow-lg overflow-hidden">
                             <div className="py-1">
                                 {['', 'pending', 'confirmed', 'cancelled', 'expired','ongoing'].map((status) => (
                                     <button
@@ -168,7 +168,7 @@ const BookingSearchBar = ({ filters, onFilterChange }) => {
                     </button>
 
                     {showDatePicker && (
-                        <div className="absolute right-0 top-full mt-1 z-10 w-64 bg-neutral-900 border border-neutral-700 rounded-lg shadow-lg p-3">
+                        <div className="absolute right-0 top-full mt-1 z-10 w-64 bg-black border border-neutral-700 rounded-lg shadow-lg p-3">
                             <div className="space-y-2">
                                 <div>
                                     <label className="block text-xs text-neutral-400 mb-1">Start Date</label>
@@ -218,7 +218,7 @@ const BookingSearchBar = ({ filters, onFilterChange }) => {
                     </button>
 
                     {showLimitDropdown && (
-                        <div className="absolute right-0 top-full mt-1 z-10 bg-neutral-900 border border-neutral-700 rounded-lg shadow-lg overflow-hidden">
+                        <div className="absolute right-0 top-full mt-1 z-10 bg-black border border-neutral-700 rounded-lg shadow-lg overflow-hidden">
                             <div className="py-1">
                                 {[10, 25, 50, 100].map((limit) => (
                                     <button
@@ -272,7 +272,7 @@ export const BookingFiltersSkeleton = () => {
     return (
         <div className="w-full space-y-2 mb-4 animate-pulse">
             {/* Main Search Bar Skeleton */}
-            <div className="flex items-center gap-2 p-2 bg-neutral-900 rounded-xl border border-neutral-700">
+            <div className="flex items-center gap-2 p-2 bg-black rounded-xl border border-neutral-700">
 
                 {/* Search Input Skeleton */}
                 <div className="flex-1 relative">

@@ -103,10 +103,10 @@ export default function PaymentsTable({ payments, loading, filters, onViewDetail
 
     return (
         <>
-            <div className="bg-neutral-900 rounded-xl shadow-lg border border-neutral-800 overflow-hidden">
+            <div className="bg-black rounded-xl shadow-lg border border-neutral-800 overflow-hidden">
                 <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: 'calc(100vh - 400px)' }}>
                     <table className="min-w-[768px] w-full text-left border-separate border-spacing-0 text-neutral-100">
-                        <thead className="bg-neutral-800/95 backdrop-blur-sm sticky top-0 z-20">
+                        <thead className="bg-black backdrop-blur-sm sticky top-0 z-20">
                             <tr>
                                 <th className="p-4 font-semibold text-neutral-300 text-sm uppercase tracking-wider border-b border-neutral-700 first:rounded-tl-xl">ID</th>
                                 <th className="p-4 font-semibold text-neutral-300 text-sm uppercase tracking-wider border-b border-neutral-700">User</th>

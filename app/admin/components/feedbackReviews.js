@@ -206,7 +206,7 @@ export default function ReviewsAndFeedbacks() {
     const totalItems = pagination.totalItems;
 
     return (
-        <div className="min-h-screen bg-neutral-900 py-8">
+        <div className="min-h-screen bg-black py-8">
             <div className="max-w-7xl mx-auto px-4">
 
                 {/* Header */}
@@ -241,7 +241,7 @@ export default function ReviewsAndFeedbacks() {
                 </div>
 
                 {/* Search + Filters */}
-                <div className="mb-6 bg-neutral-800 p-4 rounded-md border border-neutral-700">
+                <div className="mb-6 bg-black p-4 rounded-md border border-neutral-700">
                     <div className="flex flex-col sm:flex-row gap-4">
 
                         {/* Search */}
@@ -254,7 +254,7 @@ export default function ReviewsAndFeedbacks() {
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder={`Search ${activeTab}...`}
-                                className="w-full pl-10 pr-3 py-2 bg-neutral-700 text-white rounded border border-neutral-600"
+                                className="w-full pl-10 pr-3 py-2 bg-black text-white rounded border border-neutral-600"
                             />
                         </div>
 
@@ -262,7 +262,7 @@ export default function ReviewsAndFeedbacks() {
                         <select
                             value={selectedRating}
                             onChange={(e) => setSelectedRating(e.target.value)}
-                            className="sm:w-48 bg-neutral-700 text-white border border-neutral-600 rounded">
+                            className="sm:w-48 bg-black text-white border border-neutral-600 rounded">
                             <option value="">All Ratings</option>
                             {[1, 2, 3, 4, 5].map((r) => (
                                 <option key={r} value={r}>{r} Stars</option>
@@ -276,7 +276,7 @@ export default function ReviewsAndFeedbacks() {
                                 const [key, dir] = e.target.value.split("-");
                                 setSortConfig({ key, direction: dir });
                             }}
-                            className="sm:w-48 bg-neutral-700 text-white border border-neutral-600 rounded">
+                            className="sm:w-48 bg-black text-white border border-neutral-600 rounded">
                             <option value="created_at-DESC">Newest First</option>
                             <option value="created_at-ASC">Oldest First</option>
                             <option value="rating-DESC">Highest Rating</option>
@@ -288,7 +288,7 @@ export default function ReviewsAndFeedbacks() {
                         {/* Refresh */}
                         <button
                             onClick={() => fetchData(1)}
-                            className="px-4 py-2 bg-neutral-700 border border-neutral-600 text-white rounded hover:bg-neutral-600">
+                            className="px-4 py-2 bg-black border border-neutral-600 text-white rounded hover:bg-neutral-600">
                             <FontAwesomeIcon
                                 icon="sync"
                                 className={loading ? "animate-spin mr-2" : "mr-2"}
@@ -336,7 +336,7 @@ export default function ReviewsAndFeedbacks() {
                     {/* Loading Skeletons */}
                     {loading &&
                         Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="bg-neutral-800 p-4 border border-neutral-700 rounded animate-pulse">
+                            <div key={i} className="bg-black p-4 border border-neutral-700 rounded animate-pulse">
                                 <div className="flex items-center mb-3">
                                     <div className="rounded-full bg-neutral-700 h-10 w-10"></div>
                                     <div className="ml-3 flex-1">
@@ -351,7 +351,7 @@ export default function ReviewsAndFeedbacks() {
 
                     {/* Empty State */}
                     {!loading && currentData.length === 0 && (
-                        <div className="col-span-full p-12 bg-neutral-800 border border-neutral-700 rounded text-center">
+                        <div className="col-span-full p-12 bg-black border border-neutral-700 rounded text-center">
                             <FontAwesomeIcon
                                 icon={activeTab === "reviews" ? "comment" : "envelope"}
                                 className="text-neutral-500 text-5xl mb-4"
@@ -365,7 +365,7 @@ export default function ReviewsAndFeedbacks() {
                         currentData.map((item) => (
                             <div
                                 key={item.id}
-                                className="bg-neutral-800 p-4 border border-neutral-700 rounded hover:border-neutral-500 transition">
+                                className="bg-black p-4 border border-neutral-700 rounded hover:border-neutral-500 transition">
 
                                 <div className="flex justify-between mb-3">
                                     <div className="flex items-center">

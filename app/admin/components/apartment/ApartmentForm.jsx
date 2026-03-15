@@ -283,7 +283,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                         key={index}
                         type="button"
                         onClick={() => addSuggestion(field, suggestion)}
-                        className="flex items-center space-x-2 bg-neutral-800 hover:bg-neutral-700 px-3 py-2 rounded-lg border border-neutral-700 transition-colors"
+                        className="flex items-center space-x-2 bg-black hover:bg-neutral-700 px-3 py-2 rounded-lg border border-neutral-700 transition-colors"
                     >
                         {suggestion.icon && (
                             <FontAwesomeIcon
@@ -317,7 +317,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
 
             <div className="space-y-3 max-h-96 overflow-y-auto">
                 {(formData[field] || []).map((item, index) => (
-                    <div key={index} className="flex space-x-3 items-start p-4 border border-neutral-700 rounded-lg bg-neutral-800/50">
+                    <div key={index} className="flex space-x-3 items-start p-4 border border-neutral-700 rounded-lg bg-black">
                         <div className="flex w-full gap-2">
                             <button
                                 type="button"
@@ -335,7 +335,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                                 placeholder={placeholderText}
                                 value={item.text || ''}
                                 onChange={(e) => updateArrayItem(field, index, 'text', e.target.value)}
-                                className="w-full p-2 rounded border border-neutral-700 bg-neutral-800 text-neutral-50 text-sm placeholder-neutral-500"
+                                className="w-full p-2 rounded border border-neutral-700 bg-black text-neutral-50 text-sm placeholder-neutral-500"
                             />
                         </div>
                         <button
@@ -361,7 +361,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
     // --- Optimized Icon Picker with Pagination ---
     const renderIconPicker = () => iconPickerOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-neutral-900 p-6 rounded-xl border border-white/10 w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="bg-black p-6 rounded-xl border border-white/10 w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-bold text-neutral-50">Choose an Icon</h3>
                     <button onClick={closeIconPicker} className="text-neutral-400 hover:text-neutral-50">
@@ -376,7 +376,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                         placeholder="Search icons..."
                         value={iconSearch}
                         onChange={(e) => setIconSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-neutral-700 bg-neutral-800 text-neutral-50"
+                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-neutral-700 bg-black text-neutral-50"
                     />
                 </div>
                 <div className='w-full flex justify-center items-center p-2'>
@@ -391,7 +391,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                                 key={name}
                                 type="button"
                                 onClick={() => selectIcon(name)}
-                                className="flex flex-col items-center p-2 rounded-lg border border-neutral-700 bg-neutral-800 hover:bg-neutral-700 transition-colors group"
+                                className="flex flex-col items-center p-2 rounded-lg border border-neutral-700 bg-black hover:bg-neutral-700 transition-colors group"
                             >
                                 <FontAwesomeIcon
                                     icon={icon}
@@ -412,7 +412,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                             type="button"
                             onClick={prevPage}
                             disabled={currentPage === 1}
-                            className="flex items-center space-x-2 px-2 py-2 rounded-lg border border-neutral-700 bg-neutral-800 text-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-700 transition-colors"
+                            className="flex items-center space-x-2 px-2 py-2 rounded-lg border border-neutral-700 bg-black text-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-700 transition-colors"
                         >
                             <FontAwesomeIcon icon={faChevronLeft} className="w-3 h-3" />
                             <span>Previous</span>
@@ -426,7 +426,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                             type="button"
                             onClick={nextPage}
                             disabled={currentPage === totalPages}
-                            className="flex items-center space-x-2 px-2 py-2 rounded-lg border border-neutral-700 bg-neutral-800 text-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-700 transition-colors"
+                            className="flex items-center space-x-2 px-2 py-2 rounded-lg border border-neutral-700 bg-black text-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-700 transition-colors"
                         >
                             <span>Next</span>
                             <FontAwesomeIcon icon={faChevronRight} className="w-3 h-3" />
@@ -446,7 +446,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                 placeholder="Apartment Title *"
                 value={formData.title || ''}
                 onChange={handleInputChange}
-                className="w-full p-3 rounded-lg border border-neutral-700 bg-neutral-800 text-gray-200 placeholder-neutral-500"
+                className="w-full p-3 rounded-lg border border-neutral-700 bg-black text-gray-200 placeholder-neutral-500"
                 required
             />
             <textarea
@@ -454,7 +454,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                 placeholder="Description *"
                 value={formData.description || ''}
                 onChange={handleInputChange}
-                className="w-full p-3 rounded-lg border border-neutral-700 bg-neutral-800 text-gray-200 min-h-32 placeholder-neutral-500"
+                className="w-full p-3 rounded-lg border border-neutral-700 bg-black text-gray-200 min-h-32 placeholder-neutral-500"
                 required
             />
             <div className="grid grid-cols-2 gap-4">
@@ -464,7 +464,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                     placeholder="Price per Night *"
                     value={formData.price_per_night || ''}
                     onChange={handleInputChange}
-                    className="p-3 rounded-lg border border-neutral-700 bg-neutral-800 text-gray-200 placeholder-neutral-500"
+                    className="p-3 rounded-lg border border-neutral-700 bg-black text-gray-200 placeholder-neutral-500"
                     required
                     min="0"
                     step="0.01"
@@ -475,7 +475,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                     placeholder="Max Guests *"
                     value={formData.max_guests || ''}
                     onChange={handleInputChange}
-                    className="p-3 rounded-lg border border-neutral-700 bg-neutral-800 text-gray-200 placeholder-neutral-500"
+                    className="p-3 rounded-lg border border-neutral-700 bg-black text-gray-200 placeholder-neutral-500"
                     required
                     min="1"
                 />
@@ -487,7 +487,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                     name="available"
                     checked={formData.available !== undefined ? formData.available : true}
                     onChange={(e) => setFormData(prev => ({ ...prev, available: e.target.checked }))}
-                    className="rounded border-neutral-700 bg-neutral-800 text-emerald-500 focus:ring-emerald-500"
+                    className="rounded border-neutral-700 bg-black text-emerald-500 focus:ring-emerald-500"
                 />
                 <label htmlFor="available" className="text-neutral-300 text-sm">
                     Available for booking
@@ -503,7 +503,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                 placeholder="Street Address * (e.g., 123 Main Street)"
                 value={formData.address1 || ''}
                 onChange={handleInputChange}
-                className="w-full p-3 rounded-lg border border-neutral-700 bg-neutral-800 text-gray-200 placeholder-neutral-500"
+                className="w-full p-3 rounded-lg border border-neutral-700 bg-black text-gray-200 placeholder-neutral-500"
                 required
             />
             <div className="grid grid-cols-2 gap-4">
@@ -512,7 +512,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                     placeholder="City *"
                     value={formData.city || ''}
                     onChange={handleInputChange}
-                    className="p-3 rounded-lg border border-neutral-700 bg-neutral-800 text-gray-200 placeholder-neutral-500"
+                    className="p-3 rounded-lg border border-neutral-700 bg-black text-gray-200 placeholder-neutral-500"
                     required
                 />
                 <input
@@ -520,7 +520,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                     placeholder="District *"
                     value={formData.district || ''}
                     onChange={handleInputChange}
-                    className="p-3 rounded-lg border border-neutral-700 bg-neutral-800 text-gray-200 placeholder-neutral-500"
+                    className="p-3 rounded-lg border border-neutral-700 bg-black text-gray-200 placeholder-neutral-500"
                     required
                 />
             </div>
@@ -530,7 +530,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                     placeholder="State *"
                     value={formData.state || ''}
                     onChange={handleInputChange}
-                    className="p-3 rounded-lg border border-neutral-700 bg-neutral-800 text-gray-200 placeholder-neutral-500"
+                    className="p-3 rounded-lg border border-neutral-700 bg-black text-gray-200 placeholder-neutral-500"
                     required
                 />
                 <input
@@ -538,7 +538,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                     placeholder="PIN Code *"
                     value={formData.pincode || ''}
                     onChange={handleInputChange}
-                    className="p-3 rounded-lg border border-neutral-700 bg-neutral-800 text-gray-200 placeholder-neutral-500"
+                    className="p-3 rounded-lg border border-neutral-700 bg-black text-gray-200 placeholder-neutral-500"
                     required
                 />
             </div>
@@ -547,7 +547,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                 placeholder="Country *"
                 value={formData.country || ''}
                 onChange={handleInputChange}
-                className="w-full p-3 rounded-lg border border-neutral-700 bg-neutral-800 text-gray-200 placeholder-neutral-500"
+                className="w-full p-3 rounded-lg border border-neutral-700 bg-black text-gray-200 placeholder-neutral-500"
                 required
             />
         </div>
@@ -556,7 +556,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
     return (
         <>
             <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
-                <div className="bg-neutral-900 p-6 rounded-xl border border-white/10 w-full max-w-4xl max-h-[80vh] flex flex-col shadow-lg">
+                <div className="bg-black p-6 rounded-xl border border-white/10 w-full max-w-4xl max-h-[80vh] flex flex-col shadow-lg">
                     {/* Header */}
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-xl font-bold text-neutral-50">
@@ -573,8 +573,8 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                             {['basic', 'address', 'features', 'inclusions', 'rules', 'whyBook', 'policies'].map(tab => (
                                 <button key={tab} onClick={() => setActiveTab(tab)}
                                     className={`px-4 py-3 text-sm font-medium rounded-t-lg transition-colors whitespace-nowrap ${activeTab === tab
-                                        ? 'bg-neutral-800 text-neutral-50 border-b-2 border-emerald-500'
-                                        : 'text-neutral-400 hover:text-neutral-300 hover:bg-neutral-800'
+                                        ? 'bg-black text-neutral-50 border-b-2 border-emerald-500'
+                                        : 'text-neutral-400 hover:text-neutral-300 hover:bg-black'
                                         }`}>
                                     {tab.charAt(0).toUpperCase() + tab.slice(1)}
                                 </button>
@@ -598,7 +598,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                                         placeholder="Cancellation Policy *"
                                         value={formData.policies?.cancellation || ''}
                                         onChange={(e) => handlePolicyChange('cancellation', e.target.value)}
-                                        className="w-full p-3 rounded-lg border border-neutral-700 bg-neutral-800 text-gray-200 min-h-32 placeholder-neutral-500"
+                                        className="w-full p-3 rounded-lg border border-neutral-700 bg-black text-gray-200 min-h-32 placeholder-neutral-500"
                                         required
                                     />
                                     <textarea
@@ -606,7 +606,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                                         placeholder="Booking Policy *"
                                         value={formData.policies?.booking || ''}
                                         onChange={(e) => handlePolicyChange('booking', e.target.value)}
-                                        className="w-full p-3 rounded-lg border border-neutral-700 bg-neutral-800 text-gray-200 min-h-32 placeholder-neutral-500"
+                                        className="w-full p-3 rounded-lg border border-neutral-700 bg-black text-gray-200 min-h-32 placeholder-neutral-500"
                                         required
                                     />
                                 </div>
@@ -634,7 +634,7 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                         <button
                             type="button"
                             onClick={onCancel}
-                            className="flex-1 bg-neutral-700 hover:bg-neutral-600 px-6 py-3 rounded-lg text-neutral-50 transition-colors font-medium"
+                            className="flex-1 bg-black hover:bg-white/10 px-6 py-3 rounded-lg text-neutral-50 transition-colors font-medium border border-white/10"
                         >
                             Cancel
                         </button>

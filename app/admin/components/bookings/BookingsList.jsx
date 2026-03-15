@@ -5,9 +5,9 @@ import NoBookingsEmptyState from "./EmptyBooking";
 
 export const TableSkeleton = () => {
     return (
-        <div className="bg-neutral-900 rounded-xl shadow-xl overflow-hidden border border-neutral-700/50 backdrop-blur-sm animate-pulse">
+        <div className="bg-black rounded-xl shadow-xl overflow-hidden border border-neutral-700/50 backdrop-blur-sm animate-pulse">
             {/* Pagination Skeleton */}
-            <div className="bg-gradient-to-r from-neutral-900 to-neutral-950 px-6 py-4 border-b border-neutral-800/70">
+            <div className="bg-black px-6 py-4 border-b border-neutral-800/70">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <div className="h-4 bg-neutral-800 rounded w-24 shimmer"></div>
@@ -733,10 +733,10 @@ const BookingsList = ({
             {loading ? (
                 <TableSkeleton />
             ) : (
-                <div className="bg-neutral-900 rounded-xl shadow-xl overflow-hidden border border-neutral-700/50 backdrop-blur-sm">
+                <div className="bg-black rounded-xl shadow-xl overflow-hidden border border-neutral-700/50">
                     {/* Enhanced Pagination - Now at the top */}
                     {pagination?.pages > 1 && (
-                        <div className="bg-gradient-to-r from-neutral-900 to-neutral-950 px-6 py-4 border-b border-neutral-800/70">
+                        <div className="bg-black px-6 py-4 border-b border-neutral-800/70">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm text-neutral-400 font-medium">
@@ -753,7 +753,7 @@ const BookingsList = ({
                                     <button
                                         onClick={() => onPageChange(pagination.page - 1)}
                                         disabled={pagination.page === 1}
-                                        className="relative group inline-flex items-center px-3 py-2 rounded-lg border border-neutral-800 bg-neutral-900 text-sm font-medium text-neutral-400 hover:text-white hover:border-neutral-700 hover:bg-neutral-800/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 transform hover:-translate-x-0.5 disabled:hover:translate-x-0"
+                                        className="relative group inline-flex items-center px-3 py-2 rounded-lg border border-neutral-800 bg-black text-sm font-medium text-neutral-400 hover:text-white hover:border-neutral-700 hover:bg-neutral-800/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 transform hover:-translate-x-0.5 disabled:hover:translate-x-0"
                                     >
                                         <svg className="w-4 h-4 mr-1 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -797,7 +797,7 @@ const BookingsList = ({
                                                     className={`relative min-w-[2.5rem] h-10 flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 ${typeof pageNum === 'number'
                                                         ? pageNum === pagination.page
                                                             ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/20 scale-105"
-                                                            : "bg-neutral-900 border border-neutral-800 text-neutral-400 hover:bg-neutral-800 hover:text-white hover:border-neutral-700"
+                                                            : "bg-black border border-neutral-800 text-neutral-400 hover:bg-neutral-800 hover:text-white hover:border-neutral-700"
                                                         : "text-neutral-600 cursor-default"
                                                         }`}
                                                 >
@@ -811,7 +811,7 @@ const BookingsList = ({
                                     <button
                                         onClick={() => onPageChange(pagination.page + 1)}
                                         disabled={pagination.page === pagination.pages}
-                                        className="relative group inline-flex items-center px-3 py-2 rounded-lg border border-neutral-800 bg-neutral-900 text-sm font-medium text-neutral-400 hover:text-white hover:border-neutral-700 hover:bg-neutral-800/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 transform hover:translate-x-0.5 disabled:hover:translate-x-0"
+                                        className="relative group inline-flex items-center px-3 py-2 rounded-lg border border-neutral-800 bg-black text-sm font-medium text-neutral-400 hover:text-white hover:border-neutral-700 hover:bg-neutral-800/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 transform hover:translate-x-0.5 disabled:hover:translate-x-0"
                                     >
                                         Next
                                         <svg className="w-4 h-4 ml-1 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -833,7 +833,7 @@ const BookingsList = ({
                         className="scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-neutral-900 hover:scrollbar-thumb-neutral-600"
                     >
                         <table className="w-full text-left border-collapse text-neutral-50 min-w-[1024px]">
-                            <thead className="bg-gradient-to-r from-neutral-900 to-neutral-950 sticky top-0 z-20 text-sm border-b border-neutral-800/70">
+                            <thead className="bg-black sticky top-0 z-20 text-sm border-b border-neutral-800/70">
                                 <tr>
                                     {[
                                         "Booking ID",
@@ -860,11 +860,11 @@ const BookingsList = ({
                                 </tr>
                             </thead>
 
-                            <tbody className="divide-y divide-neutral-700/50 bg-gradient-to-r from-neutral-900 to-neutral-950">
+                            <tbody className="divide-y divide-neutral-700/50 bg-black">
                                 {bookings.map((booking, index) => (
                                     <tr
                                         key={booking.id}
-                                        className="group hover:bg-neutral-800/80 transition-all duration-300 animate-fadeIn"
+                                        className="group hover:bg-neutral-900/80 transition-all duration-300 animate-fadeIn"
                                         style={{ animationDelay: `${index * 0.05}s` }}
                                     >
                                         <td className="p-4 whitespace-nowrap">
@@ -1006,7 +1006,7 @@ const BookingsList = ({
 
             {showConfirmModal && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto">
-                    <div className="bg-neutral-900 rounded-xl border border-neutral-800 p-6 w-full max-w-5xl my-8">
+                    <div className="bg-black rounded-xl border border-neutral-800 p-6 w-full max-w-5xl my-8">
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center">
                                 <div className="bg-green-500/20 p-2 rounded-lg mr-3">
@@ -1229,7 +1229,7 @@ const BookingsList = ({
             {/* Cancel Modal */}
             {showCancelModal && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                    <div className="bg-neutral-900 rounded-xl border border-neutral-800 p-6 w-xl">
+                    <div className="bg-black rounded-xl border border-neutral-800 p-6 w-xl">
                         <div className="flex items-center mb-4">
                             <div className="bg-yellow-500/20 p-2 rounded-lg mr-3">
                                 <FontAwesomeIcon icon={faBan} className="w-6 h-6 text-yellow-400" />
@@ -1273,7 +1273,7 @@ const BookingsList = ({
             {/* Delete Modal */}
             {showDeleteModal && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                    <div className="bg-neutral-900 rounded-xl border border-neutral-800 p-6 w-full max-w-md">
+                    <div className="bg-black rounded-xl border border-neutral-800 p-6 w-full max-w-md">
                         <div className="flex items-center mb-4">
                             <div className="bg-red-500/20 p-2 rounded-lg mr-3">
                                 <FontAwesomeIcon icon={faExclamationTriangle} className="w-6 h-6 text-red-400" />

@@ -3,7 +3,7 @@ import { faCalendarXmark, faFilter } from '@fortawesome/free-solid-svg-icons'
 
 export default function NoBookingsEmptyState() {
     return (
-        <div className="bg-neutral-900/50 backdrop-blur-sm rounded-2xl shadow-xl p-10 text-center border border-neutral-800/50">
+        <div className="bg-black/50 backdrop-blur-sm rounded-2xl shadow-xl p-10 text-center border border-neutral-800/50">
             <div className="flex flex-col items-center justify-center space-y-6">
                 {/* Icon with gradient background */}
                 <div className="relative">

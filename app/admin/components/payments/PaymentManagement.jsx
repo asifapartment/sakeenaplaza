@@ -187,19 +187,14 @@ const PaymentManagement = () => {
     }
 
     return (
-        <div className="bg-neutral-900 h-full text-neutral-100 p-4 sm:p-6">
+        <div className="bg-black h-full text-neutral-100 p-4 sm:p-6">
             <Suspense fallback={null}>
                 {snackbar.open && (
                     <Snackbar message={snackbar.message} type={snackbar.type} />
                 )}
             </Suspense>
 
-            {/* Stats - Only load when stats are available */}
-            {stats && (
-                <Suspense fallback={<div className="h-24 bg-neutral-800 rounded-xl animate-pulse mb-8" />}>
-                    <PaymentStats stats={stats} />
-                </Suspense>
-            )}
+
 
             {/* Filters - Load only when icons are ready */}
             {iconsLoaded && (
