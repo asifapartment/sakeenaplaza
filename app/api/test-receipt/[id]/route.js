@@ -178,7 +178,9 @@ export async function GET(req, { params }) {
         "--disable-dev-shm-usage",
         "--disable-gpu",
       ],
-      executablePath: await chromium.executablePath(),
+      executablePath: await chromium.executablePath(
+        process.env.CHROMIUM_PATH || undefined
+      ),
       headless: chromium.headless,
     });
 
