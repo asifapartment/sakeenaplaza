@@ -171,26 +171,14 @@ export async function GET(req, { params }) {
       bookingStatus: data.bookingStatus
     };
 
-    // 🌍 Detect environment
-    const isLocal = !process.env.VERCEL;
-
-    // 🧭 Chrome executable path
-    const localChromePath =
-      process.platform === "win32"
-        ? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-        : process.platform === "darwin"
-          ? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-          : "/usr/bin/google-chrome";
-
-    const executablePath = isLocal
-      ? localChromePath
-      : await chromium.executablePath(path.join(process.cwd(), "public/chromium/bin"));
-
     // ⚙️ Puppeteer launch configuration
     const browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath,
+      args: [
+        ...chromium.args,
+        '--no-sandbox',
+        '--disable-dev-shm-usage',
+      ],
+      executablePath: await chromium.executablePath(),
       headless: chromium.headless,
     });
 
