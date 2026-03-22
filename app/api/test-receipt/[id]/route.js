@@ -1,3 +1,6 @@
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 import connection from "@/lib/db";
 import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/jwt";
@@ -5,8 +8,6 @@ import { cookies } from "next/headers";
 import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
 import { getReceiptTemplet } from "@/lib/receipt/templet";
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 export async function GET(req, { params }) {
   const { id } = await params;
