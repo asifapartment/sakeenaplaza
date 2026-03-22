@@ -5,9 +5,7 @@ import { cookies } from "next/headers";
 import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
 import { getReceiptTemplet } from "@/lib/receipt/templet";
-import path from "path";
-import crypto from "crypto";
-
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req, { params }) {
@@ -175,8 +173,9 @@ export async function GET(req, { params }) {
     const browser = await puppeteer.launch({
       args: [
         ...chromium.args,
-        '--no-sandbox',
-        '--disable-dev-shm-usage',
+        "--no-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
       ],
       executablePath: await chromium.executablePath(),
       headless: chromium.headless,
@@ -186,7 +185,7 @@ export async function GET(req, { params }) {
     console.log("Generating receipt for payment ID:", id);
 
     // 🧾 Inject receipt HTML
-    await page.setContent(getReceiptTemplet(receiptData), { waitUntil: "load" });
+    await page.setContent(getReceiptTemplet(receiptData), { waitUntil: "domcontentloaded" });
 
     // 📄 Generate PDF
     const pdfBuffer = await page.pdf({
