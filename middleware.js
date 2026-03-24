@@ -19,7 +19,7 @@ export async function middleware(req) {
                 algorithms: ["HS256"],
                 issuer:
                     process.env.NODE_ENV === "production"
-                        ? "https://apartment-booking-site.vercel.app/"
+                        ? process.env.NEXT_PUBLIC_BASE_URL
                         : "http://localhost:3000",
                 audience: "yourapp-users",
             });

@@ -110,7 +110,7 @@ export default function Settings() {
         phone: '',
         altPhone: ''
     });
-    const {csrfToken} = useCsrf();
+    const { csrfToken } = useCsrf();
     const [originalData, setOriginalData] = useState({});
     const [activities, setActivities] = useState([]);
     const [validationErrors, setValidationErrors] = useState({});
@@ -185,7 +185,7 @@ export default function Settings() {
             setValidationErrors(prev => ({ ...prev, [field]: undefined }));
         }
     };
-    
+
     // In your SettingsIndividual.js component, update the performAccountDeletion function:
 
     const performAccountDeletion = async () => {
@@ -248,7 +248,7 @@ export default function Settings() {
             setIsDeleteModalOpen(false);
         }
     };
-    
+
     const handleSave = async (field) => {
         const value = formData[field];
         const error = validateField(field, value);
@@ -333,13 +333,13 @@ export default function Settings() {
         const error = validationErrors[field];
 
         return (
-            <div className="group relative overflow-hidden bg-gradient-to-br from-neutral-800/40 to-neutral-900/40 border border-neutral-700/30 rounded-xl p-5 hover:border-amber-500/30 transition-all duration-300">
+            <div className="group relative overflow-hidden bg-gradient-to-br from-neutral-800/40 to-neutral-900/40 border border-neutral-700/30 rounded-xl p-5 hover:border-teal-500/30 transition-all duration-300">
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-1">
                             {icon && (
-                                <div className="p-2 bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-amber-500/20 rounded-lg">
-                                    <FontAwesomeIcon icon={icon} className="text-amber-400 text-sm" />
+                                <div className="p-2 bg-gradient-to-r from-teal-500/10 to-teal-500/5 border border-teal-500/20 rounded-lg">
+                                    <FontAwesomeIcon icon={icon} className="text-teal-400 text-sm" />
                                 </div>
                             )}
                             <div>
@@ -358,7 +358,7 @@ export default function Settings() {
                             <button
                                 onClick={() => handleSave(field)}
                                 disabled={isSaving}
-                                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white text-sm font-medium transition-all shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white text-sm font-medium transition-all shadow-lg shadow-teal-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                                 aria-label={`Save ${label}`}
                             >
                                 {isSaving ? (
@@ -383,7 +383,7 @@ export default function Settings() {
                         <button
                             onClick={() => handleEdit(field)}
                             disabled={isLoading || isSaving}
-                            className="ml-4 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-neutral-800/50 to-neutral-900/50 border border-neutral-700/50 text-sm text-neutral-200 hover:bg-neutral-800 hover:border-amber-500/30 hover:text-amber-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed group/btn"
+                            className="ml-4 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-neutral-800/50 to-neutral-900/50 border border-neutral-700/50 text-sm text-neutral-200 hover:bg-neutral-800 hover:border-teal-500/30 hover:text-teal-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed group/btn"
                             aria-label={`Edit ${label}`}
                         >
                             <FontAwesomeIcon
@@ -408,7 +408,7 @@ export default function Settings() {
                                 value={value}
                                 onChange={(e) => handleInputChange(field, e.target.value)}
                                 className={`w-full px-4 py-3 bg-neutral-800/50 border ${error ? 'border-rose-500/50' : 'border-neutral-700/50'
-                                    } rounded-lg text-neutral-100 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500/50 transition-all`}
+                                    } rounded-lg text-neutral-100 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/50 transition-all`}
                                 disabled={isSaving}
                                 aria-invalid={!!error}
                                 aria-describedby={error ? `${field}-error` : undefined}
@@ -436,7 +436,7 @@ export default function Settings() {
                 </div>
 
                 {/* Hover effect line */}
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500/0 via-amber-500 to-amber-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-teal-500/0 via-teal-500 to-teal-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
             </div>
         );
     };
@@ -499,10 +499,10 @@ export default function Settings() {
                     </button>
                 </div>
 
-                <div className="p-3 bg-gradient-to-br from-amber-500/5 to-amber-500/2 rounded-xl border border-amber-500/20">
+                <div className="p-3 bg-gradient-to-br from-teal-500/5 to-teal-500/2 rounded-xl border border-teal-500/20">
                     <div className="flex items-start gap-2">
-                        <FontAwesomeIcon icon={faInfoCircle} className="text-amber-400 mt-0.5 flex-shrink-0" />
-                        <p className="text-xs text-amber-300/80">
+                        <FontAwesomeIcon icon={faInfoCircle} className="text-teal-400 mt-0.5 flex-shrink-0" />
+                        <p className="text-xs text-teal-300/80">
                             Account deletion is permanent and cannot be recovered. Please export any data you wish to keep.
                         </p>
                     </div>
@@ -561,7 +561,7 @@ export default function Settings() {
 
                 {/* Animated Background Elements */}
                 <div className="fixed top-0 left-0 w-full h-full pointer-events-none -z-10">
-                    <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl"></div>
+                    <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl"></div>
                     <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neutral-800/5 rounded-full blur-3xl"></div>
                 </div>
             </div>
@@ -574,7 +574,7 @@ export default function Settings() {
             <div className="mb-8">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                     <div>
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-400 to-amber-300 bg-clip-text text-transparent">
+                        <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-400 to-teal-300 bg-clip-text text-transparent">
                             Account Settings
                         </h1>
                         <p className="text-neutral-400 mt-1">
@@ -585,17 +585,17 @@ export default function Settings() {
                     <div className="flex items-center gap-3">
                         <div className="text-sm px-4 py-2 bg-neutral-800/50 border border-neutral-700/50 rounded-xl">
                             <span className="text-neutral-400">Member since </span>
-                            <span className="text-amber-400 font-semibold">2024</span>
+                            <span className="text-teal-400 font-semibold">2024</span>
                         </div>
                         <button
                             onClick={fetchSettingsData}
                             disabled={isLoading || isSaving}
-                            className="p-2.5 bg-gradient-to-r from-neutral-800/50 to-neutral-900/50 border border-neutral-700/50 rounded-xl hover:border-amber-500/30 transition-all disabled:opacity-50"
+                            className="p-2.5 bg-gradient-to-r from-neutral-800/50 to-neutral-900/50 border border-neutral-700/50 rounded-xl hover:border-teal-500/30 transition-all disabled:opacity-50"
                             aria-label="Refresh settings"
                         >
                             <FontAwesomeIcon
                                 icon={isLoading ? faSpinner : faSync}
-                                className={`text-neutral-400 hover:text-amber-400 ${isLoading ? 'animate-spin' : ''}`}
+                                className={`text-neutral-400 hover:text-teal-400 ${isLoading ? 'animate-spin' : ''}`}
                             />
                         </button>
                     </div>
@@ -608,8 +608,8 @@ export default function Settings() {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium transition-all ${activeTab === tab.id
-                                    ? 'bg-gradient-to-r from-amber-600 to-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/20'
-                                    : 'bg-gradient-to-r from-neutral-800/50 to-neutral-900/50 border-neutral-700/50 text-neutral-300 hover:bg-neutral-800 hover:border-amber-500/30 hover:text-amber-100'
+                                ? 'bg-gradient-to-r from-teal-600 to-teal-500 border-teal-500 text-white shadow-lg shadow-teal-500/20'
+                                : 'bg-gradient-to-r from-neutral-800/50 to-neutral-900/50 border-neutral-700/50 text-neutral-300 hover:bg-neutral-800 hover:border-teal-500/30 hover:text-teal-100'
                                 }`}
                         >
                             <FontAwesomeIcon icon={tab.icon} />
@@ -674,8 +674,8 @@ export default function Settings() {
                         <div className="relative overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-700/50 rounded-2xl p-5 shadow-2xl shadow-black/20">
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-amber-500/20 rounded-xl">
-                                        <FontAwesomeIcon icon={faUser} className="text-amber-400 text-lg" />
+                                    <div className="p-3 bg-gradient-to-r from-teal-500/10 to-teal-500/5 border border-teal-500/20 rounded-xl">
+                                        <FontAwesomeIcon icon={faUser} className="text-teal-400 text-lg" />
                                     </div>
                                     <div>
                                         <h2 className="text-xl font-bold text-neutral-100">Profile Information</h2>
@@ -747,7 +747,7 @@ export default function Settings() {
                                 <p className="text-neutral-400 text-sm max-w-md mx-auto">
                                     This section is under development. More features coming soon!
                                 </p>
-                                <button className="mt-6 inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-neutral-800/50 to-neutral-900/50 border border-neutral-700/50 text-neutral-300 rounded-xl text-sm hover:bg-neutral-800 hover:border-amber-500/30 hover:text-amber-100 transition-all">
+                                <button className="mt-6 inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-neutral-800/50 to-neutral-900/50 border border-neutral-700/50 text-neutral-300 rounded-xl text-sm hover:bg-neutral-800 hover:border-teal-500/30 hover:text-teal-100 transition-all">
                                     <span>View Roadmap</span>
                                     <FontAwesomeIcon icon={faChevronRight} className="text-xs" />
                                 </button>
@@ -775,7 +775,7 @@ export default function Settings() {
                         <h3 className="text-sm font-semibold text-neutral-300 mb-4">Account Overview</h3>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="bg-gradient-to-br from-neutral-800/40 to-neutral-900/40 p-3 rounded-xl border border-neutral-700/30 text-center">
-                                <div className="text-lg font-bold text-amber-400">5</div>
+                                <div className="text-lg font-bold text-teal-400">5</div>
                                 <div className="text-xs text-neutral-400 mt-1">Bookings</div>
                             </div>
                             <div className="bg-gradient-to-br from-neutral-800/40 to-neutral-900/40 p-3 rounded-xl border border-neutral-700/30 text-center">
@@ -839,8 +839,8 @@ export default function Settings() {
                                             </ul>
                                         </div>
 
-                                        <div className="p-3 bg-gradient-to-br from-amber-500/10 to-amber-500/5 border border-amber-500/20 rounded-lg">
-                                            <p className="text-xs text-amber-300 flex items-start gap-2">
+                                        <div className="p-3 bg-gradient-to-br from-teal-500/10 to-teal-500/5 border border-teal-500/20 rounded-lg">
+                                            <p className="text-xs text-teal-300 flex items-start gap-2">
                                                 <FontAwesomeIcon icon={faExclamationTriangle} className="mt-0.5 flex-shrink-0" />
                                                 <span>We recommend exporting your data before proceeding.</span>
                                             </p>
@@ -887,7 +887,7 @@ export default function Settings() {
 
             {/* Animated Background Elements */}
             <div className="fixed top-0 left-0 w-full h-full pointer-events-none -z-10">
-                <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl"></div>
+                <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl"></div>
                 <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neutral-800/5 rounded-full blur-3xl"></div>
             </div>
         </div>

@@ -97,7 +97,7 @@ export async function GET(req, { params }) {
 
     // Calculate price breakdown
     const baseAmount = data.price_per_night * data.nights;
-    const cleaningFee = baseAmount * 0.05; // 5% cleaning fee (example)
+    const cleaningFee = 500; // Flat cleaning fee (example)
     const serviceFee = baseAmount * 0.03; // 3% service fee (example)
     const discount = 0; // Calculate based on your logic
     const tax = (baseAmount + cleaningFee + serviceFee - discount) * 0.18; // 18% GST

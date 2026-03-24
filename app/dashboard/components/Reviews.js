@@ -149,14 +149,14 @@ export default function UserReviews() {
 
     const getRatingColor = (rating) => {
         if (rating >= 4.5) return "bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 border-emerald-500/30 text-emerald-300";
-        if (rating >= 4) return "bg-gradient-to-r from-amber-500/20 to-amber-600/20 border-amber-500/30 text-amber-300";
+        if (rating >= 4) return "bg-gradient-to-r from-teal-500/20 to-teal-600/20 border-teal-500/30 text-teal-300";
         if (rating >= 3) return "bg-gradient-to-r from-blue-500/20 to-blue-600/20 border-blue-500/30 text-blue-300";
         return "bg-gradient-to-r from-rose-500/20 to-rose-600/20 border-rose-500/30 text-rose-300";
     };
 
     const getRatingGradient = (rating) => {
         if (rating >= 4.5) return "from-emerald-500 via-emerald-400 to-emerald-300";
-        if (rating >= 4) return "from-amber-500 via-amber-400 to-amber-300";
+        if (rating >= 4) return "from-teal-500 via-teal-400 to-teal-300";
         if (rating >= 3) return "from-blue-500 via-blue-400 to-blue-300";
         return "from-rose-500 via-rose-400 to-rose-300";
     };
@@ -180,7 +180,7 @@ export default function UserReviews() {
                             </div>
                             <div className="h-10 w-px bg-neutral-700/50"></div>
                             <div className="text-right space-y-2">
-                                <div className="h-7 w-16 bg-amber-500/20 rounded animate-pulse"></div>
+                                <div className="h-7 w-16 bg-teal-500/20 rounded animate-pulse"></div>
                                 <div className="h-3 w-20 bg-neutral-700/40 rounded animate-pulse"></div>
                             </div>
                         </div>
@@ -305,16 +305,16 @@ export default function UserReviews() {
             <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-900 to-black flex items-center justify-center p-6">
                 <div className="text-center max-w-md">
                     <div className="relative mb-6">
-                        <div className="w-24 h-24 bg-gradient-to-br from-amber-500/10 to-amber-600/10 rounded-full flex items-center justify-center mx-auto">
-                            <FontAwesomeIcon icon={faQuoteRight} className="text-amber-400/40 text-4xl" />
+                        <div className="w-24 h-24 bg-gradient-to-br from-teal-500/10 to-teal-600/10 rounded-full flex items-center justify-center mx-auto">
+                            <FontAwesomeIcon icon={faQuoteRight} className="text-teal-400/40 text-4xl" />
                         </div>
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <FontAwesomeIcon icon={faStar} className="text-amber-400 text-3xl" />
+                            <FontAwesomeIcon icon={faStar} className="text-teal-400 text-3xl" />
                         </div>
                     </div>
                     <h3 className="text-2xl font-bold text-neutral-100 mb-2">No Reviews Yet</h3>
                     <p className="text-neutral-400 mb-6">Share your experiences and help others make better decisions.</p>
-                    <button className="px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-amber-500/20">
+                    <button className="px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-teal-500/20">
                         Write Your First Review
                     </button>
                 </div>
@@ -328,7 +328,7 @@ export default function UserReviews() {
             <div className="bg-gradient-to-br from-neutral-800/60 to-neutral-900/60 border border-neutral-700/30 rounded-2xl p-6 backdrop-blur-sm">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-neutral-100 to-amber-100 bg-clip-text text-transparent">
+                        <h1 className="text-3xl font-bold bg-gradient-to-r from-neutral-100 to-teal-100 bg-clip-text text-transparent">
                             My Reviews
                         </h1>
                         <p className="text-neutral-400 mt-2">Manage and edit your published reviews</p>
@@ -341,7 +341,7 @@ export default function UserReviews() {
                         </div>
                         <div className="h-10 w-px bg-neutral-700/50"></div>
                         <div className="text-right">
-                            <div className="text-2xl font-bold text-amber-400">
+                            <div className="text-2xl font-bold text-teal-400">
                                 {reviews.length > 0
                                     ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
                                     : "0.0"
@@ -362,7 +362,7 @@ export default function UserReviews() {
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-1">
                                         <span className="text-neutral-300 font-medium">{rating}</span>
-                                        <FontAwesomeIcon icon={faStar} className="text-amber-400 text-xs" />
+                                        <FontAwesomeIcon icon={faStar} className="text-teal-400 text-xs" />
                                     </div>
                                     <span className="text-neutral-400 text-sm">{count}</span>
                                 </div>
@@ -384,14 +384,14 @@ export default function UserReviews() {
                     {/* Search Input */}
                     <div className="flex-1 relative">
                         <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                            <FontAwesomeIcon icon={faSearch} className="text-amber-400/60 text-sm" />
+                            <FontAwesomeIcon icon={faSearch} className="text-teal-400/60 text-sm" />
                         </div>
                         <input
                             type="text"
                             placeholder="Search reviews by apartment or comment..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-neutral-800/40 border border-neutral-700/30 rounded-xl text-neutral-100 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-transparent text-sm transition-all duration-300"
+                            className="w-full pl-12 pr-4 py-3 bg-neutral-800/40 border border-neutral-700/30 rounded-xl text-neutral-100 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-transparent text-sm transition-all duration-300"
                         />
                     </div>
 
@@ -400,10 +400,10 @@ export default function UserReviews() {
                         onClick={() => setShowFilters(!showFilters)}
                         className="lg:hidden px-4 py-3 bg-gradient-to-r from-neutral-700/60 to-neutral-800/60 hover:from-neutral-600/60 hover:to-neutral-700/60 border border-neutral-700/30 text-neutral-200 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2"
                     >
-                        <FontAwesomeIcon icon={faFilter} className="text-amber-400/70 text-xs" />
+                        <FontAwesomeIcon icon={faFilter} className="text-teal-400/70 text-xs" />
                         Filters
                         {(searchTerm || ratingFilter !== "all") && (
-                            <span className="w-2 h-2 bg-amber-500 rounded-full"></span>
+                            <span className="w-2 h-2 bg-teal-500 rounded-full"></span>
                         )}
                     </button>
 
@@ -411,11 +411,11 @@ export default function UserReviews() {
                     <div className={`${showFilters ? 'flex' : 'hidden'} lg:flex flex-col lg:flex-row gap-3 lg:items-center`}>
                         {/* Rating Filter */}
                         <div className="relative">
-                            <FontAwesomeIcon icon={faStar} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-amber-400/60 text-xs" />
+                            <FontAwesomeIcon icon={faStar} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-teal-400/60 text-xs" />
                             <select
                                 value={ratingFilter}
                                 onChange={(e) => setRatingFilter(e.target.value)}
-                                className="pl-10 pr-4 py-3 bg-gradient-to-r from-neutral-700/60 to-neutral-800/60 border border-neutral-700/30 rounded-xl text-neutral-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-transparent text-sm appearance-none cursor-pointer"
+                                className="pl-10 pr-4 py-3 bg-gradient-to-r from-neutral-700/60 to-neutral-800/60 border border-neutral-700/30 rounded-xl text-neutral-100 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-transparent text-sm appearance-none cursor-pointer"
                             >
                                 <option value="all">All Ratings</option>
                                 <option value="5">★★★★★</option>
@@ -428,11 +428,11 @@ export default function UserReviews() {
 
                         {/* Sort By */}
                         <div className="relative">
-                            <FontAwesomeIcon icon={faSort} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-amber-400/60 text-xs" />
+                            <FontAwesomeIcon icon={faSort} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-teal-400/60 text-xs" />
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
-                                className="pl-10 pr-4 py-3 bg-gradient-to-r from-neutral-700/60 to-neutral-800/60 border border-neutral-700/30 rounded-xl text-neutral-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-transparent text-sm appearance-none cursor-pointer"
+                                className="pl-10 pr-4 py-3 bg-gradient-to-r from-neutral-700/60 to-neutral-800/60 border border-neutral-700/30 rounded-xl text-neutral-100 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-transparent text-sm appearance-none cursor-pointer"
                             >
                                 <option value="newest">Newest First</option>
                                 <option value="oldest">Oldest First</option>
@@ -459,7 +459,7 @@ export default function UserReviews() {
             {filteredReviews.length === 0 && reviews.length > 0 && (
                 <div className="text-center py-12">
                     <div className="w-20 h-20 bg-gradient-to-br from-neutral-800/60 to-neutral-900/60 border border-neutral-700/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <FontAwesomeIcon icon={faSearch} className="text-amber-400/40 text-3xl" />
+                        <FontAwesomeIcon icon={faSearch} className="text-teal-400/40 text-3xl" />
                     </div>
                     <h3 className="text-xl font-semibold text-neutral-100 mb-2">No matching reviews</h3>
                     <p className="text-neutral-400 mb-6">Try adjusting your search criteria</p>
@@ -477,24 +477,24 @@ export default function UserReviews() {
                 {filteredReviews.map((review) => (
                     <div
                         key={review.id}
-                        className="group relative overflow-hidden bg-gradient-to-br from-neutral-800/60 to-neutral-900/60 border border-neutral-700/30 rounded-2xl p-5 hover:border-amber-500/30 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-500 backdrop-blur-sm"
+                        className="group relative overflow-hidden bg-gradient-to-br from-neutral-800/60 to-neutral-900/60 border border-neutral-700/30 rounded-2xl p-5 hover:border-teal-500/30 hover:shadow-2xl hover:shadow-teal-500/10 transition-all duration-500 backdrop-blur-sm"
                         onMouseEnter={() => setIsHovered(review.id)}
                         onMouseLeave={() => setIsHovered(null)}
                     >
                         {/* Animated background gradient */}
-                        <div className={`absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${isHovered === review.id ? 'opacity-100' : ''}`}></div>
+                        <div className={`absolute inset-0 bg-gradient-to-br from-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${isHovered === review.id ? 'opacity-100' : ''}`}></div>
 
                         {/* Header with Apartment Info */}
                         <div className="relative flex items-start justify-between mb-6 pb-4 border-b border-neutral-700/30">
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-2">
                                     <div className="relative">
-                                        <div className="w-8 h-8 bg-gradient-to-br from-amber-500/20 to-amber-600/20 rounded-lg flex items-center justify-center">
-                                            <FontAwesomeIcon icon={faUser} className="text-amber-400 text-sm" />
+                                        <div className="w-8 h-8 bg-gradient-to-br from-teal-500/20 to-teal-600/20 rounded-lg flex items-center justify-center">
+                                            <FontAwesomeIcon icon={faUser} className="text-teal-400 text-sm" />
                                         </div>
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-bold text-neutral-100 group-hover:text-amber-100 transition-colors truncate">
+                                        <h3 className="text-lg font-bold text-neutral-100 group-hover:text-teal-100 transition-colors truncate">
                                             {review.apartment_name}
                                         </h3>
                                         <p className="text-neutral-400 text-xs mt-0.5">
@@ -521,7 +521,7 @@ export default function UserReviews() {
                                         key={i}
                                         icon={faStar}
                                         className={`text-xl ${i < review.rating
-                                            ? `text-gradient-to-r ${getRatingGradient(review.rating)} bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,0,0.2)]`
+                                            ? `text-gradient-to-r ${getRatingGradient(review.rating)} bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(0,255,255,0.2)]`
                                             : "text-neutral-600"
                                             }`}
                                     />
@@ -541,8 +541,8 @@ export default function UserReviews() {
                             {/* Review Date */}
                             <div className="bg-gradient-to-br from-neutral-800/40 to-neutral-900/40 p-3 rounded-xl border border-neutral-700/20">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <div className="p-1.5 bg-amber-500/10 rounded-lg">
-                                        <FontAwesomeIcon icon={faCalendarAlt} className="text-amber-400 text-xs" />
+                                    <div className="p-1.5 bg-teal-500/10 rounded-lg">
+                                        <FontAwesomeIcon icon={faCalendarAlt} className="text-teal-400 text-xs" />
                                     </div>
                                     <span className="text-neutral-400 text-xs font-medium">Reviewed on</span>
                                 </div>
@@ -558,8 +558,8 @@ export default function UserReviews() {
                             {/* Review Length */}
                             <div className="bg-gradient-to-br from-neutral-800/40 to-neutral-900/40 p-3 rounded-xl border border-neutral-700/20">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <div className="p-1.5 bg-amber-500/10 rounded-lg">
-                                        <FontAwesomeIcon icon={faChartLine} className="text-amber-400 text-xs" />
+                                    <div className="p-1.5 bg-teal-500/10 rounded-lg">
+                                        <FontAwesomeIcon icon={faChartLine} className="text-teal-400 text-xs" />
                                     </div>
                                     <span className="text-neutral-400 text-xs font-medium">Length</span>
                                 </div>
@@ -572,7 +572,7 @@ export default function UserReviews() {
                         {/* Comment Preview */}
                         <div className="mb-5 p-4 bg-gradient-to-br from-neutral-800/40 to-neutral-900/40 rounded-xl border border-neutral-700/20">
                             <div className="flex items-start gap-2 mb-2">
-                                <FontAwesomeIcon icon={faQuoteRight} className="text-amber-400/30 text-sm mt-1" />
+                                <FontAwesomeIcon icon={faQuoteRight} className="text-teal-400/30 text-sm mt-1" />
                                 <p className="text-sm text-neutral-300 line-clamp-3 flex-1">
                                     "{review.comment}"
                                 </p>
@@ -583,7 +583,7 @@ export default function UserReviews() {
                         <div className="relative flex gap-2">
                             <button
                                 onClick={() => setEditingReview(review)}
-                                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-neutral-700/60 to-neutral-800/60 hover:from-neutral-600/60 hover:to-neutral-700/60 text-neutral-200 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 border border-neutral-600/30 hover:border-amber-500/30 hover:text-amber-100 group/btn"
+                                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-neutral-700/60 to-neutral-800/60 hover:from-neutral-600/60 hover:to-neutral-700/60 text-neutral-200 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 border border-neutral-600/30 hover:border-teal-500/30 hover:text-teal-100 group/btn"
                             >
                                 <FontAwesomeIcon icon={faPenToSquare} className="group-hover/btn:scale-110 transition-transform" />
                                 Edit
@@ -599,7 +599,7 @@ export default function UserReviews() {
                         </div>
 
                         {/* Hover effect line */}
-                        <div className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500/0 via-amber-500 to-amber-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ${isHovered === review.id ? 'scale-x-100' : ''}`}></div>
+                        <div className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-teal-500/0 via-teal-500 to-teal-500/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ${isHovered === review.id ? 'scale-x-100' : ''}`}></div>
                     </div>
                 ))}
             </div>
@@ -612,23 +612,23 @@ export default function UserReviews() {
                         bg-gradient-to-br from-neutral-900 to-neutral-950
                         border border-neutral-800
                         rounded-2xl 
-                        shadow-[0_0_60px_rgba(251,191,36,0.15)]
+                        shadow-[0_0_60px_rgba(0,255,255,0.15)]
                         p-6
                         animate-in fade-in duration-300
                     ">
                         {/* Title with Gradient */}
                         <div className="text-center mb-8">
-                            <h2 className="text-3xl font-bold bg-gradient-to-r from-amber-300 to-amber-500 bg-clip-text text-transparent">
+                            <h2 className="text-3xl font-bold bg-gradient-to-r from-teal-300 to-teal-500 bg-clip-text text-transparent">
                                 Edit Your Review
                             </h2>
-                            <div className="h-[3px] w-24 bg-gradient-to-r from-amber-500 to-amber-600 rounded-full mx-auto mt-4"></div>
+                            <div className="h-[3px] w-24 bg-gradient-to-r from-teal-500 to-teal-600 rounded-full mx-auto mt-4"></div>
                         </div>
 
                         {/* Apartment Card */}
                         <div className="mb-8 p-5 bg-gradient-to-br from-neutral-800/60 to-neutral-900/60 border border-neutral-700/30 rounded-xl">
                             <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 bg-gradient-to-br from-amber-500/20 to-amber-600/20 rounded-xl flex items-center justify-center">
-                                    <FontAwesomeIcon icon={faStar} className="text-amber-400 text-xl" />
+                                <div className="w-14 h-14 bg-gradient-to-br from-teal-500/20 to-teal-600/20 rounded-xl flex items-center justify-center">
+                                    <FontAwesomeIcon icon={faStar} className="text-teal-400 text-xl" />
                                 </div>
                                 <div>
                                     <p className="text-neutral-400 text-sm font-medium mb-1">Apartment</p>
@@ -651,7 +651,7 @@ export default function UserReviews() {
                                             w-14 h-14 rounded-2xl flex items-center justify-center
                                             transition-all duration-300
                                             ${star <= editingReview.rating
-                                                ? `bg-gradient-to-br ${getRatingGradient(editingReview.rating)} shadow-lg shadow-amber-500/30`
+                                                ? `bg-gradient-to-br ${getRatingGradient(editingReview.rating)} shadow-lg shadow-teal-500/30`
                                                 : "bg-neutral-800 border border-neutral-700"
                                             }
                                         `}>
@@ -661,7 +661,7 @@ export default function UserReviews() {
                                                     text-2xl transition-transform duration-200
                                                     ${star <= editingReview.rating
                                                         ? "text-white scale-110"
-                                                        : "text-neutral-600 group-hover:text-amber-300 group-hover:scale-110"
+                                                        : "text-neutral-600 group-hover:text-teal-300 group-hover:scale-110"
                                                     }
                                                 `}
                                             />
@@ -694,7 +694,7 @@ export default function UserReviews() {
                                         p-4
                                         resize-none
                                         outline-none
-                                        focus:ring-2 focus:ring-amber-500/50
+                                        focus:ring-2 focus:ring-teal-500/50
                                         focus:border-transparent
                                         transition-all duration-300
                                         placeholder-neutral-600
@@ -734,13 +734,13 @@ export default function UserReviews() {
                                     flex-1
                                     px-6 py-4
                                     rounded-xl
-                                    bg-gradient-to-r from-amber-600 to-amber-500
-                                    hover:from-amber-500 hover:to-amber-400
+                                    bg-gradient-to-r from-teal-600 to-teal-500
+                                    hover:from-teal-500 hover:to-teal-400
                                     text-white
                                     font-bold
                                     shadow-lg
-                                    shadow-amber-500/30
-                                    hover:shadow-amber-500/50
+                                    shadow-teal-500/30
+                                    hover:shadow-teal-500/50
                                     transition-all duration-300
                                     group
                                 "
