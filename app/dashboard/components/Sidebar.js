@@ -204,7 +204,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
                                         height: DIMENSIONS.logo.height
                                     }}
                                 >
-                                    <span className="font-bold text-neutral-900 text-xl">R4U</span>
+                                    <span className="font-bold text-neutral-900 text-xl">SP</span>
                                 </div>
                                 <div className="absolute -top-1 -right-1 h-5 w-5 bg-gradient-to-r from-teal-400 to-teal-300 rounded-full flex items-center justify-center border-2 border-neutral-900">
                                     <FontAwesomeIcon
@@ -216,7 +216,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <h1 className="text-2xl font-bold bg-gradient-to-r from-teal-400 to-teal-300 bg-clip-text text-transparent truncate">
-                                    Rooms4U
+                                    Sakeena Plaza
                                 </h1>
                                 <p className="text-xs text-neutral-400 mt-0.5 truncate">Premium Stays & Luxury</p>
                             </div>

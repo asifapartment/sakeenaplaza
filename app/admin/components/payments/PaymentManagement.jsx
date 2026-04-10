@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 
 // Lazy load FontAwesome icons - only load what's needed
 const loadIcons = async () => {
@@ -23,7 +24,98 @@ const LoadingSpinner = () => (
     </div>
 );
 
+// 403 Forbidden Component
+const ForbiddenPage = () => {
+    const router = useRouter();
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center px-4">
+            <div className="max-w-md w-full text-center">
+                {/* 403 Icon */}
+                <div className="mb-8">
+                    <div className="w-24 h-24 mx-auto bg-red-500/10 rounded-full flex items-center justify-center border-2 border-red-500/30">
+                        <svg className="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                    </div>
+                </div>
+
+                {/* Error Code */}
+                <h1 className="text-8xl font-bold text-red-500 mb-2">403</h1>
+                <h2 className="text-2xl font-semibold text-white mb-4">Access Forbidden</h2>
+
+                <p className="text-gray-400 mb-8">
+                    You don't have permission to access this page. This area is restricted to administrators only.
+                </p>
+
+                {/* Buttons */}
+                <div className="space-y-3">
+                    <button
+                        onClick={() => router.push('/dashboard')}
+                        className="w-full px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg text-white font-semibold transition"
+                    >
+                        Go to Dashboard
+                    </button>
+
+                    <button
+                        onClick={() => router.push('/')}
+                        className="w-full px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-semibold transition"
+                    >
+                        Back to Home
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// 401 Unauthorized Component
+const UnauthorizedPage = () => {
+    const router = useRouter();
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center px-4">
+            <div className="max-w-md w-full text-center">
+                {/* 401 Icon */}
+                <div className="mb-8">
+                    <div className="w-24 h-24 mx-auto bg-yellow-500/10 rounded-full flex items-center justify-center border-2 border-yellow-500/30">
+                        <svg className="w-12 h-12 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                    </div>
+                </div>
+
+                {/* Error Code */}
+                <h1 className="text-8xl font-bold text-yellow-500 mb-2">401</h1>
+                <h2 className="text-2xl font-semibold text-white mb-4">Authentication Required</h2>
+
+                <p className="text-gray-400 mb-8">
+                    Please login to access this page. Your session may have expired.
+                </p>
+
+                {/* Buttons */}
+                <div className="space-y-3">
+                    <button
+                        onClick={() => router.push('/login')}
+                        className="w-full px-6 py-3 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-white font-semibold transition"
+                    >
+                        Go to Login
+                    </button>
+
+                    <button
+                        onClick={() => router.push('/')}
+                        className="w-full px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-semibold transition"
+                    >
+                        Back to Home
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const PaymentManagement = () => {
+    const router = useRouter();
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState(null);
@@ -33,19 +125,79 @@ const PaymentManagement = () => {
     const [exportLoading, setExportLoading] = useState(false);
     const [iconsLoaded, setIconsLoaded] = useState(false);
 
+    // Auth state
+    const [authStatus, setAuthStatus] = useState({
+        isAuthenticated: false,
+        isAuthorized: false,
+        checking: true
+    });
+
+    // Check authentication and authorization on mount
+    useEffect(() => {
+        checkAuthAndRole();
+    }, []);
+
+    const checkAuthAndRole = async () => {
+        try {
+            // First check if user is authenticated
+            const authResponse = await fetch('/api/auth/me', {
+                credentials: 'include',
+                headers: {
+                    'Cache-Control': 'no-cache'
+                }
+            });
+
+            if (!authResponse.ok) {
+                // 401 - Not authenticated
+                if (authResponse.status === 401) {
+                    setAuthStatus({
+                        isAuthenticated: false,
+                        isAuthorized: false,
+                        checking: false
+                    });
+                    return;
+                }
+                throw new Error('Auth check failed');
+            }
+
+            const userData = await authResponse.json();
+
+            // Check if user is admin (role-based authorization)
+            // Only admin can access this page, not staff
+            if (userData.role !== 'admin') {
+                // 403 - Forbidden - Staff or other roles trying to access admin page
+                setAuthStatus({
+                    isAuthenticated: true,
+                    isAuthorized: false,
+                    checking: false
+                });
+                return;
+            }
+
+            // User is admin - authorized
+            setAuthStatus({
+                isAuthenticated: true,
+                isAuthorized: true,
+                checking: false
+            });
+
+            // Load data only if authorized
+            fetchPayments();
+            fetchStats();
+
+        } catch (err) {
+            console.error('Auth check error:', err);
+            setAuthStatus({
+                isAuthenticated: false,
+                isAuthorized: false,
+                checking: false
+            });
+        }
+    };
+
     // Load icons on component mount
     useEffect(() => {
         loadIcons().then(() => setIconsLoaded(true));
-    }, []);
-
-    // Fetch payments only when status filter changes
-    useEffect(() => {
-        fetchPayments();
-    }, [filters.status]);
-
-    // Fetch stats separately and only once
-    useEffect(() => {
-        fetchStats();
     }, []);
 
     const fetchPayments = async () => {
@@ -57,6 +209,30 @@ const PaymentManagement = () => {
             }
 
             const res = await fetch(`/api/admin/payments?${queryParams}`);
+
+            // Handle 401 Unauthorized
+            if (res.status === 401) {
+                setAuthStatus({
+                    isAuthenticated: false,
+                    isAuthorized: false,
+                    checking: false
+                });
+                showSnackbar('Session expired. Please login again.', 'error');
+                setTimeout(() => router.push('/login'), 2000);
+                return;
+            }
+
+            // Handle 403 Forbidden
+            if (res.status === 403) {
+                setAuthStatus({
+                    isAuthenticated: true,
+                    isAuthorized: false,
+                    checking: false
+                });
+                showSnackbar('Access denied. Admin privileges required.', 'error');
+                return;
+            }
+
             const data = await res.json();
             if (res.ok) setPayments(data.payments || []);
         } catch (err) {
@@ -69,6 +245,27 @@ const PaymentManagement = () => {
     const fetchStats = async () => {
         try {
             const res = await fetch(`/api/admin/payments/stats`);
+
+            // Handle 401 Unauthorized
+            if (res.status === 401) {
+                setAuthStatus({
+                    isAuthenticated: false,
+                    isAuthorized: false,
+                    checking: false
+                });
+                return;
+            }
+
+            // Handle 403 Forbidden
+            if (res.status === 403) {
+                setAuthStatus({
+                    isAuthenticated: true,
+                    isAuthorized: false,
+                    checking: false
+                });
+                return;
+            }
+
             const data = await res.json();
             if (res.ok) setStats(data);
         } catch (err) {
@@ -93,6 +290,21 @@ const PaymentManagement = () => {
 
             const response = await fetch(`/api/admin/payments/export?${queryParams}`);
 
+            // Handle 401 Unauthorized
+            if (response.status === 401) {
+                showSnackbar('Session expired. Please login again.', 'error');
+                setTimeout(() => router.push('/login'), 2000);
+                setExportLoading(false);
+                return;
+            }
+
+            // Handle 403 Forbidden
+            if (response.status === 403) {
+                showSnackbar('Access denied. Admin privileges required.', 'error');
+                setExportLoading(false);
+                return;
+            }
+
             if (!response.ok) {
                 throw new Error('Export failed');
             }
@@ -108,7 +320,7 @@ const PaymentManagement = () => {
 
             if (contentDisposition) {
                 const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
-                if (filenameMatch.length === 2) {
+                if (filenameMatch && filenameMatch.length === 2) {
                     filename = filenameMatch[1];
                 }
             }
@@ -141,6 +353,7 @@ const PaymentManagement = () => {
             payment.apartment_title?.toLowerCase().includes(filters.search.toLowerCase()) ||
             payment.razorpay_payment_id?.toLowerCase().includes(filters.search.toLowerCase()) ||
             payment.id?.toString() === filters.search ||
+            payment.booking_id?.toString() === filters.search ||
             payment.refund_id?.toLowerCase().includes(filters.search.toLowerCase())
         );
     }, [payments, filters.search]);
@@ -155,6 +368,19 @@ const PaymentManagement = () => {
                 body: JSON.stringify(refundData),
                 credentials: 'include',
             });
+
+            // Handle 401 Unauthorized
+            if (response.status === 401) {
+                showSnackbar('Session expired. Please login again.', 'error');
+                setTimeout(() => router.push('/login'), 2000);
+                throw new Error('Session expired');
+            }
+
+            // Handle 403 Forbidden
+            if (response.status === 403) {
+                showSnackbar('Access denied. Admin privileges required.', 'error');
+                throw new Error('Access denied');
+            }
 
             if (!response.ok) {
                 const error = await response.json();
@@ -173,7 +399,7 @@ const PaymentManagement = () => {
             );
 
             // Show success message
-            alert(result.message || 'Refund processed successfully');
+            showSnackbar(result.message || 'Refund processed successfully', 'success');
 
             return result;
         } catch (error) {
@@ -181,7 +407,23 @@ const PaymentManagement = () => {
             throw error;
         }
     };
-    
+
+    // Show loading state while checking auth
+    if (authStatus.checking) {
+        return <LoadingSpinner />;
+    }
+
+    // Show 401 Unauthorized page (Not authenticated)
+    if (!authStatus.isAuthenticated) {
+        return <UnauthorizedPage />;
+    }
+
+    // Show 403 Forbidden page (Authenticated but not admin)
+    if (!authStatus.isAuthorized) {
+        return <ForbiddenPage />;
+    }
+
+    // Show loading state for data
     if (loading && payments.length === 0) {
         return <LoadingSpinner />;
     }
@@ -193,8 +435,6 @@ const PaymentManagement = () => {
                     <Snackbar message={snackbar.message} type={snackbar.type} />
                 )}
             </Suspense>
-
-
 
             {/* Filters - Load only when icons are ready */}
             {iconsLoaded && (
@@ -219,7 +459,6 @@ const PaymentManagement = () => {
                     onViewDetails={setPaymentDetails}
                     onRefund={handleRefund}
                 />
-
             </Suspense>
 
             {/* Modal - Only load when needed */}

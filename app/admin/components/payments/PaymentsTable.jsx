@@ -109,6 +109,7 @@ export default function PaymentsTable({ payments, loading, filters, onViewDetail
                         <thead className="bg-black backdrop-blur-sm sticky top-0 z-20">
                             <tr>
                                 <th className="p-4 font-semibold text-neutral-300 text-sm uppercase tracking-wider border-b border-neutral-700 first:rounded-tl-xl">ID</th>
+                                <th className="p-4 font-semibold text-neutral-300 text-sm uppercase tracking-wider border-b border-neutral-700">Booking id</th>
                                 <th className="p-4 font-semibold text-neutral-300 text-sm uppercase tracking-wider border-b border-neutral-700">User</th>
                                 <th className="p-4 font-semibold text-neutral-300 text-sm uppercase tracking-wider border-b border-neutral-700">Apartment</th>
                                 <th className="p-4 font-semibold text-neutral-300 text-sm uppercase tracking-wider border-b border-neutral-700">Amount</th>
@@ -138,6 +139,9 @@ export default function PaymentsTable({ payments, loading, filters, onViewDetail
                                     >
                                         <td className={`p-4 font-medium border-b border-neutral-800 group-last:border-b-0 ${index === 0 ? 'pt-5' : ''}`}>
                                             <span className="font-mono text-neutral-400">#{payment.id}</span>
+                                        </td>
+                                        <td className={`p-4 font-medium border-b border-neutral-800 group-last:border-b-0 ${index === 0 ? 'pt-5' : ''}`}>
+                                            <span className="font-mono text-neutral-400">#{payment.booking_id}</span>
                                         </td>
                                         <td className="p-4 border-b border-neutral-800 group-last:border-b-0">
                                             <div className="flex flex-col">

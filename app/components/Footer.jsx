@@ -28,11 +28,11 @@ export default function Footer() {
                                 <div className="relative">
                                     <div className="absolute inset-0 bg-teal-400 rounded-full blur-md opacity-50"></div>
                                     <div className="relative flex justify-center items-center rounded-full bg-gradient-to-br from-teal-400 to-teal-600 h-12 w-12 font-bold text-neutral-900 text-lg">
-                                        R4U
+                                        SP
                                     </div>
                                 </div>
                                 <span className="ml-3 text-2xl font-bold bg-gradient-to-r from-white to-teal-200 bg-clip-text text-transparent">
-                                    Rooms4U
+                                    Sakeena Plaza
                                 </span>
                             </div>
                             <p className="text-gray-300 mb-6 max-w-md leading-relaxed">
@@ -69,7 +69,7 @@ export default function Footer() {
                                     { label: 'Home', href: '/' },
                                     { label: 'Apartments', href: '/apartments' },
                                     { label: 'How It Works', href: '#how-it-works' },
-                                    { label: 'Why Rooms4U?', href: '#features' },
+                                    { label: 'Why Sakeena Plaza?', href: '#features' },
                                 ].map((item, i) => (
                                     <li key={i}>
                                         <a
@@ -185,7 +185,7 @@ export default function Footer() {
                     <div className="border-t border-neutral-800 mt-12 pt-2">
                         <div className="flex flex-col md:flex-row justify-center items-center">
                             <p className="text-gray-400 text-sm">
-                                &copy; {new Date().getFullYear()} Rooms4U. All rights reserved.
+                                &copy; {new Date().getFullYear()} Sakeen Plaza. All rights reserved.
                             </p>
                             
                         </div>

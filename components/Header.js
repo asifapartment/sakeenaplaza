@@ -17,7 +17,7 @@ let authCache = {
 export default function Header({
     navItems = ['Home', 'Apartments', 'About', 'Help'],
     authButtons = true,
-    logo = { name: 'Rooms4U', showStar: true },
+    logo = { name: 'Sakeena Plaza', showStar: true },
     transparentOnScroll = true,
     className = ''
 }) {
@@ -170,7 +170,7 @@ export default function Header({
                             className="flex items-center group cursor-pointer"
                         >
                             <div className='flex justify-center items-center rounded-full bg-teal-400 h-10 w-10 font-bold text-neutral-900'>
-                                R4U
+                                SP
                             </div>
                             <span
                                 className={`ml-3 text-2xl font-bold transition-colors duration-300 text-white`}

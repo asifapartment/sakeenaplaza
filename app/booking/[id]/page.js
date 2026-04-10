@@ -119,7 +119,7 @@ export default async function BookingPage({ params }) {
   const cleaningFee = 500;
 
   return (
-    <div className="min-h-screen min-w-screen text-white bg-neutral-950">
+    <div className="min-h-screen min-w-screen text-white bg-black">
       {/* Preload largest image to improve LCP */}
       <Head>
         {apartment?.gallery?.[0] && (

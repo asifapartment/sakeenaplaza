@@ -1,11 +1,95 @@
 import { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSyncAlt, faFilter,faUserTie, faSearch, faTimes, faChevronDown, faChevronUp, faShieldAlt, faCalendar, faSort, faUsers, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faSyncAlt, faFilter, faUserTie, faSearch, faTimes, faChevronDown, faChevronUp, faShieldAlt, faCalendar, faSort, faUsers, faTrash } from '@fortawesome/free-solid-svg-icons';
 import CompactStatCard from './CompactStatCard';
 import UserDetailsModal from './UserDetailsModal';
 import EditUserModal from './EditUserModal';
 import ConfirmationModal from './ConfirmationModal';
 import MessageModal from './MessageModal';
+
+// 403 Forbidden Component
+const ForbiddenPage = ({ onLogout }) => {
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center px-4">
+            <div className="max-w-md w-full text-center">
+                {/* 403 Icon */}
+                <div className="mb-8">
+                    <div className="w-24 h-24 mx-auto bg-red-500/10 rounded-full flex items-center justify-center border-2 border-red-500/30">
+                        <FontAwesomeIcon icon={faShieldAlt} className="w-12 h-12 text-red-500" />
+                    </div>
+                </div>
+
+                {/* Error Code */}
+                <h1 className="text-8xl font-bold text-red-500 mb-2">403</h1>
+                <h2 className="text-2xl font-semibold text-white mb-4">Access Forbidden</h2>
+
+                <p className="text-gray-400 mb-8">
+                    You don't have permission to access this page. This area is restricted to administrators only.
+                </p>
+
+                {/* Buttons */}
+                <div className="space-y-3">
+                    <button
+                        onClick={() => window.location.href = '/dashboard'}
+                        className="w-full px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg text-white font-semibold transition"
+                    >
+                        Go to Dashboard
+                    </button>
+
+                    <button
+                        onClick={() => window.location.href = '/'}
+                        className="w-full px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-semibold transition"
+                    >
+                        Back to Home
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// 401 Unauthorized Component
+const UnauthorizedPage = () => {
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center px-4">
+            <div className="max-w-md w-full text-center">
+                {/* 401 Icon */}
+                <div className="mb-8">
+                    <div className="w-24 h-24 mx-auto bg-yellow-500/10 rounded-full flex items-center justify-center border-2 border-yellow-500/30">
+                        <svg className="w-12 h-12 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                    </div>
+                </div>
+
+                {/* Error Code */}
+                <h1 className="text-8xl font-bold text-yellow-500 mb-2">401</h1>
+                <h2 className="text-2xl font-semibold text-white mb-4">Authentication Required</h2>
+
+                <p className="text-gray-400 mb-8">
+                    Please login to access this page. Your session may have expired.
+                </p>
+
+                {/* Buttons */}
+                <div className="space-y-3">
+                    <button
+                        onClick={() => window.location.href = '/login'}
+                        className="w-full px-6 py-3 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-white font-semibold transition"
+                    >
+                        Go to Login
+                    </button>
+
+                    <button
+                        onClick={() => window.location.href = '/'}
+                        className="w-full px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-semibold transition"
+                    >
+                        Back to Home
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export default function UsersTable() {
     const [users, setUsers] = useState([]);
@@ -41,20 +125,108 @@ export default function UsersTable() {
     const [successMessage, setSuccessMessage] = useState('');
     const [showErrorModal, setShowErrorModal] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const [isUnauthorized, setIsUnauthorized] = useState(false);
+
+    // Auth states
+    const [authStatus, setAuthStatus] = useState({
+        isAuthenticated: false,
+        isAuthorized: false,
+        checking: true
+    });
+
+    // Check authentication and authorization on mount
+    useEffect(() => {
+        checkAuthAndRole();
+    }, []);
+
+    const checkAuthAndRole = async () => {
+        try {
+            // First check if user is authenticated
+            const authResponse = await fetch('/api/auth/me', {
+                credentials: 'include',
+                headers: {
+                    'Cache-Control': 'no-cache'
+                }
+            });
+
+            if (authResponse.status === 401) {
+                // Not authenticated
+                setAuthStatus({
+                    isAuthenticated: false,
+                    isAuthorized: false,
+                    checking: false
+                });
+                return;
+            }
+
+            if (!authResponse.ok) {
+                throw new Error('Auth check failed');
+            }
+
+            const userData = await authResponse.json();
+
+            // Check if user is admin (only admin can access)
+            if (userData.role !== 'admin') {
+                // 403 - Forbidden - Staff or other roles
+                setAuthStatus({
+                    isAuthenticated: true,
+                    isAuthorized: false,
+                    checking: false
+                });
+                return;
+            }
+
+            // User is admin - authorized
+            setAuthStatus({
+                isAuthenticated: true,
+                isAuthorized: true,
+                checking: false
+            });
+
+            // Fetch users data
+            fetchUsers();
+
+        } catch (err) {
+            console.error('Auth check error:', err);
+            setAuthStatus({
+                isAuthenticated: false,
+                isAuthorized: false,
+                checking: false
+            });
+        }
+    };
 
     // Fetch users
     const fetchUsers = async () => {
         try {
             setLoading(true);
             setError('');
-            setIsUnauthorized(false);
 
-            const response = await fetch('/api/admin/users');
+            const response = await fetch('/api/admin/users', {
+                credentials: 'include'
+            });
 
+            // Handle 401 Unauthorized
             if (response.status === 401) {
-                // User is unauthorized
-                setIsUnauthorized(true);
+                setAuthStatus({
+                    isAuthenticated: false,
+                    isAuthorized: false,
+                    checking: false
+                });
+                showError('Session expired. Please login again.');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+                return;
+            }
+
+            // Handle 403 Forbidden
+            if (response.status === 403) {
+                setAuthStatus({
+                    isAuthenticated: true,
+                    isAuthorized: false,
+                    checking: false
+                });
+                showError('Access denied. Admin privileges required.');
                 return;
             }
 
@@ -70,10 +242,6 @@ export default function UsersTable() {
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        fetchUsers();
-    }, []);
 
     // Filter and sort users
     const filteredUsers = users
@@ -128,7 +296,34 @@ export default function UsersTable() {
     const fetchUserDetails = async (userId) => {
         try {
             setDetailsLoading(true);
-            const response = await fetch(`/api/admin/users/${userId}`);
+            const response = await fetch(`/api/admin/users/${userId}`, {
+                credentials: 'include'
+            });
+
+            // Handle 401 Unauthorized
+            if (response.status === 401) {
+                setAuthStatus({
+                    isAuthenticated: false,
+                    isAuthorized: false,
+                    checking: false
+                });
+                showError('Session expired. Please login again.');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+                return;
+            }
+
+            // Handle 403 Forbidden
+            if (response.status === 403) {
+                setAuthStatus({
+                    isAuthenticated: true,
+                    isAuthorized: false,
+                    checking: false
+                });
+                showError('Access denied. Admin privileges required.');
+                return;
+            }
 
             if (!response.ok) {
                 throw new Error('Failed to fetch user details');
@@ -169,8 +364,34 @@ export default function UsersTable() {
 
         try {
             const response = await fetch(`/api/admin/users/${userToDelete.id}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                credentials: 'include'
             });
+
+            // Handle 401 Unauthorized
+            if (response.status === 401) {
+                setAuthStatus({
+                    isAuthenticated: false,
+                    isAuthorized: false,
+                    checking: false
+                });
+                showError('Session expired. Please login again.');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+                return;
+            }
+
+            // Handle 403 Forbidden
+            if (response.status === 403) {
+                setAuthStatus({
+                    isAuthenticated: true,
+                    isAuthorized: false,
+                    checking: false
+                });
+                showError('Access denied. Admin privileges required.');
+                return;
+            }
 
             if (!response.ok) {
                 const data = await response.json();
@@ -213,8 +434,34 @@ export default function UsersTable() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(formData),
+                credentials: 'include'
             });
+
+            // Handle 401 Unauthorized
+            if (response.status === 401) {
+                setAuthStatus({
+                    isAuthenticated: false,
+                    isAuthorized: false,
+                    checking: false
+                });
+                showError('Session expired. Please login again.');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+                return;
+            }
+
+            // Handle 403 Forbidden
+            if (response.status === 403) {
+                setAuthStatus({
+                    isAuthenticated: true,
+                    isAuthorized: false,
+                    checking: false
+                });
+                showError('Access denied. Admin privileges required.');
+                return;
+            }
 
             if (!response.ok) {
                 const data = await response.json();
@@ -289,28 +536,27 @@ export default function UsersTable() {
 
     const { totalUsers, filteredCount, selectedCount } = getFilterStats();
 
-    if (isUnauthorized) {
+    // Show loading while checking auth
+    if (authStatus.checking) {
         return (
-            <div className="h-screen text-white p-6 flex flex-col items-center justify-center"
+            <div className="h-screen text-white p-6 flex items-center justify-center"
                 style={{ maxHeight: 'calc(100vh - 96px)' }}
             >
-                <div className="text-center">
-                    <div className="text-9xl font-bold text-gray-700 mb-4">404</div>
-                    <h1 className="text-2xl font-bold mb-2">Unauthorized Access</h1>
-                    <p className="text-gray-400 mb-6">
-                        You don't have permission to access this page.
-                    </p>
-                    <button
-                        onClick={() => window.location.href = '/login'}
-                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                    >
-                        Go to Login
-                    </button>
-                </div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
             </div>
         );
     }
-    
+
+    // Show 401 Unauthorized page
+    if (!authStatus.isAuthenticated) {
+        return <UnauthorizedPage />;
+    }
+
+    // Show 403 Forbidden page (Authenticated but not admin)
+    if (!authStatus.isAuthorized) {
+        return <ForbiddenPage />;
+    }
+
     if (loading) {
         return (
             <div className="h-screen text-white p-6 flex items-center justify-center"
@@ -355,15 +601,11 @@ export default function UsersTable() {
                         description="Administrative users"
                     />
                     <CompactStatCard
-                        title="Active Today"
-                        value={users.filter(u => {
-                            const userDate = new Date(u.created_at);
-                            const today = new Date();
-                            return userDate.toDateString() === today.toDateString();
-                        }).length}
-                        icon="calendarCheck"
+                        title="Staff"
+                        value={users.filter(u => u.role === 'staff').length}
+                        icon="userTie"
                         color="green"
-                        description="Joined today"
+                        description="Staff members"
                     />
                     <CompactStatCard
                         title="Filtered"
@@ -636,7 +878,7 @@ export default function UsersTable() {
 function UserTableRow({ user, isSelected, onSelect, onViewDetails, onEdit, onDelete }) {
     const { faUser, faUserShield, faClipboardList, faDollarSign, faCalendar, faEye, faEdit, faTrash } = require('@fortawesome/free-solid-svg-icons');
     const { FontAwesomeIcon } = require('@fortawesome/react-fontawesome');
-    console.log(user)
+
     return (
         <tr className="border-b border-neutral-800/50 hover:bg-neutral-800/40 transition-colors">
             <td className="px-4 py-3">
@@ -661,7 +903,7 @@ function UserTableRow({ user, isSelected, onSelect, onViewDetails, onEdit, onDel
             <td className="px-4 py-3">
                 <span
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-    ${user.role === "admin"
+                        ${user.role === "admin"
                             ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
                             : user.role === "staff"
                                 ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
@@ -673,25 +915,24 @@ function UserTableRow({ user, isSelected, onSelect, onViewDetails, onEdit, onDel
                             user.role === "admin"
                                 ? faUserShield
                                 : user.role === "staff"
-                                    ? faUserTie        // Best icon for staff
+                                    ? faUserTie
                                     : faUser
                         }
                         className="w-3 h-3 mr-1"
                     />
                     {user.role}
                 </span>
-
             </td>
             <td className="px-4 py-3 text-gray-300">
                 <div className="flex items-center gap-1">
                     <FontAwesomeIcon icon={faClipboardList} className="w-3 h-3 text-gray-500" />
-                    {user.total_bookings}
+                    {user.total_bookings || 0}
                 </div>
             </td>
             <td className="px-4 py-3 text-gray-300">
                 <div className="flex items-center gap-1">
                     <FontAwesomeIcon icon={faDollarSign} className="w-3 h-3 text-gray-500" />
-                    {user?.total_spent || 0}
+                    ₹{user.total_spent?.toLocaleString() || 0}
                 </div>
             </td>
             <td className="px-4 py-3 text-sm text-gray-400">

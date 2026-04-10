@@ -6,8 +6,6 @@ import BookingCalendar from "@/components/bookingCalender";
 import Toast from "@/components/toast";
 import { Calendar, CreditCard, Loader2, Plus, ShieldCheck, Tag, Users } from "lucide-react";
 import VerificationModal from "./VerificationModal";
-import FeedbackModal from "./FeedbackModal";
-import GuestDetailsForm from "./GuestDetailsForm";
 import GuestDetailsModal from "./GuestDetailsModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPen, faTag, faTrash } from "@fortawesome/free-solid-svg-icons";

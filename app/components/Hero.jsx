@@ -1,171 +1,183 @@
 'use client'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHome, faMapMarkerAlt, faStar, faHeart, faCity } from '@fortawesome/free-solid-svg-icons'
+import {
+    faBuilding,
+    faMapMarkerAlt,
+    faArrowRight,
+    faStar,
+    faWifi,
+    faParking,
+    faSnowflake
+} from '@fortawesome/free-solid-svg-icons'
 import { useEffect, useState } from 'react'
 
 export default function Hero() {
     const [isVisible, setIsVisible] = useState(false)
 
     useEffect(() => {
-        // Trigger animations after component mounts
         setIsVisible(true)
     }, [])
 
     return (
-        <section className="relative w-full bg-neutral-900 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 min-h-screen overflow-hidden">
-            {/* Background Elements */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-12 sm:-top-16 lg:-top-24 -right-12 sm:-right-16 lg:-right-24 w-48 h-48 sm:w-64 sm:h-64 lg:w-96 lg:h-96 bg-teal-400/10 rounded-full blur-2xl sm:blur-3xl opacity-100"></div>
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] lg:w-[500px] lg:h-[500px] bg-teal-400/5 rounded-full blur-2xl sm:blur-3xl opacity-100"></div>
-                <div className="absolute -bottom-16 sm:-bottom-24 lg:-bottom-32 -left-16 sm:-left-24 lg:-left-32 w-40 h-40 sm:w-60 sm:h-60 lg:w-80 lg:h-80 bg-teal-400/5 rounded-full blur-2xl sm:blur-3xl opacity-100"></div>
+        <section className="relative w-full bg-black min-h-screen flex items-center overflow-hidden">
 
-                {/* Grid Pattern Overlay */}
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] bg-[size:40px_40px] sm:bg-[size:50px_50px] lg:bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]"></div>
+            {/* BOLD VISIBLE GRID BACKGROUND */}
+            <div className="absolute inset-0">
+                {/* Main Bold Grid - You WILL see this */}
+                <div
+                    className="absolute inset-0"
+                    style={{
+                        backgroundImage: `
+                            linear-gradient(rgba(20, 184, 166, 0.25) 2px, transparent 2px),
+                            linear-gradient(90deg, rgba(20, 184, 166, 0.25) 2px, transparent 2px)
+                        `,
+                        backgroundSize: '80px 80px',
+                        backgroundPosition: 'center center'
+                    }}
+                ></div>
+
+                {/* Secondary Grid - Thinner lines for depth */}
+                <div
+                    className="absolute inset-0"
+                    style={{
+                        backgroundImage: `
+                            linear-gradient(rgba(20, 184, 166, 0.1) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(20, 184, 166, 0.1) 1px, transparent 1px)
+                        `,
+                        backgroundSize: '20px 20px',
+                        backgroundPosition: 'center center'
+                    }}
+                ></div>
+
+                {/* Dark Gradient Overlay on edges only - not covering the grid */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/80"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/50"></div>
+
+                {/* Subtle Teal Glow behind content */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-teal-500/5 rounded-full blur-3xl"></div>
             </div>
 
-            <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-16 items-center relative z-10 max-sm:mt-20">
-                {/* Left Column: Text Content */}
-                <div className="space-y-6 sm:space-y-8 text-center lg:text-left">
-                    {/* Main Heading */}
-                    <div className="space-y-3 sm:space-y-4">
-                        <div className="overflow-hidden">
-                            <h1 className={`text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight sm:leading-tight transition-all duration-1000 ease-out ${isVisible
-                                    ? 'opacity-100 translate-y-0'
-                                    : 'opacity-0 translate-y-10'
-                                }`}>
-                                Find Your{' '}
-                                <span className="text-teal-400 relative inline-block">
-                                    Dream Apartment
-                                    <div className={`absolute -bottom-1 sm:-bottom-2 left-0 w-full h-0.5 bg-teal-400/30 transition-all duration-1000 ease-out delay-700 ${isVisible ? 'scale-x-100' : 'scale-x-0'
-                                        }`}></div>
-                                </span>
+            {/* Content Container */}
+            <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-20">
+
+                {/* 2 Column Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+
+                    {/* LEFT COLUMN - Text Content */}
+                    <div className="space-y-8">
+
+                        {/* Building Name - Fluid scaling from 2rem to 6rem */}
+                        <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
+                            <h1 className="text-[clamp(2rem,8vw,6rem)] font-black text-white leading-[1.1] tracking-tighter">
+                                SAKEENA 
+                                <span className="text-teal-400"> PLAZA</span>
                             </h1>
                         </div>
 
-                        <div className="overflow-hidden">
-                            <p className={`text-xl sm:text-2xl lg:text-3xl text-gray-300 font-light transition-all duration-1000 ease-out delay-300 ${isVisible
-                                    ? 'opacity-100 translate-x-0'
-                                    : 'opacity-0 -translate-x-10'
-                                }`}>
-                                Anywhere, Anytime
+                        {/* Location - Fluid scaling */}
+                        <div className={`flex items-center gap-3 text-teal-400 transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
+                            <FontAwesomeIcon icon={faMapMarkerAlt} className="w-[clamp(1.25rem,5vw,1.75rem)] h-[clamp(1.25rem,5vw,1.75rem)]" />
+                            <span className="text-[clamp(1.125rem,4vw,2rem)] font-light tracking-wide">
+                                Honnavar, Karnataka
+                            </span>
+                        </div>
+
+                        {/* Short Description - Fluid scaling */}
+                        <div className={`transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
+                            <p className="text-gray-400 text-[clamp(0.875rem,3vw,1.125rem)] max-w-lg leading-relaxed">
+                                4 premium apartments in the heart of Honnavar.
+                                Just minutes away from the beautiful coastal beaches.
                             </p>
                         </div>
-                    </div>
 
-                    {/* Description */}
-                    <div className="overflow-hidden">
-                        <p className={`text-gray-400 text-base sm:text-lg lg:text-xl max-w-lg mx-auto lg:mx-0 leading-relaxed transition-all duration-1000 ease-out delay-500 ${isVisible
-                                ? 'opacity-100 translate-y-0'
-                                : 'opacity-0 translate-y-8'
-                            }`}>
-                            Discover thousands of carefully curated apartments for short or long stays.
-                            Experience comfort and style, all in one place.
-                        </p>
-                    </div>
-
-                    {/* Stats Section */}
-                    <div className="flex flex-wrap justify-center lg:justify-start gap-4 sm:gap-6 lg:gap-8 pt-2 sm:pt-4">
-                        {[
-                            { icon: faHome, value: "10K+", label: "Premium Properties", delay: 600 },
-                            { icon: faCity, value: "50+", label: "Cities Worldwide", delay: 800 },
-                            { icon: faStar, value: "4.9★", label: "Guest Rating", delay: 1000 }
-                        ].map((stat, index) => (
-                            <div
-                                key={stat.label}
-                                className={`transition-all duration-700 ease-out ${isVisible
-                                        ? 'opacity-100 translate-y-0'
-                                        : 'opacity-0 translate-y-12'
-                                    }`}
-                                style={{ transitionDelay: `${stat.delay}ms` }}
-                            >
-                                <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
-                                    {/* Responsive icon container */}
-                                    <div className="w-10 h-10 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-teal-400/10 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
-                                        <FontAwesomeIcon
-                                            icon={stat.icon}
-                                            className="text-teal-400 text-sm sm:text-base lg:text-lg w-4 h-4 sm:w-4 sm:h-4 lg:w-5 lg:h-5"
-                                            fixedWidth
-                                        />
-                                    </div>
-                                    <div>
-                                        <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white">{stat.value}</div>
-                                        <div className="text-gray-400 text-xs sm:text-sm">{stat.label}</div>
-                                    </div>
-                                </div>
+                        {/* Quick Stats - Fluid numbers */}
+                        <div className={`flex gap-10 transition-all duration-1000 delay-600 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
+                            <div>
+                                <div className="text-teal-400 text-[clamp(2rem,8vw,3.5rem)] font-black">4</div>
+                                <div className="text-gray-500 text-[clamp(0.625rem,2vw,0.875rem)] uppercase tracking-wide mt-1">Luxury Units</div>
                             </div>
-                        ))}
-                    </div>
-
-                    {/* CTA Buttons */}
-                    <div className={`flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start pt-4 sm:pt-6 transition-all duration-1000 ease-out delay-1200 ${isVisible
-                            ? 'opacity-100 translate-x-0'
-                            : 'opacity-0 translate-x-10'
-                        }`}>
-                        <button className="group relative bg-teal-400 hover:bg-teal-500 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 lg:px-10 rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 sm:gap-3 shadow-lg hover:shadow-xl text-sm sm:text-base">
-                            <div className="absolute inset-0 bg-white/10 rounded-lg sm:rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            <FontAwesomeIcon
-                                icon={faMapMarkerAlt}
-                                className="relative z-10 w-3 h-3 sm:w-4 sm:h-4"
-                                fixedWidth
-                            />
-                            <a href='/apartments' className="relative z-10">Explore Apartments</a>
-                        </button>
-                    </div>
-                </div>
-
-                {/* Right Column: Feature Cards */}
-                <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-                    {[
-                        {
-                            icon: faHome,
-                            title: "Luxury Apartments",
-                            desc: "Premium comfort & style",
-                            animation: 'translate-x-8'
-                        },
-                        {
-                            icon: faMapMarkerAlt,
-                            title: "Prime Locations",
-                            desc: "Best neighborhoods",
-                            animation: '-translate-x-8'
-                        },
-                        {
-                            icon: faStar,
-                            title: "Top Rated",
-                            desc: "Verified reviews",
-                            animation: 'translate-y-8'
-                        },
-                        {
-                            icon: faHeart,
-                            title: "Favorite Picks",
-                            desc: "Most loved",
-                            animation: '-translate-y-8'
-                        }
-                    ].map((feature, index) => (
-                        <div
-                            key={feature.title}
-                            className={`bg-neutral-800/30 backdrop-blur-lg rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-gray-700/50 hover:border-teal-400/50 transition-all duration-700 ease-out transform hover:scale-105 cursor-pointer group relative overflow-hidden ${isVisible
-                                    ? 'opacity-100 translate-x-0 translate-y-0'
-                                    : `opacity-0 ${feature.animation}`
-                                }`}
-                            style={{ transitionDelay: `${800 + (index * 200)}ms` }}
-                        >
-                            {/* Teal Background Effect on Hover */}
-                            <div className="absolute inset-0 bg-teal-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                            <div className="relative z-10 text-center">
-                                {/* Responsive icon container */}
-                                <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-white/5 rounded-lg sm:rounded-xl lg:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:bg-teal-400/10 transition-all duration-300 border border-white/10 flex-shrink-0">
-                                    <FontAwesomeIcon
-                                        icon={feature.icon}
-                                        className="text-teal-400 text-lg sm:text-xl lg:text-2xl w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 transform group-hover:scale-110 transition-transform duration-300"
-                                        fixedWidth
-                                    />
-                                </div>
-                                <h3 className="text-white font-bold text-sm sm:text-lg lg:text-xl mb-2 sm:mb-3">{feature.title}</h3>
-                                <p className="text-gray-400 group-hover:text-gray-300 transition-colors duration-300 text-xs sm:text-sm">{feature.desc}</p>
+                            <div>
+                                <div className="text-teal-400 text-[clamp(2rem,8vw,3.5rem)] font-black">⭐ 4.8</div>
+                                <div className="text-gray-500 text-[clamp(0.625rem,2vw,0.875rem)] uppercase tracking-wide mt-1">Guest Rating</div>
+                            </div>
+                            <div>
+                                <div className="text-teal-400 text-[clamp(2rem,8vw,3.5rem)] font-black">2-6</div>
+                                <div className="text-gray-500 text-[clamp(0.625rem,2vw,0.875rem)] uppercase tracking-wide mt-1">Guests</div>
                             </div>
                         </div>
-                    ))}
+
+                        {/* CTA Button - Fluid sizing */}
+                        <div className={`transition-all duration-1000 delay-800 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
+                            <a
+                                href='/apartments'
+                                className="group inline-flex items-center gap-3 bg-teal-500 hover:bg-teal-600 text-white font-bold text-[clamp(0.875rem,3vw,1.125rem)] px-[clamp(1.5rem,5vw,2.5rem)] py-[clamp(0.875rem,3vw,1.25rem)] rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-teal-500/30"
+                            >
+                                <span>VIEW APARTMENTS</span>
+                                <FontAwesomeIcon icon={faArrowRight} className="w-[clamp(0.875rem,3vw,1.25rem)] h-[clamp(0.875rem,3vw,1.25rem)] group-hover:translate-x-2 transition-transform" />
+                            </a>
+                        </div>
+                    </div>
+
+                    {/* RIGHT COLUMN - 4 Valuable Features Grid */}
+                    <div className={`transition-all duration-1000 delay-500 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'}`}>
+                        <div className="grid grid-cols-2 gap-4 sm:gap-6">
+
+                            {/* Feature 1: Free WiFi */}
+                            <div className="group bg-white/5 backdrop-blur-sm rounded-2xl p-4 sm:p-6 text-center border border-white/10 hover:border-teal-400/50 transition-all duration-300 hover:scale-105 cursor-pointer">
+                                <div className="w-[clamp(3rem,10vw,4rem)] h-[clamp(3rem,10vw,4rem)] bg-teal-500/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-teal-500/20 transition-all duration-300">
+                                    <FontAwesomeIcon
+                                        icon={faWifi}
+                                        className="text-teal-400 text-[clamp(1.25rem,5vw,1.875rem)] group-hover:scale-110 transition-transform duration-300"
+                                    />
+                                </div>
+                                <h3 className="text-white text-[clamp(0.875rem,4vw,1.125rem)] font-bold mb-2">Free WiFi</h3>
+                                <p className="text-gray-400 text-[clamp(0.625rem,2.5vw,0.875rem)]">High-speed internet throughout</p>
+                            </div>
+
+                            {/* Feature 2: Free Parking */}
+                            <div className="group bg-white/5 backdrop-blur-sm rounded-2xl p-4 sm:p-6 text-center border border-white/10 hover:border-teal-400/50 transition-all duration-300 hover:scale-105 cursor-pointer">
+                                <div className="w-[clamp(3rem,10vw,4rem)] h-[clamp(3rem,10vw,4rem)] bg-teal-500/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-teal-500/20 transition-all duration-300">
+                                    <FontAwesomeIcon
+                                        icon={faParking}
+                                        className="text-teal-400 text-[clamp(1.25rem,5vw,1.875rem)] group-hover:scale-110 transition-transform duration-300"
+                                    />
+                                </div>
+                                <h3 className="text-white text-[clamp(0.875rem,4vw,1.125rem)] font-bold mb-2">Free Parking</h3>
+                                <p className="text-gray-400 text-[clamp(0.625rem,2.5vw,0.875rem)]">Secure parking space available</p>
+                            </div>
+
+                            {/* Feature 3: Air Conditioning */}
+                            <div className="group bg-white/5 backdrop-blur-sm rounded-2xl p-4 sm:p-6 text-center border border-white/10 hover:border-teal-400/50 transition-all duration-300 hover:scale-105 cursor-pointer">
+                                <div className="w-[clamp(3rem,10vw,4rem)] h-[clamp(3rem,10vw,4rem)] bg-teal-500/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-teal-500/20 transition-all duration-300">
+                                    <FontAwesomeIcon
+                                        icon={faSnowflake}
+                                        className="text-teal-400 text-[clamp(1.25rem,5vw,1.875rem)] group-hover:scale-110 transition-transform duration-300"
+                                    />
+                                </div>
+                                <h3 className="text-white text-[clamp(0.875rem,4vw,1.125rem)] font-bold mb-2">Air Conditioning</h3>
+                                <p className="text-gray-400 text-[clamp(0.625rem,2.5vw,0.875rem)]">Fully AC apartments</p>
+                            </div>
+
+                            {/* Feature 4: Premium Service */}
+                            <div className="group bg-white/5 backdrop-blur-sm rounded-2xl p-4 sm:p-6 text-center border border-white/10 hover:border-teal-400/50 transition-all duration-300 hover:scale-105 cursor-pointer">
+                                <div className="w-[clamp(3rem,10vw,4rem)] h-[clamp(3rem,10vw,4rem)] bg-teal-500/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-teal-500/20 transition-all duration-300">
+                                    <FontAwesomeIcon
+                                        icon={faStar}
+                                        className="text-teal-400 text-[clamp(1.25rem,5vw,1.875rem)] group-hover:scale-110 transition-transform duration-300"
+                                    />
+                                </div>
+                                <h3 className="text-white text-[clamp(0.875rem,4vw,1.125rem)] font-bold mb-2">Premium Service</h3>
+                                <p className="text-gray-400 text-[clamp(0.625rem,2.5vw,0.875rem)]">24/7 customer support</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Scroll Indicator - Mobile Only */}
+            <div className={`absolute bottom-8 left-1/2 -translate-x-1/2 transition-all duration-1000 delay-1000 lg:hidden ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+                <div className="w-6 h-10 border-2 border-teal-400/30 rounded-full flex justify-center">
+                    <div className="w-1.5 h-2.5 bg-teal-400 rounded-full mt-2 animate-bounce"></div>
                 </div>
             </div>
         </section>

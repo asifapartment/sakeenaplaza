@@ -471,7 +471,7 @@ export async function GET(req, { params }) {
         <div class="header">
           <div class="company-info">
             <div class="company-logo">
-              R4U
+              SP
             </div>
             <div class="company-text">
               <div class="company-name">Rooms4U</div>

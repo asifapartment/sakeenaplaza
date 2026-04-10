@@ -1,8 +1,18 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/mysql-wrapper';
+import { verifyAdmin } from '@/lib/adminAuth';
+import { parseCookies } from '@/lib/cookies';
 
 export async function GET(request) {
     try {
+        const cookies = parseCookies(request.headers.get("cookie"));
+        const token = cookies.token;
+
+        // ✅ Use adminAuth helper
+        const { valid, decoded, error } = await verifyAdmin(token);
+        if (!valid) {
+            return NextResponse.json({ error }, { status: 401 });
+        }
         const { searchParams } = new URL(request.url);
         const page = parseInt(searchParams.get('page')) || 1;
         const limit = parseInt(searchParams.get('limit')) || 10;
