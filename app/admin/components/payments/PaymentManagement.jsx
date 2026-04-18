@@ -221,7 +221,7 @@ const PaymentManagement = () => {
                 setTimeout(() => router.push('/login'), 2000);
                 return;
             }
-
+            
             // Handle 403 Forbidden
             if (res.status === 403) {
                 setAuthStatus({

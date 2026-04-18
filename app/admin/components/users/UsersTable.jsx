@@ -220,7 +220,7 @@ export default function UsersTable() {
             }
 
             // Handle 403 Forbidden
-            if (response.status === 403) {
+            if (response.status === 403 ) {
                 setAuthStatus({
                     isAuthenticated: true,
                     isAuthorized: false,

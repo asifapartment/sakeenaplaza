@@ -3,171 +3,72 @@ import { query } from '@/lib/mysql-wrapper';
 import { verifyAdmin } from '@/lib/adminAuth';
 import { parseCookies } from '@/lib/cookies';
 
-export async function GET(request) {
+export async function GET(request, { params }) {
     try {
         const cookies = parseCookies(request.headers.get("cookie"));
         const token = cookies.token;
 
-        // ✅ Use adminAuth helper
         const { valid, decoded, error } = await verifyAdmin(token);
         if (!valid) {
             return NextResponse.json({ error }, { status: 401 });
         }
-        const { searchParams } = new URL(request.url);
-        const page = parseInt(searchParams.get('page')) || 1;
-        const limit = parseInt(searchParams.get('limit')) || 10;
-        const status = searchParams.get('status');
-        const search = searchParams.get('search');
-        const startDate = searchParams.get('startDate');
-        const endDate = searchParams.get('endDate');
 
-        const offset = (page - 1) * limit;
+        const userId = params.id;
 
-        let whereConditions = [];
-        let queryParams = [];
-
-        if (status && status !== 'all') {
-            whereConditions.push('p.status = ?');
-            queryParams.push(status);
-        }
-
-        if (search) {
-            whereConditions.push('(u.name LIKE ? OR u.email LIKE ? OR p.razorpay_payment_id LIKE ? OR p.id = ?)');
-            queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`, isNaN(search) ? 0 : parseInt(search));
-        }
-
-        if (startDate) {
-            whereConditions.push('DATE(p.paid_at) >= ?');
-            queryParams.push(startDate);
-        }
-
-        if (endDate) {
-            whereConditions.push('DATE(p.paid_at) <= ?');
-            queryParams.push(endDate);
-        }
-
-        const whereClause = whereConditions.length > 0
-            ? `WHERE ${whereConditions.join(' AND ')}`
-            : '';
-
-        // Get payments with pagination
-        const payments = await query(`
+        const users = await query(`
             SELECT 
-              p.*,
-              b.id as booking_id,
-              b.start_date,
-              b.end_date,
-              b.total_amount,
-              b.status as booking_status,
-              u.name as user_name,
-              u.email as user_email,
-              a.title as apartment_title,
-              a.price_per_night
-            FROM payments p
-            LEFT JOIN bookings b ON p.booking_id = b.id
-            LEFT JOIN users u ON b.user_id = u.id
+                u.*,
+                COUNT(DISTINCT b.id) as total_bookings,
+                COALESCE(SUM(p.amount), 0) as total_spent
+            FROM users u
+            LEFT JOIN bookings b ON u.id = b.user_id
+            LEFT JOIN payments p ON b.id = p.booking_id AND p.status = 'paid'
+            WHERE u.id = ?
+            GROUP BY u.id
+        `, [userId]);
+
+        if (users.length === 0) {
+            return NextResponse.json(
+                { error: 'User not found' },
+                { status: 404 }
+            );
+        }
+
+        // Get user's recent bookings
+        const bookings = await query(`
+            SELECT 
+                b.*,
+                a.title as apartment_title,
+                a.location as apartment_location,
+                a.price_per_night
+            FROM bookings b
             LEFT JOIN apartments a ON b.apartment_id = a.id
-            ${whereClause}
-            ORDER BY p.paid_at DESC
-            LIMIT ${offset}, ${limit}
-          `, queryParams);
-          
+            WHERE b.user_id = ?
+            ORDER BY b.created_at DESC
+            LIMIT 10
+        `, [userId]);
 
-        // Get total count for pagination
-        const countResult = await query(`
-      SELECT COUNT(*) as total
-      FROM payments p
-      LEFT JOIN bookings b ON p.booking_id = b.id
-      LEFT JOIN users u ON b.user_id = u.id
-      ${whereClause}
-    `, queryParams);
-
-        const total = countResult[0].total;
-        const totalPages = Math.ceil(total / limit);
+        // Get user's reviews
+        const reviews = await query(`
+            SELECT 
+                r.*,
+                a.title as apartment_title
+            FROM reviews r
+            LEFT JOIN apartments a ON r.apartment_id = a.id
+            WHERE r.user_id = ?
+            ORDER BY r.created_at DESC
+            LIMIT 10
+        `, [userId]);
 
         return NextResponse.json({
-            payments,
-            pagination: {
-                currentPage: page,
-                totalPages,
-                totalItems: total,
-                itemsPerPage: limit
-            }
+            ...users[0],
+            bookings,
+            reviews
         });
     } catch (error) {
-        console.error('Error fetching payments:', error);
+        console.error('Error fetching user details:', error);
         return NextResponse.json(
-            { error: 'Failed to fetch payments' },
-            { status: 500 }
-        );
-    }
-}
-
-export async function POST(request) {
-    try {
-        const { action, paymentId, refundAmount, reason } = await request.json();
-
-        if (action === 'refund') {
-            // Get payment details
-            const payments = await query(
-                'SELECT * FROM payments WHERE id = ? AND status = "paid"',
-                [paymentId]
-            );
-
-            if (payments.length === 0) {
-                throw new Error('Payment not found or not eligible for refund');
-            }
-
-            const payment = payments[0];
-
-            // Calculate refund amount (full or partial)
-            const actualRefundAmount = refundAmount || payment.amount;
-
-            if (actualRefundAmount > payment.amount) {
-                throw new Error('Refund amount cannot exceed payment amount');
-            }
-
-            // Update payment status
-            const refundId = `ref_${Date.now()}`;
-            await query(
-                `UPDATE payments 
-         SET status = 'refunded', 
-             refund_id = ?,
-             refund_time = NOW(),
-             amount = ?
-         WHERE id = ?`,
-                [refundId, actualRefundAmount, paymentId]
-            );
-
-            // Update booking status to cancelled if full refund
-            if (actualRefundAmount === payment.amount) {
-                await query(
-                    'UPDATE bookings SET status = "cancelled" WHERE id = ?',
-                    [payment.booking_id]
-                );
-            }
-
-            // Log refund activity (assuming admin user ID is 1 for now)
-            await query(
-                'INSERT INTO user_activity (user_id, message) VALUES (?, ?)',
-                [1, `Refund processed for payment ${paymentId}. Amount: ${actualRefundAmount}. Reason: ${reason}`]
-            );
-
-            return NextResponse.json({
-                success: true,
-                message: 'Refund processed successfully',
-                refundId
-            });
-        }
-
-        return NextResponse.json(
-            { error: 'Invalid action' },
-            { status: 400 }
-        );
-    } catch (error) {
-        console.error('Error processing payment action:', error);
-        return NextResponse.json(
-            { error: error.message || 'Failed to process payment action' },
+            { error: 'Failed to fetch user details' },
             { status: 500 }
         );
     }

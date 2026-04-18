@@ -7,7 +7,8 @@ import {
     faClipboardList,
     faMoneyBill,
     faStar,
-    faCreditCard
+    faCreditCard,
+    faUserTie
 } from '@fortawesome/free-solid-svg-icons';
 
 const iconMap = {
@@ -18,6 +19,7 @@ const iconMap = {
     clipboardList: faClipboardList,
     moneyBill: faMoneyBill,
     star: faStar,
+    userTie:faUserTie,
     creditCard: faCreditCard
 };
 

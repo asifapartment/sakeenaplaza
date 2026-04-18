@@ -359,7 +359,7 @@ export default function ReviewsAndFeedbacks() {
                             <p className="text-neutral-300 text-lg">No {activeTab} found</p>
                         </div>
                     )}
-                    {console.log(currentData)}
+                    
                     {/* Data Cards */}
                     {!loading &&
                         currentData.map((item) => (

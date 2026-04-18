@@ -39,6 +39,8 @@ export async function GET(req) {
 
         return NextResponse.json({
             name: user.name,
+            role: decoded.role,
+            success: true,
         });
     } catch (err) {
         console.error('Error verifying user:', err);
