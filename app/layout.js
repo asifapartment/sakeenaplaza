@@ -4,7 +4,7 @@ import PageWrapper from "@/components/pageWrapper";
 import LazyToaster from "@/components/LazyToaster";
 
 export const metadata = {
-  title: "Rooms4u",
+  title: "Sakeena Plaza",
   description: "Book your apartment easily and quickly",
   icons: { icon: '/favicon.ico' },
   openGraph: {
