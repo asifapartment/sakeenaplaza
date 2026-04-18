@@ -34,7 +34,7 @@ function ExtraInfoSection({ whyBookWithUs = [], policy = {} }) {
         return (
             <FontAwesomeIcon
                 icon={icon}
-                className="text-teal-400 text-sm mt-0.5"
+                className="text-teal-400 w-4 h-4 mt-0.5"
             />
         );
     };
@@ -42,89 +42,82 @@ function ExtraInfoSection({ whyBookWithUs = [], policy = {} }) {
     return (
         <div className="space-y-6">
             {/* WHY BOOK WITH US */}
-            <div
-                className="
-                    relative overflow-hidden rounded-2xl p-6
-                    bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800
-                    border border-white/10
-                    shadow-xl shadow-black/40
-                "
-            >
-                {/* Glow */}
-                <div className="absolute inset-0 bg-gradient-to-r from-teal-500/5 via-transparent to-indigo-500/5 pointer-events-none" />
-
+            <div className="bg-black rounded-2xl border border-white/10 overflow-hidden">
                 {/* Header */}
-                <div className="relative flex items-center gap-3 mb-4">
-                    <div className="h-9 w-1 rounded-full bg-gradient-to-b from-teal-400 to-emerald-500" />
-                    <h3 className="text-lg font-semibold text-white tracking-wide">
-                        Why Book With Us?
-                    </h3>
+                <div className="border-b border-white/10 px-6 py-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-1 h-6 bg-teal-400 rounded-full" />
+                        <h3 className="text-lg font-semibold text-white">
+                            Why Book With Us?
+                        </h3>
+                    </div>
                 </div>
 
                 {/* List */}
-                <ul className="relative space-y-3">
-                    {displayWhyBookWithUs.map((reason, index) => (
-                        <li
-                            key={index}
-                            className="
-                                flex items-start gap-3
-                                rounded-xl px-4 py-3
-                                bg-neutral-800/40
-                                border border-white/5
-                                hover:bg-neutral-800/60
-                                hover:border-white/10
-                                transition-all duration-200
-                            "
-                        >
-                            {renderIcon(reason?.icon)}
-                            <span className="text-sm text-gray-300 leading-relaxed">
-                                {reason?.text || "Benefit available"}
-                            </span>
-                        </li>
-                    ))}
-                </ul>
+                <div className="p-6">
+                    <ul className="space-y-3">
+                        {displayWhyBookWithUs.map((reason, index) => (
+                            <li
+                                key={index}
+                                className="
+                                    flex items-start gap-3
+                                    px-4 py-3 rounded-lg
+                                    bg-white/5
+                                    border border-white/10
+                                    hover:bg-white/10
+                                    hover:border-teal-400/30
+                                    transition-all duration-200
+                                "
+                            >
+                                {renderIcon(reason?.icon)}
+                                <span className="text-sm text-gray-300 leading-relaxed">
+                                    {reason?.text || "Benefit available"}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
             </div>
 
             {/* CANCELLATION POLICY */}
-            <div
-                className="
-                    relative overflow-hidden rounded-2xl p-6
-                    bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800
-                    border border-white/10
-                    shadow-xl shadow-black/40
-                "
-            >
-                {/* Glow */}
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-transparent to-teal-500/5 pointer-events-none" />
-
+            <div className="bg-black rounded-2xl border border-white/10 overflow-hidden">
                 {/* Header */}
-                <div className="relative flex items-center gap-3 mb-3">
-                    <div className="h-9 w-1 rounded-full bg-gradient-to-b from-indigo-400 to-purple-500" />
-                    <h3 className="text-lg font-semibold text-white tracking-wide">
-                        Cancellation Policy
-                    </h3>
+                <div className="border-b border-white/10 px-6 py-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-1 h-6 bg-teal-400 rounded-full" />
+                        <h3 className="text-lg font-semibold text-white">
+                            Cancellation Policy
+                        </h3>
+                    </div>
                 </div>
 
-                <p className="relative text-sm text-gray-300 leading-relaxed">
-                    {displayPolicy?.cancellation ||
-                        displayPolicy?.text ||
-                        "Policy details not available."}
-                </p>
+                {/* Content */}
+                <div className="p-6">
+                    <p className="text-sm text-gray-300 leading-relaxed mb-4">
+                        {displayPolicy?.cancellation ||
+                            displayPolicy?.text ||
+                            "Policy details not available."}
+                    </p>
 
-                {displayPolicy?.link && (
-                    <a
-                        href={displayPolicy.link}
-                        className="
-                            inline-flex items-center gap-1 mt-3
-                            text-sm text-teal-400
-                            hover:text-teal-300
-                            hover:underline
-                        "
-                    >
-                        Read more
-                        <FontAwesomeIcon icon={solidIcons.faArrowRight} />
-                    </a>
-                )}
+                    {displayPolicy?.link && (
+                        <a
+                            href={displayPolicy.link}
+                            className="
+                                inline-flex items-center gap-2
+                                text-sm text-teal-400
+                                hover:text-teal-300
+                                transition-colors duration-200
+                                group
+                            "
+                        >
+                            <span>Read more</span>
+                            <FontAwesomeIcon
+                                icon={solidIcons.faArrowRight}
+                                className="w-3 h-3 transform group-hover:translate-x-1 transition-transform duration-200"
+                            />
+                        </a>
+                    )}
+                </div>
             </div>
         </div>
     );

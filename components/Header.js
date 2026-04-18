@@ -154,12 +154,9 @@ export default function Header({
     return (
         <>
             <header
-                className={`fixed top-0 w-screen z-50 transition-all duration-300 ${className} ${transparentOnScroll
-                    ? (isScrolled
-                        ? 'bg-neutral-900 backdrop-blur-2xl border-b border-neutral-800 shadow-2xl'
-                        : 'bg-transparent border-b border-white/10 backdrop-blur-sm')
-                    : 'bg-neutral-900 backdrop-blur-2xl border-b border-neutral-800 shadow-2xl'
-                    }`}
+                className={`fixed top-0 w-screen z-50 transition-all duration-300 ${className} 
+                    bg-black backdrop-blur-2xl border-b border-neutral-800 shadow-2xl
+                    `}
             >
                 <nav className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-14">
@@ -271,7 +268,7 @@ export default function Header({
                                 transition={{ duration: 0.15 }}
                                 className="md:hidden overflow-hidden"
                             >
-                                <div className="py-6 px-3 border-t border-white/20 bg-neutral-900/80 backdrop-blur-2xl mt-2">
+                                <div className="py-6 px-3 border-t border-white/20 bg-black backdrop-blur-2xl mt-2">
                                     <div className="flex flex-col space-y-6">
                                         {navItems.map((item, index) => (
                                             <motion.a
@@ -294,7 +291,7 @@ export default function Header({
                                                             initial={{ opacity: 0 }}
                                                             animate={{ opacity: 1 }}
                                                             transition={{ delay: 0.4 }}
-                                                            className="flex w-full items-center justify-center space-x-3 bg-neutral-600 rounded-xl text-white hover:text-teal-400 transition-colors duration-100 font-medium text-left py-2"
+                                                            className="flex w-full items-center justify-center space-x-3 bg-neutral-900 rounded-xl text-white hover:text-teal-400 transition-colors duration-100 font-medium text-left py-2"
                                                             onClick={() => {
                                                                 setIsMenuOpen(false);
                                                                 handleLoginClick();

@@ -2,13 +2,18 @@
 
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEnvelope, faLock, faEye, faEyeSlash, faSignInAlt } from '@fortawesome/free-solid-svg-icons';
+import {
+    faEnvelope,
+    faLock,
+    faEye,
+    faEyeSlash,
+    faSignInAlt,
+    faArrowRight
+} from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginForm({ isModal = false, onSuccess }) {
-
-
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -33,26 +38,15 @@ export default function LoginForm({ isModal = false, onSuccess }) {
             if (res.ok) {
                 setMessage('Login successful!');
 
-                if (res.ok) {
-                    setMessage('Login successful!');
+                if (onSuccess) onSuccess();
 
-                    // CLOSE MODAL
-                    if (onSuccess) onSuccess();
-
-                    // OPTIONAL: refresh user data
-                    
-
-                    // Redirect based on role
-                    setTimeout(() => {
-                        if (data.role === 'admin' || data.role === 'staff') {
-                            router.push('/admin');
-                        } else {
-                            router.refresh(); // refresh user session in UI
-
-                        }
-                    }, 100);
-                }
-                
+                setTimeout(() => {
+                    if (data.role === 'admin' || data.role === 'staff') {
+                        router.push('/admin');
+                    } else {
+                        router.refresh();
+                    }
+                }, 100);
             } else {
                 setMessage(data.error || 'Login failed. Please try again.');
             }
@@ -68,50 +62,63 @@ export default function LoginForm({ isModal = false, onSuccess }) {
     };
 
     return (
-        <div className={`min-h-full flex flex-col ${isModal ? '' : 'items-center justify-center'} text-gray-200`}>
-            <h2 className="text-2xl font-bold text-center text-teal-400 mb-6">
-                Login to Your Account
+        <div className={`min-h-full flex flex-col ${isModal ? '' : 'items-center justify-center'}`}>
+            <h2 className="text-2xl font-bold text-center text-white mb-2">
+                Welcome Back
             </h2>
+            <p className="text-center text-gray-400 mb-8 text-sm">
+                Sign in to your account
+            </p>
 
-            <form onSubmit={handleLogin} className="space-y-4 w-full max-w-md">
+            <form onSubmit={handleLogin} className="space-y-5 w-full max-w-md">
                 {/* Email Field */}
-                <div className="flex items-center border rounded-lg px-3 py-2 bg-neutral-800">
-                    <FontAwesomeIcon icon={faEnvelope} className="text-teal-400 mr-2" />
-                    <input
-                        type="email"
-                        placeholder="Email Address"
-                        className="flex-1 bg-neutral-800 outline-none text-gray-100 placeholder-gray-400"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Email Address
+                    </label>
+                    <div className="flex items-center border border-white/20 rounded-lg px-4 py-3 bg-black focus-within:border-white transition-colors">
+                        <FontAwesomeIcon icon={faEnvelope} className="text-gray-400 mr-3" />
+                        <input
+                            type="email"
+                            className="flex-1 bg-transparent outline-none text-white placeholder-gray-500"
+                            placeholder="you@example.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                        />
+                    </div>
                 </div>
 
-                {/* Password Field with Eye Icon */}
-                <div className="flex items-center border rounded-lg px-3 py-2 bg-neutral-800">
-                    <FontAwesomeIcon icon={faLock} className="text-teal-400 mr-2" />
-                    <input
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Password"
-                        className="flex-1 bg-neutral-800 outline-none text-gray-100 placeholder-gray-400"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                    <button
-                        type="button"
-                        onClick={togglePasswordVisibility}
-                        className="text-teal-400 hover:text-teal-300 focus:outline-none transition-colors"
-                    >
-                        <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
-                    </button>
+                {/* Password Field */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Password
+                    </label>
+                    <div className="flex items-center border border-white/20 rounded-lg px-4 py-3 bg-black focus-within:border-white transition-colors">
+                        <FontAwesomeIcon icon={faLock} className="text-gray-400 mr-3" />
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            className="flex-1 bg-transparent outline-none text-white placeholder-gray-500"
+                            placeholder="Enter your password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                        <button
+                            type="button"
+                            onClick={togglePasswordVisibility}
+                            className="text-gray-400 hover:text-white focus:outline-none"
+                        >
+                            <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Forgot Password Link */}
                 <div className="text-right">
                     <Link
                         href="/forgot-password"
-                        className="text-sm text-teal-400 hover:text-teal-300 transition-colors"
+                        className="text-sm text-gray-400 hover:text-white transition-colors"
                     >
                         Forgot Password?
                     </Link>
@@ -121,27 +128,27 @@ export default function LoginForm({ isModal = false, onSuccess }) {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-teal-400 text-neutral-900 py-3 rounded-lg flex items-center justify-center hover:bg-teal-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
+                    className="w-full bg-white text-black py-3 rounded-lg flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
                 >
                     {loading ? (
                         'Logging in...'
                     ) : (
                         <>
                             <FontAwesomeIcon icon={faSignInAlt} className="mr-2" />
-                            Login
+                            Sign In
                         </>
                     )}
                 </button>
 
                 {/* Register Link */}
-                <div className="text-center mt-4">
+                <div className="text-center pt-4">
                     <p className="text-sm text-gray-400">
                         Don't have an account?{' '}
                         <Link
                             href="/register"
-                            className="text-teal-400 hover:text-teal-300 transition-colors font-semibold"
+                            className="text-white hover:underline font-semibold"
                         >
-                            Register here
+                            Create an account
                         </Link>
                     </p>
                 </div>
@@ -149,7 +156,7 @@ export default function LoginForm({ isModal = false, onSuccess }) {
 
             {/* Message Display */}
             {message && (
-                <div className={`mt-4 text-center text-sm ${message.includes('successful') ? 'text-green-500' : 'text-red-500'
+                <div className={`mt-6 text-center text-sm ${message.includes('successful') ? 'text-green-500' : 'text-red-500'
                     }`}>
                     {message}
                 </div>

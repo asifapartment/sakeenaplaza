@@ -6,34 +6,32 @@ import * as solidIcons from '@fortawesome/free-solid-svg-icons';
 import NextImage from "next/image";
 import Header from '@/components/Header';
 
-// Updated Skeleton with new design
+// Updated Skeleton with black background
 const ApartmentCardSkeleton = () => {
     return (
-        <div className="bg-neutral-900 rounded-2xl overflow-hidden shadow-2xl border border-neutral-700/50">
-            <div className="animate-pulse-custom">
-                <div className="h-64 bg-neutral-800 relative overflow-hidden">
-                    <div className="absolute bottom-4 right-4 bg-neutral-700 w-20 h-7 rounded-full"></div>
+        <div className="bg-black rounded-2xl overflow-hidden border border-white/10">
+            <div className="h-64 bg-black relative overflow-hidden">
+                <div className="absolute inset-0 bg-white/5 animate-pulse"></div>
+                <div className="absolute bottom-4 right-4 bg-white/10 w-20 h-7 rounded-full"></div>
+            </div>
+            <div className="p-6 space-y-4">
+                <div className="h-7 bg-white/10 rounded-lg w-3/4"></div>
+                <div className="flex items-center space-x-2">
+                    <div className="h-4 w-4 bg-white/10 rounded-full"></div>
+                    <div className="h-4 bg-white/10 rounded w-1/2"></div>
                 </div>
-                <div className="p-6">
-                    <div className="h-7 bg-neutral-700 rounded-lg mb-4 w-3/4"></div>
-                    <div className="flex items-center mb-4">
-                        <div className="h-4 w-4 bg-neutral-700 rounded-full mr-2"></div>
-                        <div className="h-4 bg-neutral-700 rounded w-1/2"></div>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                        <div className="h-5 w-5 bg-white/10 rounded-full"></div>
+                        <div className="h-4 bg-white/10 rounded w-20"></div>
                     </div>
-                    <div className="flex items-center justify-between mb-5">
-                        <div className="flex items-center">
-                            <div className="h-5 w-5 bg-neutral-700 rounded-full mr-1"></div>
-                            <div className="h-4 bg-neutral-700 rounded w-8 ml-1"></div>
-                            <div className="h-4 bg-neutral-700 rounded w-12 ml-1"></div>
-                        </div>
-                    </div>
-                    <div className="flex flex-wrap gap-3 mb-6">
-                        {[...Array(3)].map((_, idx) => (
-                            <div key={idx} className="h-6 bg-neutral-700 rounded-full w-16"></div>
-                        ))}
-                    </div>
-                    <div className="w-full bg-neutral-700 h-12 rounded-xl"></div>
                 </div>
+                <div className="flex flex-wrap gap-2">
+                    {[...Array(3)].map((_, idx) => (
+                        <div key={idx} className="h-6 bg-white/10 rounded-full w-16"></div>
+                    ))}
+                </div>
+                <div className="w-full bg-white/10 h-12 rounded-xl"></div>
             </div>
         </div>
     );
@@ -44,8 +42,8 @@ const OfferTag = ({ offer }) => {
     return (
         <div className="absolute top-4 left-4 z-20">
             <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-400 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
-                <div className="relative px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full shadow-lg">
+                <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-400 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                <div className="relative px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full">
                     <div className="flex items-center gap-2">
                         <FontAwesomeIcon icon={solidIcons.faTag} className="h-3 w-3 text-white" />
                         <span className="text-xs font-bold text-white whitespace-nowrap">
@@ -53,9 +51,8 @@ const OfferTag = ({ offer }) => {
                         </span>
                     </div>
                 </div>
-                {/* Tooltip on hover */}
                 <div className="absolute mb-2 mt-6 hidden group-hover:block">
-                    <div className="bg-neutral-900/95 backdrop-blur-sm text-white text-xs rounded-lg p-3 w-48 shadow-xl border border-neutral-700">
+                    <div className="bg-black/95 text-white text-xs rounded-lg p-3 w-48 border border-white/10">
                         <div className="font-bold text-yellow-400 mb-1">{offer.title}</div>
                         <p className="text-gray-300 mb-2">{offer.description}</p>
                         <div className="text-xs text-gray-400">
@@ -68,59 +65,51 @@ const OfferTag = ({ offer }) => {
     );
 };
 
-// Updated ApartmentImage with original + discounted price display
+// ApartmentImage Component
 const ApartmentImage = ({ apartment, index, offer }) => {
     const [imageError, setImageError] = useState(false);
 
-    // Calculate discounted price
     const finalPrice = offer
         ? (apartment.price - (apartment.price * Number(offer.discount_percentage) / 100)).toFixed(2)
         : apartment.price;
 
     const hasDiscount = offer !== null;
 
-    // PRICE UI BLOCK (used in both image cases)
     const PriceTag = () => (
         <div className="absolute bottom-4 right-4 z-20 flex items-end">
             {hasDiscount ? (
-                <span className="bg-gradient-to-r from-teal-500 to-emerald-500 px-3 py-1 rounded-full text-sm font-bold text-black shadow-md">
-                    <span className="text-sm line-through font-medium mr-3">
+                <span className="bg-gradient-to-r from-teal-500 to-emerald-500 px-3 py-1 rounded-full text-sm font-bold text-black">
+                    <span className="text-sm line-through font-medium mr-3 text-white/70">
                         &#8377;{apartment.price}
                     </span>
-
                     &#8377;{finalPrice}/night
                 </span>
             ) : (
-                <div className="bg-gradient-to-r from-teal-500 to-emerald-500 px-4 py-2 rounded-full text-sm font-bold text-black shadow-lg">
+                <div className="bg-gradient-to-r from-teal-500 to-emerald-500 px-4 py-2 rounded-full text-sm font-bold text-black">
                     &#8377;{apartment.price}/night
                 </div>
             )}
         </div>
     );
 
-    // ========= NO IMAGE CASE ==========
     if (!apartment?.image || imageError) {
         return (
-            <div className="h-64 relative flex items-center justify-center bg-gradient-to-br from-neutral-800 to-neutral-700 group-hover:from-neutral-700 group-hover:to-neutral-600 transition-all duration-300">
-
+            <div className="h-64 relative flex items-center justify-center bg-black">
                 <div className="text-center p-6">
-                    <div className="w-16 h-16 bg-neutral-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <FontAwesomeIcon icon={solidIcons.faHome} className="h-8 w-8 text-gray-400" />
+                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <FontAwesomeIcon icon={solidIcons.faHome} className="h-8 w-8 text-gray-600" />
                     </div>
-                    <p className="text-gray-400 text-sm">Image not available</p>
+                    <p className="text-gray-600 text-sm">Image not available</p>
                 </div>
-
                 {offer && <OfferTag offer={offer} />}
-
                 <PriceTag />
             </div>
         );
     }
 
-    // ========= NORMAL IMAGE CASE ==========
     return (
         <div className="h-64 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/60 via-neutral-900/20 to-transparent z-10"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
 
             <NextImage
                 src={apartment.image}
@@ -133,13 +122,12 @@ const ApartmentImage = ({ apartment, index, offer }) => {
             />
 
             {offer && <OfferTag offer={offer} />}
-
             <PriceTag />
         </div>
     );
 };
 
-// Filter Modal Component with Tab Layout - Responsive for Mobile
+// Filter Modal Component
 const FilterModal = ({ isOpen, onClose, filters, onFilterChange, allFeatures, allLocations }) => {
     const [searchTerms, setSearchTerms] = useState({
         features: "",
@@ -151,17 +139,14 @@ const FilterModal = ({ isOpen, onClose, filters, onFilterChange, allFeatures, al
 
     if (!isOpen) return null;
 
-    // Filter features based on search
     const filteredFeatures = allFeatures.filter(feature =>
         feature.toLowerCase().includes(searchTerms.features.toLowerCase())
     );
 
-    // Filter locations based on search
     const filteredLocations = allLocations.filter(location =>
         location.toLowerCase().includes(searchTerms.location.toLowerCase())
     );
 
-    // Handle feature selection (multiple)
     const handleFeatureToggle = (feature) => {
         const currentFeatures = Array.isArray(filters.features) ? filters.features : [];
         const newFeatures = currentFeatures.includes(feature)
@@ -170,7 +155,6 @@ const FilterModal = ({ isOpen, onClose, filters, onFilterChange, allFeatures, al
         onFilterChange('features', newFeatures);
     };
 
-    // Handle select all features
     const handleSelectAllFeatures = () => {
         if (Array.isArray(filters.features) && filters.features.length === filteredFeatures.length) {
             onFilterChange('features', []);
@@ -195,7 +179,6 @@ const FilterModal = ({ isOpen, onClose, filters, onFilterChange, allFeatures, al
             case "features":
                 return (
                     <div className="space-y-4">
-                        {/* Search Bar */}
                         <div>
                             <div className="relative">
                                 <FontAwesomeIcon
@@ -207,12 +190,11 @@ const FilterModal = ({ isOpen, onClose, filters, onFilterChange, allFeatures, al
                                     placeholder="Search features..."
                                     value={searchTerms.features}
                                     onChange={(e) => updateSearchTerm('features', e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-base"
+                                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-base"
                                 />
                             </div>
                         </div>
 
-                        {/* Feature Filter with Checkboxes */}
                         <div>
                             <div className="flex justify-between items-center mb-3">
                                 <h4 className="text-white font-semibold text-base">Select Features</h4>
@@ -234,9 +216,7 @@ const FilterModal = ({ isOpen, onClose, filters, onFilterChange, allFeatures, al
                                             onChange={() => handleFeatureToggle(feature)}
                                             className="text-teal-400 focus:ring-teal-400 h-4 w-4 rounded"
                                         />
-                                        <span className="text-gray-300 capitalize text-sm">
-                                            {feature}
-                                        </span>
+                                        <span className="text-gray-300 capitalize text-sm">{feature}</span>
                                     </label>
                                 ))}
                                 {filteredFeatures.length === 0 && (
@@ -245,14 +225,13 @@ const FilterModal = ({ isOpen, onClose, filters, onFilterChange, allFeatures, al
                             </div>
                         </div>
 
-                        {/* Selected Features Preview */}
                         {Array.isArray(filters.features) && filters.features.length > 0 && (
                             <div className="bg-white/5 rounded-xl p-4">
                                 <h5 className="text-white font-medium mb-2 text-sm">Selected Features ({filters.features.length})</h5>
                                 <div className="flex flex-wrap gap-2">
                                     {filters.features.map(feature => (
                                         <span key={feature} className="bg-teal-400/20 text-teal-300 px-2 py-1 rounded-lg text-xs">
-                                            {feature.replace('fa', '').charAt(0).toUpperCase() + feature.replace('fa', '').slice(1)}
+                                            {feature}
                                         </span>
                                     ))}
                                 </div>
@@ -264,7 +243,6 @@ const FilterModal = ({ isOpen, onClose, filters, onFilterChange, allFeatures, al
             case "location":
                 return (
                     <div className="space-y-4">
-                        {/* Search Bar */}
                         <div>
                             <div className="relative">
                                 <FontAwesomeIcon
@@ -276,7 +254,7 @@ const FilterModal = ({ isOpen, onClose, filters, onFilterChange, allFeatures, al
                                     placeholder="Search locations..."
                                     value={searchTerms.location}
                                     onChange={(e) => updateSearchTerm('location', e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-base"
+                                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-base"
                                 />
                             </div>
                         </div>
@@ -313,7 +291,6 @@ const FilterModal = ({ isOpen, onClose, filters, onFilterChange, allFeatures, al
                             </div>
                         </div>
 
-                        {/* Location Preview */}
                         <div className="bg-white/5 rounded-xl p-4">
                             <h5 className="text-white font-medium mb-2 text-sm">Selected Locations</h5>
                             <p className="text-gray-300 text-sm">
@@ -321,15 +298,6 @@ const FilterModal = ({ isOpen, onClose, filters, onFilterChange, allFeatures, al
                                     ? 'All locations'
                                     : `${filters.locations.length} location(s) selected`}
                             </p>
-                            {Array.isArray(filters.locations) && filters.locations.length > 0 && (
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                    {filters.locations.map(location => (
-                                        <span key={location} className="bg-teal-400/20 text-teal-300 px-2 py-1 rounded-lg text-xs">
-                                            {location}
-                                        </span>
-                                    ))}
-                                </div>
-                            )}
                         </div>
                     </div>
                 );
@@ -347,38 +315,24 @@ const FilterModal = ({ isOpen, onClose, filters, onFilterChange, allFeatures, al
                                 { min: 5001, max: 10000 },
                                 { min: 10001, max: 20000 },
                             ].map((range, index) => {
-                                const label = `$${range.min} - $${range.max}`;
-                                const isChecked =
-                                    Array.isArray(filters.priceRanges) &&
-                                    filters.priceRanges.some(
-                                        (r) => r.min === range.min && r.max === range.max
-                                    );
+                                const label = `₹${range.min} - ₹${range.max}`;
+                                const isChecked = Array.isArray(filters.priceRanges) &&
+                                    filters.priceRanges.some(r => r.min === range.min && r.max === range.max);
 
                                 return (
-                                    <label
-                                        key={index}
-                                        className="flex items-center gap-3 text-gray-300 hover:text-white cursor-pointer"
-                                    >
+                                    <label key={index} className="flex items-center gap-3 text-gray-300 hover:text-white cursor-pointer">
                                         <input
                                             type="checkbox"
                                             checked={isChecked}
                                             onChange={() => {
-                                                let updatedRanges = Array.isArray(filters.priceRanges)
-                                                    ? [...filters.priceRanges]
-                                                    : [];
-
-                                                const exists = updatedRanges.some(
-                                                    (r) => r.min === range.min && r.max === range.max
-                                                );
+                                                let updatedRanges = Array.isArray(filters.priceRanges) ? [...filters.priceRanges] : [];
+                                                const exists = updatedRanges.some(r => r.min === range.min && r.max === range.max);
 
                                                 if (exists) {
-                                                    updatedRanges = updatedRanges.filter(
-                                                        (r) => !(r.min === range.min && r.max === range.max)
-                                                    );
+                                                    updatedRanges = updatedRanges.filter(r => !(r.min === range.min && r.max === range.max));
                                                 } else {
                                                     updatedRanges.push(range);
                                                 }
-
                                                 onFilterChange("priceRanges", updatedRanges);
                                             }}
                                             className="w-5 h-5 rounded border-gray-400 text-teal-500 focus:ring-teal-500 bg-transparent"
@@ -391,17 +345,13 @@ const FilterModal = ({ isOpen, onClose, filters, onFilterChange, allFeatures, al
                     </div>
                 );
 
-
             case "rating":
                 return (
                     <div className="space-y-4">
                         <h4 className="text-white font-semibold mb-3 text-base">Filter by Rating</h4>
                         <div className="space-y-2">
                             {[5, 4, 3, 2, 1].map((r) => (
-                                <label
-                                    key={r}
-                                    className="flex items-center gap-3 text-gray-300 hover:text-white cursor-pointer"
-                                >
+                                <label key={r} className="flex items-center gap-3 text-gray-300 hover:text-white cursor-pointer">
                                     <input
                                         type="checkbox"
                                         value={r}
@@ -410,7 +360,7 @@ const FilterModal = ({ isOpen, onClose, filters, onFilterChange, allFeatures, al
                                             const value = Number(e.target.value);
                                             const newRatings = Array.isArray(filters.rating)
                                                 ? filters.rating.includes(value)
-                                                    ? filters.rating.filter((v) => v !== value)
+                                                    ? filters.rating.filter(v => v !== value)
                                                     : [...filters.rating, value]
                                                 : [value];
                                             onFilterChange('rating', newRatings);
@@ -419,13 +369,9 @@ const FilterModal = ({ isOpen, onClose, filters, onFilterChange, allFeatures, al
                                     />
                                     <span className="flex items-center gap-1">
                                         {[...Array(r)].map((_, i) => (
-                                            <FontAwesomeIcon
-                                                key={i}
-                                                icon={solidIcons.faStar}
-                                                className="text-yellow-400 h-4 w-4"
-                                            />
+                                            <FontAwesomeIcon key={i} icon={solidIcons.faStar} className="text-yellow-400 h-4 w-4" />
                                         ))}
-                                        <span className="text-sm text-gray-400">&nbsp;&up</span>
+                                        <span className="text-sm text-gray-400">& up</span>
                                     </span>
                                 </label>
                             ))}
@@ -439,90 +385,74 @@ const FilterModal = ({ isOpen, onClose, filters, onFilterChange, allFeatures, al
     };
 
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-end justify-center z-50 p-0 sm:items-center sm:p-4">
-            <div className="bg-neutral-800 rounded-t-3xl sm:rounded-3xl w-full h-[80vh] sm:max-h-[90vh] sm:max-w-4xl overflow-hidden flex flex-col">
-                {/* Header */}
+        <div className="fixed inset-0 bg-black/80 flex items-end justify-center z-50 p-0 sm:items-center sm:p-4">
+            <div className="bg-black rounded-t-3xl sm:rounded-3xl w-full h-[80vh] sm:max-h-[90vh] sm:max-w-4xl overflow-hidden flex flex-col border border-white/10">
                 <div className="flex justify-between items-center p-4 sm:p-6 border-b border-white/10">
                     <h3 className="text-lg sm:text-xl font-bold text-white">Filter Apartments</h3>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
-                    >
+                    <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10">
                         <FontAwesomeIcon icon={solidIcons.faTimes} className="h-5 w-5" />
                     </button>
                 </div>
 
-                {/* Main Content - Mobile: Tabs on top, Desktop: Tabs on left */}
                 <div className="flex flex-col sm:flex-row flex-1 min-h-0">
-                    {/* Mobile Tabs - Horizontal */}
-                    <div className="sm:hidden border-b border-white/10 bg-neutral-900/50 overflow-x-auto">
+                    <div className="sm:hidden border-b border-white/10 bg-black overflow-x-auto">
                         <div className="flex p-2 space-x-1 min-w-max">
                             {tabs.map(tab => (
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`flex items-center space-x-2 px-4 py-3 rounded-xl text-left transition-all duration-200 flex-shrink-0 ${activeTab === tab.id
-                                        ? 'bg-teal-400 text-neutral-900 font-semibold'
-                                        : 'text-gray-300 hover:text-white hover:bg-white/5'
+                                            ? 'bg-teal-400 text-black font-semibold'
+                                            : 'text-gray-300 hover:text-white hover:bg-white/5'
                                         }`}
                                 >
-                                    <FontAwesomeIcon
-                                        icon={tab.icon}
-                                        className={`h-4 w-4 ${activeTab === tab.id ? 'text-neutral-900' : 'text-gray-400'}`}
-                                    />
+                                    <FontAwesomeIcon icon={tab.icon} className={`h-4 w-4 ${activeTab === tab.id ? 'text-black' : 'text-gray-400'}`} />
                                     <span className="text-sm">{tab.label}</span>
                                 </button>
                             ))}
                         </div>
                     </div>
 
-                    {/* Desktop Tabs - Vertical */}
-                    <div className="hidden sm:block w-48 border-r border-white/10 bg-neutral-900/50">
+                    <div className="hidden sm:block w-48 border-r border-white/10 bg-black">
                         <div className="p-4 space-y-1">
                             {tabs.map(tab => (
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl text-left transition-all duration-200 ${activeTab === tab.id
-                                        ? 'bg-teal-400 text-neutral-900 font-semibold'
-                                        : 'text-gray-300 hover:text-white hover:bg-white/5'
+                                            ? 'bg-teal-400 text-black font-semibold'
+                                            : 'text-gray-300 hover:text-white hover:bg-white/5'
                                         }`}
                                 >
-                                    <FontAwesomeIcon
-                                        icon={tab.icon}
-                                        className={`h-4 w-4 ${activeTab === tab.id ? 'text-neutral-900' : 'text-gray-400'}`}
-                                    />
+                                    <FontAwesomeIcon icon={tab.icon} className={`h-4 w-4 ${activeTab === tab.id ? 'text-black' : 'text-gray-400'}`} />
                                     <span className="text-sm">{tab.label}</span>
                                 </button>
                             ))}
                         </div>
                     </div>
 
-                    {/* Content Area */}
                     <div className="flex-1 p-4 sm:p-6 overflow-y-auto">
                         {renderTabContent()}
                     </div>
                 </div>
 
-                {/* Footer */}
-                <div className="flex gap-4 sm:flex-row sm:space-y-0 sm:space-x-3 p-4 sm:p-6 border-t border-white/10 bg-neutral-900/50">
+                <div className="flex gap-4 p-4 sm:p-6 border-t border-white/10 bg-black">
                     <button
                         onClick={() => {
                             onFilterChange('features', []);
                             onFilterChange('locations', []);
-                            onFilterChange('minPrice', 0);
-                            onFilterChange('maxPrice', 10000);
-                            onFilterChange('rating', 0);
+                            onFilterChange('priceRanges', []);
+                            onFilterChange('rating', []);
                             setSearchTerms({ features: "", location: "", price: "", rating: "" });
                             setActiveTab("features");
                         }}
                         className="flex-1 px-4 py-3 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-all duration-300 font-medium text-sm sm:text-base"
                     >
-                        Reset All Filters
+                        Reset All
                     </button>
                     <button
                         onClick={onClose}
-                        className="flex-1 px-4 py-3 bg-teal-400 text-neutral-900 rounded-xl hover:bg-teal-500 transition-all duration-300 font-medium text-sm sm:text-base"
+                        className="flex-1 px-4 py-3 bg-teal-400 text-black rounded-xl hover:bg-teal-500 transition-all duration-300 font-medium text-sm sm:text-base"
                     >
                         Apply Filters
                     </button>
@@ -547,24 +477,19 @@ export default function ApartmentsPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [isClient, setIsClient] = useState(false);
 
-    // Set client-side flag safely
     useEffect(() => {
         setIsClient(true);
     }, []);
 
-    // Fetch apartments and offers
     useEffect(() => {
         async function fetchData() {
             try {
                 setLoading(true);
-
-                // Fetch apartments
                 const aptRes = await fetch('/api/apartment');
                 if (!aptRes.ok) throw new Error('Failed to fetch apartments');
                 const aptData = await aptRes.json();
                 setApartments(Array.isArray(aptData) ? aptData : []);
 
-                // Fetch offers
                 const offersRes = await fetch('/api/offers');
                 if (offersRes.ok) {
                     const offersData = await offersRes.json();
@@ -582,88 +507,41 @@ export default function ApartmentsPage() {
     }, []);
 
     const getApartmentOffer = (apartmentId) => {
-        if (!offers.length) {
-            console.log('No offers available');
-            return null;
-        }
+        if (!offers.length) return null;
 
         const now = new Date();
-        console.log('Current date:', now);
-        console.log('Checking offers for apartment ID:', apartmentId);
-
-        // Filter active offers
         const activeOffers = offers.filter(offer => {
             const validFrom = new Date(offer.valid_from);
             const validUntil = new Date(offer.valid_until);
-
-            // Check if offer is active and within date range
             const isActive = offer.is_active === 1 || offer.is_active === true;
             const isInDateRange = now >= validFrom && now <= validUntil;
-
-            console.log(`Offer ${offer.id}:`, {
-                is_active: offer.is_active,
-                isInDateRange,
-                validFrom: validFrom.toISOString(),
-                validUntil: validUntil.toISOString(),
-                now: now.toISOString()
-            });
-
             return isActive && isInDateRange;
         });
 
-        console.log('Active offers:', activeOffers);
+        if (!activeOffers.length) return null;
 
-        if (!activeOffers.length) {
-            console.log('No active offers found');
-            return null;
-        }
-
-        // First, check for specific apartment offers
         const specificOffer = activeOffers.find(offer => {
-            // If apartment_ids is null, it's a global offer (skip for specific check)
-            if (offer.apartment_ids === null) {
-                console.log('Skipping global offer for specific check:', offer.id);
-                return false;
-            }
-
+            if (offer.apartment_ids === null) return false;
             let apartmentIds = offer.apartment_ids;
-
-            // Parse if it's a string
             if (typeof apartmentIds === "string") {
                 try {
                     apartmentIds = JSON.parse(apartmentIds);
                 } catch (e) {
-                    console.error('Error parsing apartment_ids:', e);
                     return false;
                 }
             }
-
-            const includesApartment = Array.isArray(apartmentIds) && apartmentIds.includes(apartmentId);
-            console.log(`Offer ${offer.id} includes apartment ${apartmentId}:`, includesApartment);
-            return includesApartment;
+            return Array.isArray(apartmentIds) && apartmentIds.includes(apartmentId);
         });
 
-        console.log('Specific offer found:', specificOffer);
-
-        // If no specific offer, check for global offers
-        if (!specificOffer) {
-            const globalOffer = activeOffers.find(offer => offer.apartment_ids === null);
-            console.log('Global offer found:', globalOffer);
-            return globalOffer;
-        }
-
-        return specificOffer;
+        if (specificOffer) return specificOffer;
+        return activeOffers.find(offer => offer.apartment_ids === null) || null;
     };
 
-    // Memoized filtered apartments with safe access
     const filteredApartments = useMemo(() => {
         if (!Array.isArray(apartments)) return [];
 
         return apartments
             .filter(a => {
-                if (!a) return false;
-
-                // Filter by features
                 if (filters.features.length > 0) {
                     if (!Array.isArray(a.feature_texts)) return false;
                     return filters.features.every(feature => a.feature_texts.includes(feature));
@@ -671,21 +549,13 @@ export default function ApartmentsPage() {
                 return true;
             })
             .filter(a => {
-                if (!a) return false;
-
-                // Filter by price ranges
                 if (filters.priceRanges.length > 0) {
                     const price = Number(a.price) || 0;
-                    return filters.priceRanges.some(range =>
-                        price >= range.min && price <= range.max
-                    );
+                    return filters.priceRanges.some(range => price >= range.min && price <= range.max);
                 }
                 return true;
             })
             .filter(a => {
-                if (!a) return false;
-
-                // Filter by rating
                 if (filters.rating.length > 0) {
                     const rating = Math.floor(a.reviews?.rating || 0);
                     return filters.rating.includes(rating);
@@ -693,9 +563,6 @@ export default function ApartmentsPage() {
                 return true;
             })
             .filter(a => {
-                if (!a) return false;
-
-                // Filter by locations
                 if (filters.locations.length > 0) {
                     const city = a.city || a.location || '';
                     return filters.locations.includes(city);
@@ -703,27 +570,20 @@ export default function ApartmentsPage() {
                 return true;
             })
             .filter(a => {
-                if (!a) return false;
                 if (searchQuery === '') return true;
-
                 const query = searchQuery.toLowerCase();
                 return (
                     (a.title || '').toLowerCase().includes(query) ||
                     (a.city || '').toLowerCase().includes(query) ||
                     (a.location || '').toLowerCase().includes(query) ||
-                    (Array.isArray(a.features) && a.features.some(f =>
-                        f.toLowerCase().includes(query)
-                    ))
+                    (Array.isArray(a.feature_texts) && a.feature_texts.some(f => f.toLowerCase().includes(query)))
                 );
             });
     }, [apartments, filters, searchQuery]);
 
-    // Unique features and locations with safe access
     const allFeatures = useMemo(() => {
         if (!Array.isArray(apartments)) return [];
-        const features = apartments.flatMap(a =>
-            Array.isArray(a.feature_texts) ? a.feature_texts : []
-        );
+        const features = apartments.flatMap(a => Array.isArray(a.feature_texts) ? a.feature_texts : []);
         return Array.from(new Set(features)).filter(Boolean);
     }, [apartments]);
 
@@ -733,13 +593,11 @@ export default function ApartmentsPage() {
         return Array.from(new Set(locations));
     }, [apartments]);
 
-    // Handlers
     const handleFilterChange = (key, value) => setFilters(prev => ({ ...prev, [key]: value }));
     const openFilterModal = () => setIsFilterModalOpen(true);
     const closeFilterModal = () => setIsFilterModalOpen(false);
     const handleSearchChange = e => setSearchQuery(e.target.value);
 
-    // Reset filters function
     const resetFilters = () => {
         setFilters({
             features: [],
@@ -750,7 +608,6 @@ export default function ApartmentsPage() {
         setSearchQuery('');
     };
 
-    // Apartments to display
     const visibleApartments = useMemo(() => {
         if (!isClient || loading) {
             return [...Array(8)].map((_, i) => ({ id: `skeleton-${i}` }));
@@ -759,18 +616,12 @@ export default function ApartmentsPage() {
     }, [isClient, loading, filteredApartments]);
 
     return (
-        <div className="min-h-screen bg-neutral-900">
+        <div className="min-h-screen bg-black">
             <Header />
 
-            {/* Animated Background */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-r from-teal-500/5 to-emerald-500/5 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-r from-purple-500/5 to-pink-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
-            </div>
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-8">
                 {/* Search and Filter Bar */}
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 mt-10 mb-5">
+                <div className="mb-8">
                     <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
                         <div className="w-full md:w-2/3">
                             <div className="relative">
@@ -783,21 +634,21 @@ export default function ApartmentsPage() {
                                     placeholder="Search apartments by name, location, or features..."
                                     value={searchQuery}
                                     onChange={handleSearchChange}
-                                    className="w-full pl-12 pr-4 py-3 bg-white/5 border border-neutral-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-sm"
+                                    className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent text-sm"
                                 />
                             </div>
                         </div>
                         <div className="flex gap-3 w-full md:w-auto">
                             <button
                                 onClick={openFilterModal}
-                                className="flex-1 md:flex-none px-6 py-3 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-neutral-900 font-bold rounded-xl hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+                                className="flex-1 md:flex-none px-6 py-3 bg-teal-400 hover:bg-teal-500 text-black font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
                             >
                                 <FontAwesomeIcon icon={solidIcons.faFilter} className="h-4 w-4" />
                                 <span>Filters</span>
                             </button>
                             <button
                                 onClick={resetFilters}
-                                className="px-4 py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl hover:shadow-xl transition-all duration-300 border border-neutral-700"
+                                className="px-4 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-all duration-300 border border-white/10"
                             >
                                 Reset
                             </button>
@@ -813,17 +664,17 @@ export default function ApartmentsPage() {
                                 </span>
                             )}
                             {filters.locations.length > 0 && (
-                                <span className="bg-purple-400/20 text-purple-300 px-3 py-1 rounded-lg text-sm">
+                                <span className="bg-teal-400/20 text-teal-300 px-3 py-1 rounded-lg text-sm">
                                     Locations: {filters.locations.length}
                                 </span>
                             )}
                             {filters.priceRanges.length > 0 && (
-                                <span className="bg-blue-400/20 text-blue-300 px-3 py-1 rounded-lg text-sm">
+                                <span className="bg-teal-400/20 text-teal-300 px-3 py-1 rounded-lg text-sm">
                                     Price Ranges: {filters.priceRanges.length}
                                 </span>
                             )}
                             {filters.rating.length > 0 && (
-                                <span className="bg-yellow-400/20 text-yellow-300 px-3 py-1 rounded-lg text-sm">
+                                <span className="bg-teal-400/20 text-teal-300 px-3 py-1 rounded-lg text-sm">
                                     Rating: {filters.rating.map(r => `${r}+`).join(', ')}
                                 </span>
                             )}
@@ -839,93 +690,64 @@ export default function ApartmentsPage() {
                         ))
                         : visibleApartments.map((apartment, index) => {
                             const offer = getApartmentOffer(apartment.id);
-
                             return (
-                                <div
-                                    key={apartment.id}
-                                    className="group relative"
-                                >
-                                    {/* Glow Effect */}
-                                    <div className="absolute -inset-0.5 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-2xl blur opacity-0 group-hover:opacity-30 transition duration-500 group-hover:duration-200"></div>
-
-                                    <div className="relative bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl overflow-hidden shadow-2xl border border-neutral-700/50 group-hover:border-teal-400/30 transition-all duration-500 transform group-hover:-translate-y-2">
-                                        <ApartmentImage
-                                            apartment={apartment}
-                                            index={index}
-                                            offer={offer}
-                                        />
+                                <div key={apartment.id} className="group relative">
+                                    <div className="relative bg-black rounded-2xl overflow-hidden border border-white/10 group-hover:border-teal-400/30 transition-all duration-300">
+                                        <ApartmentImage apartment={apartment} index={index} offer={offer} />
 
                                         <div className="p-6">
                                             <div className="flex justify-between items-start mb-4">
-                                                <h3 className="font-bold text-white text-xl line-clamp-1">
+                                                <h3 className="font-bold text-white text-xl line-clamp-1 group-hover:text-teal-400 transition-colors">
                                                     {apartment.title || 'Untitled Apartment'}
                                                 </h3>
                                                 {offer && (
                                                     <div className="flex-shrink-0 ml-2">
-                                                        <div className="relative">
-                                                            <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full blur"></div>
-                                                            <div className="relative bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                                                                SAVE {offer.discount_percentage}%
-                                                            </div>
+                                                        <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                                                            SAVE {offer.discount_percentage}%
                                                         </div>
                                                     </div>
                                                 )}
                                             </div>
 
-                                            <div className="flex items-center text-gray-300 mb-4">
-                                                <FontAwesomeIcon
-                                                    icon={solidIcons.faMapMarkerAlt}
-                                                    className="h-4 w-4 mr-2 text-teal-400"
-                                                />
+                                            <div className="flex items-center text-gray-400 mb-4">
+                                                <FontAwesomeIcon icon={solidIcons.faMapMarkerAlt} className="h-4 w-4 mr-2 text-teal-400" />
                                                 <span className="text-sm">{apartment.location || apartment.city || 'Location not specified'}</span>
                                             </div>
 
                                             <div className="flex items-center justify-between mb-5">
                                                 <div className="flex items-center">
-                                                    <div className="flex items-center">
-                                                        <div className="relative">
-                                                            <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full blur"></div>
-                                                            <div className="relative flex items-center bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1 rounded-full">
-                                                                <FontAwesomeIcon
-                                                                    icon={solidIcons.faStar}
-                                                                    className="h-3 w-3 mr-1"
-                                                                />
-                                                                <span className="text-sm font-bold">
-                                                                    {apartment.reviews?.rating || '4.5'}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                        <span className="ml-2 text-sm text-gray-400">
-                                                            ({apartment.reviews?.totalReviews || 0} reviews)
+                                                    <div className="flex items-center bg-yellow-500/10 px-3 py-1 rounded-full">
+                                                        <FontAwesomeIcon icon={solidIcons.faStar} className="h-3 w-3 mr-1 text-yellow-500" />
+                                                        <span className="text-sm font-bold text-white">
+                                                            {apartment.reviews?.rating || '4.5'}
                                                         </span>
                                                     </div>
+                                                    <span className="ml-2 text-sm text-gray-500">
+                                                        ({apartment.reviews?.totalReviews || 0} reviews)
+                                                    </span>
                                                 </div>
                                             </div>
 
-                                            {/* Features */}
                                             <div className="flex flex-wrap gap-2 mb-6">
                                                 {Array.isArray(apartment.feature_texts) ? apartment.feature_texts.slice(0, 6).map((feat, idx) => (
-                                                    <div
-                                                        key={idx}
-                                                        className="flex items-center gap-1.5 bg-neutral-800/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-neutral-700/50"
-                                                    >
-                                                        <span className="text-xs text-gray-300 capitalize">
-                                                            {feat}
-                                                        </span>
+                                                    <div key={idx} className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
+                                                        <span className="text-xs text-gray-400 capitalize">{feat}</span>
                                                     </div>
                                                 )) : null}
                                             </div>
 
+                                            {/* Teal Book Button */}
                                             <button
                                                 onClick={() => apartment.id && router.push(`/booking/${apartment.id}`)}
-                                                className="w-full group relative overflow-hidden bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-bold py-4 rounded-xl transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center shadow-lg hover:shadow-xl"
+                                                className="w-full group/btn relative overflow-hidden bg-teal-400 hover:bg-teal-500 text-black font-bold py-3 rounded-xl transition-all duration-300 flex items-center justify-center"
                                                 disabled={!apartment.id}
                                             >
-                                                <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-                                                <span className="relative z-10 font-bold text-black text-lg flex items-center gap-2">
-                                                    Book now
+                                                <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-500"></div>
+                                                <span className="relative z-10 font-semibold text-black text-base flex items-center gap-2">
+                                                    Book Now
+                                                    <FontAwesomeIcon icon={solidIcons.faArrowRight} className="h-3 w-3 transform group-hover/btn:translate-x-1 transition-transform duration-300" />
                                                     {offer && (
-                                                        <span className="text-xs bg-yellow-500 text-black px-2 py-1 rounded-full">
+                                                        <span className="text-xs bg-black/20 text-black px-2 py-1 rounded-full ml-2">
                                                             -{offer.discount_percentage}%
                                                         </span>
                                                     )}
@@ -941,12 +763,9 @@ export default function ApartmentsPage() {
                 {/* No Results */}
                 {isClient && !loading && filteredApartments.length === 0 && (
                     <div className="text-center py-16">
-                        <div className="bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl p-10 border border-neutral-700/50 backdrop-blur-sm max-w-md mx-auto">
-                            <div className="w-20 h-20 bg-gradient-to-r from-teal-500/20 to-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <FontAwesomeIcon
-                                    icon={solidIcons.faSearch}
-                                    className="h-10 w-10 text-teal-400"
-                                />
+                        <div className="bg-black rounded-2xl p-10 border border-white/10 max-w-md mx-auto">
+                            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <FontAwesomeIcon icon={solidIcons.faSearch} className="h-10 w-10 text-gray-600" />
                             </div>
                             <h3 className="text-xl font-bold text-white mb-3">No apartments found</h3>
                             <p className="text-gray-400 mb-6">
@@ -956,7 +775,7 @@ export default function ApartmentsPage() {
                             </p>
                             <button
                                 onClick={resetFilters}
-                                className="px-6 py-3 bg-gradient-to-r from-teal-500 to-emerald-500 text-neutral-900 font-bold rounded-xl hover:from-teal-600 hover:to-emerald-600 transition-colors"
+                                className="px-6 py-3 bg-teal-400 text-black font-bold rounded-xl hover:bg-teal-500 transition-colors"
                             >
                                 Reset Filters
                             </button>

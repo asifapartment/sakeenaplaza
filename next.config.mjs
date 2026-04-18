@@ -16,6 +16,7 @@ const nextConfig = {
         "@sparticuz/chromium",
         "puppeteer-core",
     ],
+    allowedDevOrigins: ['192.168.43.109'],
 };
 
 export default nextConfig;

@@ -20,7 +20,7 @@ export default function AuthModal({ isOpen, onClose, activeTab, onTabChange }) {
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.8, opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="bg-neutral-900 rounded-2xl p-6 sm:p-8 w-full max-w-md relative"
+                        className="bg-black rounded-2xl p-6 sm:p-8 w-full max-w-md relative border border-white/30 shadow-2xl shadow-white/10"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Close Button */}

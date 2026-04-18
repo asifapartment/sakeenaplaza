@@ -111,12 +111,8 @@ export default function Header({
 
     return (
         <header
-            className={`fixed top-0 w-screen z-50 transition-all duration-300 ${className} ${transparentOnScroll
-                ? (isScrolled
-                    ? 'bg-neutral-900 backdrop-blur-2xl border-b border-neutral-800 shadow-2xl'
-                    : 'bg-transparent border-b border-white/10 backdrop-blur-sm')
-                : 'bg-neutral-900 backdrop-blur-2xl border-b border-neutral-800 shadow-2xl'
-                }`}
+            className={`fixed top-0 w-screen z-50 transition-all duration-300 ${className}
+                    bg-black border-b border-neutral-800 shadow-2xl`}
         >
             <nav className="max-w-7xl mx-auto px-6 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-14">

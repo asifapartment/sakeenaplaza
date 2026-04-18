@@ -39,7 +39,7 @@ function FeaturesSection({ apartment }) {
         return (
             <FontAwesomeIcon
                 icon={icon}
-                className="text-teal-400"
+                className="text-teal-400 w-5 h-5"
             />
         );
     };
@@ -47,92 +47,66 @@ function FeaturesSection({ apartment }) {
     return (
         <div className="space-y-8">
             {/* FEATURES & AMENITIES */}
-            <div
-                className="
-                    relative overflow-hidden rounded-2xl p-6
-                    bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800
-                    border border-white/10
-                    shadow-xl shadow-black/40
-                "
-            >
-                {/* Glow */}
-                <div className="absolute inset-0 bg-gradient-to-r from-teal-500/5 via-transparent to-indigo-500/5 pointer-events-none" />
-
+            <div className="bg-black rounded-2xl border border-white/10 overflow-hidden">
                 {/* Header */}
-                <div className="relative flex items-center gap-3 mb-5">
-                    <div className="h-9 w-1 rounded-full bg-gradient-to-b from-teal-400 to-emerald-500" />
-                    <h2 className="text-xl font-semibold text-white tracking-wide">
-                        Features & Amenities
-                    </h2>
+                <div className="border-b border-white/10 px-6 py-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-1 h-6 bg-teal-400 rounded-full" />
+                        <h2 className="text-xl font-semibold text-white">
+                            Features & Amenities
+                        </h2>
+                    </div>
                 </div>
 
-                <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {displayFeatures.map((feature, i) => (
-                        <div
-                            key={i}
-                            className="
-                                flex items-center gap-4
-                                rounded-xl px-4 py-3
-                                bg-neutral-800/40
-                                border border-white/5
-                                hover:bg-neutral-800/60
-                                hover:border-white/10
-                                transition-all duration-200
-                            "
-                        >
-                            <span className="text-lg">
-                                {renderIcon(feature.icon)}
-                            </span>
-                            <span className="text-sm text-gray-300">
-                                {feature.text}
-                            </span>
-                        </div>
-                    ))}
+                {/* Features Grid */}
+                <div className="p-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {displayFeatures.map((feature, i) => (
+                            <div
+                                key={i}
+                                className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-teal-400/30 transition-all duration-200"
+                            >
+                                <span className="text-teal-400">
+                                    {renderIcon(feature.icon)}
+                                </span>
+                                <span className="text-sm text-gray-300">
+                                    {feature.text}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
 
             {/* WHAT'S INCLUDED */}
-            <div
-                className="
-                    relative overflow-hidden rounded-2xl p-6
-                    bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800
-                    border border-white/10
-                    shadow-xl shadow-black/40
-                "
-            >
-                {/* Glow */}
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-transparent to-teal-500/5 pointer-events-none" />
-
+            <div className="bg-black rounded-2xl border border-white/10 overflow-hidden">
                 {/* Header */}
-                <div className="relative flex items-center gap-3 mb-5">
-                    <div className="h-9 w-1 rounded-full bg-gradient-to-b from-indigo-400 to-purple-500" />
-                    <h2 className="text-xl font-semibold text-white tracking-wide">
-                        What&apos;s Included
-                    </h2>
+                <div className="border-b border-white/10 px-6 py-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-1 h-6 bg-teal-400 rounded-full" />
+                        <h2 className="text-xl font-semibold text-white">
+                            What's Included
+                        </h2>
+                    </div>
                 </div>
 
-                <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    {displayWhatsInclude.map((item, index) => (
-                        <div
-                            key={index}
-                            className="
-                                flex flex-col items-center text-center
-                                rounded-xl px-3 py-4
-                                bg-neutral-800/40
-                                border border-white/5
-                                hover:bg-neutral-800/60
-                                hover:border-white/10
-                                transition-all duration-200
-                            "
-                        >
-                            <span className="text-2xl mb-2">
-                                {renderIcon(item.icon)}
-                            </span>
-                            <span className="text-sm text-gray-300">
-                                {item.text}
-                            </span>
-                        </div>
-                    ))}
+                {/* Included Items Grid */}
+                <div className="p-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        {displayWhatsInclude.map((item, index) => (
+                            <div
+                                key={index}
+                                className="flex flex-col items-center text-center p-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-teal-400/30 transition-all duration-200"
+                            >
+                                <span className="text-teal-400 mb-2">
+                                    {renderIcon(item.icon)}
+                                </span>
+                                <span className="text-sm text-gray-300">
+                                    {item.text}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

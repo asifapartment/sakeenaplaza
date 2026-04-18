@@ -12,7 +12,7 @@ export default function Footer() {
 
     return (
         <>
-            <footer className="relative bg-gradient-to-b from-neutral-900 to-neutral-950 text-white overflow-hidden">
+            <footer className="relative bg-black text-white overflow-hidden">
                 {/* Enhanced Decorative Elements */}
                 <div className="absolute top-0 left-0 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl -translate-x-1/4 -translate-y-1/4"></div>
                 <div className="absolute bottom-0 right-0 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl translate-x-1/4 translate-y-1/4"></div>
