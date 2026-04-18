@@ -221,9 +221,10 @@ const PaymentManagement = () => {
                 setTimeout(() => router.push('/login'), 2000);
                 return;
             }
-            
+
             // Handle 403 Forbidden
             if (res.status === 403) {
+                console.warn('Access denied: User does not have admin privileges');
                 setAuthStatus({
                     isAuthenticated: true,
                     isAuthorized: false,

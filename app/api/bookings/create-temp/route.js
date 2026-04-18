@@ -70,7 +70,7 @@ export async function POST(request) {
 
         // === 5. CREATE TEMPORARY BOOKING ===
         const bookingResult = await createTempBooking(validation.data, document_reference,userId);
-        console.log('Booking Result:', bookingResult.bookingId);
+
         if (!bookingResult.success) {
             return NextResponse.json(
                 {
