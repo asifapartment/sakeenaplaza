@@ -1,10 +1,38 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import RegisterForm from './RegisterForm';
 import LoginForm from './Login';
 
 export default function AuthModal({ isOpen, onClose, activeTab, onTabChange }) {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const [redirectPath, setRedirectPath] = useState('/dashboard');
+
+    useEffect(() => {
+        // Get redirect from URL parameters or sessionStorage
+        if (typeof window !== 'undefined') {
+            const urlRedirect = searchParams?.get('redirect');
+            const sessionRedirect = sessionStorage.getItem('redirectAfterLogin');
+            const finalRedirect = urlRedirect || sessionRedirect || '/dashboard';
+            setRedirectPath(finalRedirect);
+
+            // Clear session storage after use
+            if (sessionRedirect) {
+                sessionStorage.removeItem('redirectAfterLogin');
+            }
+        }
+    }, [searchParams]);
+
+    const handleLoginSuccess = () => {
+        onClose();
+        // Redirect to the intended page
+        router.push(redirectPath);
+        router.refresh();
+    };
+
     return (
         <AnimatePresence mode="wait">
             {isOpen && (
@@ -35,8 +63,8 @@ export default function AuthModal({ isOpen, onClose, activeTab, onTabChange }) {
                         <div className="flex border-b border-neutral-700 mb-6">
                             <button
                                 className={`flex-1 py-3 font-semibold text-sm transition-colors ${activeTab === 'login'
-                                        ? 'text-teal-400 border-b-2 border-teal-400'
-                                        : 'text-gray-400 hover:text-gray-200'
+                                    ? 'text-teal-400 border-b-2 border-teal-400'
+                                    : 'text-gray-400 hover:text-gray-200'
                                     }`}
                                 onClick={() => onTabChange('login')}
                             >
@@ -44,8 +72,8 @@ export default function AuthModal({ isOpen, onClose, activeTab, onTabChange }) {
                             </button>
                             <button
                                 className={`flex-1 py-3 font-semibold text-sm transition-colors ${activeTab === 'register'
-                                        ? 'text-teal-400 border-b-2 border-teal-400'
-                                        : 'text-gray-400 hover:text-gray-200'
+                                    ? 'text-teal-400 border-b-2 border-teal-400'
+                                    : 'text-gray-400 hover:text-gray-200'
                                     }`}
                                 onClick={() => onTabChange('register')}
                             >
@@ -63,7 +91,11 @@ export default function AuthModal({ isOpen, onClose, activeTab, onTabChange }) {
                                 transition={{ duration: 0.2 }}
                             >
                                 {activeTab === 'login' ? (
-                                    <LoginForm isModal onSuccess={onClose} />
+                                    <LoginForm
+                                        isModal={true}
+                                        onSuccess={handleLoginSuccess}
+                                        redirectPath={redirectPath}
+                                    />
                                 ) : (
                                     <RegisterForm isModal setTab={onTabChange} />
                                 )}

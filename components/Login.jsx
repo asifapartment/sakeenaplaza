@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faEnvelope,
@@ -10,16 +10,28 @@ import {
     faSignInAlt,
     faArrowRight
 } from '@fortawesome/free-solid-svg-icons';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function LoginForm({ isModal = false, onSuccess }) {
+export default function LoginForm({ isModal = false, onSuccess, redirectPath: propRedirectPath }) {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const router = useRouter();
+    const [redirectPath, setRedirectPath] = useState('/dashboard');
+
+    useEffect(() => {
+        // Determine redirect path
+        if (typeof window !== 'undefined') {
+            const urlRedirect = searchParams?.get('redirect');
+            const sessionRedirect = sessionStorage.getItem('redirectAfterLogin');
+            const finalRedirect = propRedirectPath || urlRedirect || sessionRedirect || '/dashboard';
+            setRedirectPath(finalRedirect);
+        }
+    }, [searchParams, propRedirectPath]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -36,17 +48,27 @@ export default function LoginForm({ isModal = false, onSuccess }) {
             const data = await res.json();
 
             if (res.ok) {
-                setMessage('Login successful!');
+                setMessage('Login successful! Redirecting...');
 
-                if (onSuccess) onSuccess();
+                // Store user data if needed
+                if (data.user) {
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                }
 
-                setTimeout(() => {
-                    if (data.role === 'admin' || data.role === 'staff') {
-                        router.push('/admin');
-                    } else {
+                // If modal has onSuccess callback, use it (for modal flow)
+                if (onSuccess) {
+                    setTimeout(() => {
+                        onSuccess();
+                    }, 500);
+                } else {
+                    // Direct page login (not modal)
+                    setTimeout(() => {
+                        // Clear any stored redirect
+                        sessionStorage.removeItem('redirectAfterLogin');
+                        router.push(redirectPath);
                         router.refresh();
-                    }
-                }, 100);
+                    }, 500);
+                }
             } else {
                 setMessage(data.error || 'Login failed. Please try again.');
             }

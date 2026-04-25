@@ -16,7 +16,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import AuthModal from '@/components/AuthModal';
 
-export default function UnauthorizedPage({searchParams}) {
+export default function UnauthorizedPage() {
+    const searchParams = useSearchParams();
     const router = useRouter();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('login');
@@ -25,6 +26,12 @@ export default function UnauthorizedPage({searchParams}) {
     const [errorType, setErrorType] = useState(null);
     const [redirectPath, setRedirectPath] = useState('/');
 
+    useEffect(() => {
+        if (redirectPath) {
+            sessionStorage.setItem('redirectAfterLogin', redirectPath);
+        }
+    }, [redirectPath]);
+    
     useEffect(() => {
         setMounted(true);
 
@@ -300,7 +307,7 @@ export default function UnauthorizedPage({searchParams}) {
             {/* Auth Modal */}
             <AuthModal
                 isOpen={isModalOpen}
-                onClose={handleModalClose}
+                onClose={() => setIsModalOpen(false)}
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
             />
