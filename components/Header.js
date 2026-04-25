@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faTimes, faUser, faSignOutAlt, faTachometerAlt } from '@fortawesome/free-solid-svg-icons'
 import { motion, AnimatePresence } from 'framer-motion';
@@ -352,15 +352,17 @@ export default function Header({
                     </AnimatePresence>
                 </nav>
             </header>
+            <Suspense>
+                {/* Auth Modal */}
+                <AuthModal
+                    isOpen={authOpen}
+                    onClose={handleAuthModalClose}
+                    activeTab={activeAuthTab}
+                    onTabChange={setActiveAuthTab}
+                    onAuthSuccess={handleAuthSuccess} // Use optimized callback
+                />
+            </Suspense>
 
-            {/* Auth Modal */}
-            <AuthModal
-                isOpen={authOpen}
-                onClose={handleAuthModalClose}
-                activeTab={activeAuthTab}
-                onTabChange={setActiveAuthTab}
-                onAuthSuccess={handleAuthSuccess} // Use optimized callback
-            />
         </>
     )
 }
