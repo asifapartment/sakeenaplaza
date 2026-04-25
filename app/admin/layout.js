@@ -23,6 +23,7 @@ const navItems = [
     { id: 'notifications', label: 'Notifications', icon: faBell, path: '/admin/notifications' },
     { id: 'reviews', label: 'Reviews & Feedbacks', icon: faMessage, path: '/admin/feedback-reviews' },
     { id: 'offers', label: 'Offers', icon: faTags, path: '/admin/offers' },
+    { id: 'home', label: 'Home', icon: faHome, path: '/' }
 ];
 
 // Notification type to route mapping (based on your enum values)

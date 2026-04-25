@@ -86,7 +86,6 @@ export default function UserReviews() {
     // Update Review
     const handleUpdate = async () => {
         if (!editingReview) return;
-        console.log("Updating review:", editingReview.id);
         try {
             const res = await fetch(`/api/reviews/${editingReview.id}`, {
                 method: "PATCH",

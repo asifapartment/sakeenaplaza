@@ -171,7 +171,6 @@ export async function PUT(request, { params }) {
                 console.error('❌ Error processing document data:', docError);
                 // Continue with booking confirmation even if document processing fails
                 // but log the error
-                console.log('Booking confirmed but document processing failed:', docError.message);
             }
         }
 

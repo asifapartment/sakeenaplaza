@@ -183,7 +183,6 @@ export async function GET(req, { params }) {
     });
 
     const page = await browser.newPage();
-    console.log("Generating receipt for payment ID:", id);
 
     // 🧾 Inject receipt HTML
     await page.setContent(getReceiptTemplet(receiptData), { waitUntil: "domcontentloaded" });

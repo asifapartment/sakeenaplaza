@@ -77,7 +77,6 @@ export default function FeedbackPage() {
     const handleSubmit = (e) => {
         e.preventDefault()
         // Here you would typically send the feedback to your backend
-        console.log('Feedback submitted:', { ...formData, rating })
         setIsSubmitted(true)
 
         // Reset form after submission

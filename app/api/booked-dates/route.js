@@ -10,12 +10,15 @@ export async function POST(req) {
             return NextResponse.json({ error: 'Missing apartment ID' }, { status: 400 });
         }
 
-        // ✅ lock both confirmed + pending
+        // Get bookings AND admin-blocked dates
         const bookings = await query(
-            `SELECT start_date, end_date 
-       FROM bookings 
-       WHERE apartment_id = ? 
-       AND status IN ('confirmed', 'pending')`,
+            `SELECT start_date, end_date, blocked_by_admin, block_reason
+             FROM bookings 
+             WHERE apartment_id = ? 
+             AND (
+                 (status IN ('confirmed', 'pending') AND blocked_by_admin = 0)
+                 OR (blocked_by_admin = 1)
+             )`,
             [apartment_id]
         );
 

@@ -60,7 +60,6 @@ export default function BookingCard({
         setProcessingPayment(true);
 
         try {
-            console.log("Initiating payment for booking:", booking);
 
             // Create order
             const order = await fetch('/api/payments/create-order', {
@@ -68,8 +67,6 @@ export default function BookingCard({
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ booking_id: booking.id, amount: booking.total }),
             }).then(res => res.json());
-
-            console.log("Order created:", order);
 
             const options = {
                 key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,

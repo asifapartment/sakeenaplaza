@@ -359,7 +359,6 @@ export default function Payments() {
     }, [getPaymentProperty]);
 
     const handleReceiptAction = useCallback(async (paymentId, action) => {
-        console.log(`🚀 Starting receipt action: ${action} for payment:`, paymentId);
 
         try {
             setCurrentAction(action);
@@ -386,8 +385,6 @@ export default function Payments() {
                ================================ */
             if (action === 'download') {
                 setDownloadLoading(true);
-
-                console.log('📡 Fetching for download:', url);
 
                 const res = await fetch(url);
 

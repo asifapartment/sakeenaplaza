@@ -215,7 +215,6 @@ export async function DELETE(request, { params }) {
         }
 
         const { decoded } = adminCheck;
-        console.log('Token:', decoded.role);
         if (decoded?.role !== 'admin') {
             return NextResponse.json(
                 { error: 'Access denied' },

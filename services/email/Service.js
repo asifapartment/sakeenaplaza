@@ -26,7 +26,6 @@ export class EmailService {
       // Verify connection configuration (async-safe)
       this.transporter.verify()
         .then(() => {
-          console.log("✅ Email transporter ready");
           this.initialized = true;
         })
         .catch((error) => {

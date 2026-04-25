@@ -145,7 +145,6 @@ export async function POST(request) {
                     console.warn(`Booking ${booking_id} not found, skipping status update`);
                 }
             } else {
-                console.log(`Temp reference ${booking_id} detected, skipping booking status update`);
             }
 
             // 3. Log the action (optional but recommended)

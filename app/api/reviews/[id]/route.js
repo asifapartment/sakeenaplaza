@@ -16,7 +16,6 @@ export async function PATCH(req, { params }) {
 
     const {id} = await params;
     const reviewId = Number(id);
-console.log("PATCH reviewId:", reviewId, "User ID from token:", decoded.id);
     if (Number.isNaN(reviewId) || reviewId <= 0) {
       return NextResponse.json(
         { error: 'Invalid review id' },

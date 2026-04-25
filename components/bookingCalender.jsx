@@ -164,7 +164,14 @@ export default function BookingCalendar({
     }, [bookedDates]);
 
     const modifiers = useMemo(() => ({
-        booked: bookedDates
+        booked: bookedDates,
+        past: (date) => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            return d < today;
+        }
     }), [bookedDates]);
 
     const displayedSelection = useMemo(() => {
@@ -269,29 +276,31 @@ export default function BookingCalendar({
                             modifiersClassNames={{
                                 booked: "rdp-day-booked",
                                 selected: "rdp-day-selected",
-                                today: "rdp-day-today"
+                                today: "rdp-day-today",
+                                past: "rdp-day-past"
                             }}
                             classNames={{
-                                root: "text-white",
-                                caption: "flex justify-center items-center relative mb-6",
-                                caption_label: "text-base font-semibold text-white",
-                                nav: "flex items-center gap-1",
-                                nav_button: "w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/10 transition-colors text-gray-400",
-                                nav_button_previous: "absolute left-0",
-                                nav_button_next: "absolute right-0",
-                                table: "w-full",
-                                head_row: "",
-                                head_cell: "text-gray-500 text-sm font-normal pb-3 text-center",
-                                tbody: "",
-                                row: "",
-                                cell: "p-1",
-                                day: "w-10 h-10 flex items-center justify-center text-sm rounded-lg transition-all duration-200 mx-auto",
-                                day_outside: "text-gray-700",
-                                day_disabled: "text-gray-700 cursor-not-allowed",
-                                day_range_middle: "bg-teal-500/20 rounded-none",
-                                day_range_start: "bg-teal-500 text-black rounded-l-lg",
-                                day_range_end: "bg-teal-500 text-black rounded-r-lg",
-                                day_today: "bg-teal-400/20 text-teal-400 font-semibold",
+                                    root: "text-white",
+                                    caption: "flex justify-center items-center relative mb-6",
+                                    caption_label: "text-base font-semibold text-white",
+                                    nav: "flex items-center gap-1",
+                                    nav_button: "w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/10 transition-colors text-gray-400",
+                                    nav_button_previous: "absolute left-0",
+                                    nav_button_next: "absolute right-0",
+                                    table: "w-full",
+                                    head_row: "",
+                                    head_cell: "text-gray-500 text-sm font-normal pb-3 text-center",
+                                    tbody: "",
+                                    td:"text-center",
+                                    row: "",
+                                    cell: "text-p-0",
+                                    day: "w-10 h-10 flex items-center justify-center text-sm transition-all duration-200 mx-auto",
+                                    day_outside: "text-gray-700",
+                                    day_disabled: "text-gray-700 cursor-not-allowed",
+                                    day_range_middle: "bg-teal-500/20 rounded-none",
+                                    day_range_start: "bg-teal-500 text-black rounded-l-lg",
+                                    day_range_end: "bg-teal-500 text-black rounded-r-lg",
+                                    day_today: "bg-teal-400/20 text-teal-400 font-semibold",
                             }}
                         />
                     </>
@@ -306,66 +315,101 @@ export default function BookingCalendar({
             />
 
             <style jsx global>{`
-                .rdp-custom {
-                    --rdp-cell-size: 42px;
-                    --rdp-accent-color: #14b8a6;
-                    --rdp-background-color: rgba(20, 184, 166, 0.1);
-                }
-                
-                .rdp-custom table {
-                    width: 100%;
-                    border-collapse: separate;
-                    border-spacing: 4px 2px;
-                }
-                
-                .rdp-custom td {
-                    padding: 0;
-                }
-                
-                .rdp-day-booked {
-                    background-color: rgba(239, 68, 68, 0.15) !important;
-                    color: rgb(248, 113, 113) !important;
-                    text-decoration: line-through;
-                    cursor: not-allowed;
-                }
-                
-                .rdp-day-selected {
-                    background-color: #14b8a6 !important;
-                    color: black !important;
-                    font-weight: 600 !important;
-                }
-                
-                .rdp-day-today {
-                    background-color: rgba(20, 184, 166, 0.15) !important;
-                    color: #14b8a6 !important;
-                    font-weight: 600 !important;
-                    position: relative;
-                }
-                
-                .rdp-day-today::after {
-                    content: '';
-                    position: absolute;
-                    bottom: 4px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    width: 4px;
-                    height: 4px;
-                    background-color: #14b8a6;
-                    border-radius: 50%;
-                }
-                
-                .rdp-button:hover:not([disabled]) {
-                    background-color: rgba(255, 255, 255, 0.05) !important;
-                }
-                
-                .rdp-day_disabled {
-                    opacity: 0.4;
-                }
-                
-                .rdp-day_outside {
-                    opacity: 0.3;
-                }
-            `}</style>
+    .rdp-custom {
+        --rdp-cell-size: 42px;
+        --rdp-accent-color: #14b8a6;
+        --rdp-background-color: rgba(20, 184, 166, 0.1);
+    }
+    
+    /* Force table layout */
+    .rdp-custom table {
+        width: 100%;
+        border-collapse: collapse;
+        display: table !important;
+    }
+    
+    .rdp-custom tbody {
+        display: table-row-group !important;
+    }
+    
+    .rdp-custom tr {
+        display: table-row !important;
+    }
+    
+    .rdp-custom td, 
+    .rdp-custom th {
+        display: table-cell !important;
+    }
+    
+    /* Create 7-column grid for the body */
+    .rdp-custom tbody tr {
+        display: table-row !important;
+    }
+    
+    .rdp-custom td {
+        width: 42px;
+        height: 42px;
+        padding: 10px; /* Remove padding */
+    }
+    
+    /* Override any TailCSS flex overrides */
+    .rdp-custom [class*="rdp-"] {
+        flex: none !important;
+    }
+    
+    /* Rest of your styles */
+    .rdp-day-booked {
+        background-color: rgba(239, 68, 68, 0.15) !important;
+        color: rgb(248, 113, 113) !important;
+        text-decoration: line-through;
+        cursor: not-allowed;
+    }
+    
+    .rdp-day-selected {
+        background-color: #14b8a6 !important;
+        color: black !important;
+        font-weight: 600 !important;
+        rounded: 50% !important;
+    }
+    
+    .rdp-day-today {
+        background-color: rgba(20, 184, 166, 0.15) !important;
+        color: #14b8a6 !important;
+        font-weight: 600 !important;
+        position: relative;
+    }
+    
+    .rdp-day-today::after {
+        content: '';
+        position: absolute;
+        bottom: 4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 4px;
+        height: 4px;
+        background-color: #14b8a6;
+        border-radius: 50%;
+    }
+    
+    .rdp-button:hover:not([disabled]) {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+    
+    .rdp-day_disabled {
+        opacity: 0.4;
+    }
+    
+    .rdp-day-past {
+        background-color: rgba(100, 100, 100, 0.1) !important;
+        color: rgb(156, 163, 175) !important;
+        cursor: not-allowed;
+        text-decoration: none;
+    }
+        
+    .rdp-day_outside {
+        opacity: 0.3;
+    }
+`}</style>
         </div>
     );
 }

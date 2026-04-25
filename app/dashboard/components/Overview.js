@@ -27,7 +27,6 @@ import {
     faCheck,
     faExclamationTriangle
 } from "@fortawesome/free-solid-svg-icons";
-import Card from "./Card";
 
 export default function Overview() {
     const [data, setData] = useState(null);
@@ -174,7 +173,7 @@ export default function Overview() {
             iconBg: "bg-gradient-to-br from-teal-500/10 to-teal-400/5",
             borderColor: "border-teal-500/20",
             gradient: "from-teal-500/5 to-transparent",
-            action: () => console.log("New Booking")
+            action: () => alert("New Booking")
         },
         {
             title: "View All Bookings",
@@ -184,7 +183,7 @@ export default function Overview() {
             iconBg: "bg-gradient-to-br from-blue-500/10 to-blue-400/5",
             borderColor: "border-blue-500/20",
             gradient: "from-blue-500/5 to-transparent",
-            action: () => console.log("View Bookings")
+            action: () => alert("View Bookings")
         },
         {
             title: "Contact Support",
@@ -194,7 +193,7 @@ export default function Overview() {
             iconBg: "bg-gradient-to-br from-violet-500/10 to-violet-400/5",
             borderColor: "border-violet-500/20",
             gradient: "from-violet-500/5 to-transparent",
-            action: () => console.log("Contact Support")
+            action: () => alert("Contact Support")
         },
     ];
 

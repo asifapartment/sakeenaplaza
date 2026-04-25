@@ -248,8 +248,6 @@ export default function Inbox() {
 
     // Apply filters
     const applyFilters = () => {
-        // Implement your filter logic here
-        console.log('Applying filters:', filters);
         setShowFilterModal(false);
     };
 

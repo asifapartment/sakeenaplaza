@@ -10,7 +10,6 @@ export default function VerificationModal({ isOpen, onClose, onConfirm, bookingI
         "Passport": { front: true, back: false },
         "Voter ID": { front: true, back: true },
     };
-    console.log("Booking ID in Modal:", bookingId);
     // States
     const [selectedDoc, setSelectedDoc] = useState(null);
     const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -126,7 +125,6 @@ export default function VerificationModal({ isOpen, onClose, onConfirm, bookingI
             if (!result.success) {
                 throw new Error(result.error || "Upload failed");
             }
-            console.log("Upload successful, response:", result);
             // Call parent callback with results
             onConfirm({
                 documentType: selectedDoc,

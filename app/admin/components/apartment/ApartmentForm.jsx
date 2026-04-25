@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark, faPlus, faTrash, faSearch, faCircleCheck, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import * as solidIcons from '@fortawesome/free-solid-svg-icons';
+import { DateBlocker } from '@/components/blocker';
 
 const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSubmit, onCancel }) => {
     const [activeTab, setActiveTab] = useState('basic');
@@ -205,7 +206,6 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
             available: formData.available !== undefined ? formData.available : true
         };
 
-        console.log('Submitting data:', submitData);
         onSubmit(submitData);
     };
 
@@ -609,6 +609,14 @@ const ApartmentForm = ({ editingApartment, formData, setFormData, loading, onSub
                                         className="w-full p-3 rounded-lg border border-neutral-700 bg-black text-gray-200 min-h-32 placeholder-neutral-500"
                                         required
                                     />
+                                    {editingApartment && (
+                                        <DateBlocker
+                                            apartmentId={editingApartment.id}
+                                            onDatesBlocked={() => {
+                                                // Optional: refresh any parent components
+                                            }}
+                                        />
+                                    )}
                                 </div>
                             )}
                         </form>

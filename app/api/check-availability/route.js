@@ -16,7 +16,10 @@ export async function POST(req) {
             SELECT start_date, end_date
             FROM bookings
             WHERE apartment_id = ?
-            AND status IN ('confirmed','ongoing','pending')
+            AND (
+                (status IN ('confirmed', 'pending','ongoing') AND blocked_by_admin = 0)
+                OR (blocked_by_admin = 1)
+            )
             AND end_date >= CURDATE()
             ORDER BY start_date ASC
         `, [apartment_id]);

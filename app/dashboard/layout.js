@@ -6,7 +6,6 @@ import { CsrfProvider } from '@/context/CsrfContext';
 
 export default function DashboardLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-
     return (
         <CsrfProvider>
             <div className="flex h-screen bg-neutral-900">

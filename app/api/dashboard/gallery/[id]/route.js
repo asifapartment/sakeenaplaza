@@ -116,7 +116,6 @@ export async function GET(request, { params }) {
         const cached = getCachedResponse(cacheKey);
 
         if (cached) {
-            console.log(`Cache hit for apartment ${apartmentId}`);
             return NextResponse.json(cached, { status: 200 });
         }
 
@@ -164,9 +163,6 @@ export async function GET(request, { params }) {
 
     } catch (error) {
         console.error(`Error fetching gallery images for IP ${ip}:`, error);
-
-        // Log processing time for errors too
-        console.log(`Request failed after ${Date.now() - startTime}ms`);
 
         return NextResponse.json(
             {

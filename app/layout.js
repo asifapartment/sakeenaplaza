@@ -1,6 +1,5 @@
 
 import "./globals.css";
-import PageWrapper from "@/components/pageWrapper";
 import LazyToaster from "@/components/LazyToaster";
 
 export const metadata = {

@@ -12,12 +12,12 @@ function ReviewText({ text }) {
     const shortText = text.slice(0, 120);
 
     return (
-        <p className="text-white/90 leading-relaxed">
+        <p className="text-gray-300 leading-relaxed">
             {expanded || !isLong ? text : `${shortText}... `}
             {isLong && (
                 <button
                     onClick={() => setExpanded(!expanded)}
-                    className="text-teal-400 hover:underline ml-1"
+                    className="text-teal-400 hover:text-teal-300 hover:underline ml-1 transition"
                 >
                     {expanded ? 'Show less' : 'Read more'}
                 </button>
@@ -27,23 +27,23 @@ function ReviewText({ text }) {
 }
 
 const ReviewSkeleton = () => (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 animate-pulse">
+    <div className="bg-black border border-white/10 rounded-2xl p-6 animate-pulse">
         <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 rounded-full bg-white/20" />
+            <div className="w-12 h-12 rounded-full bg-white/10" />
             <div className="flex-1 space-y-2">
-                <div className="h-4 bg-white/20 rounded w-1/2"></div>
-                <div className="h-3 bg-white/20 rounded w-3/4"></div>
+                <div className="h-4 bg-white/10 rounded w-1/2"></div>
+                <div className="h-3 bg-white/10 rounded w-3/4"></div>
             </div>
         </div>
         <div className="space-y-2">
-            <div className="h-3 bg-white/20 rounded"></div>
-            <div className="h-3 bg-white/20 rounded w-5/6"></div>
-            <div className="h-3 bg-white/20 rounded w-4/6"></div>
+            <div className="h-3 bg-white/10 rounded"></div>
+            <div className="h-3 bg-white/10 rounded w-5/6"></div>
+            <div className="h-3 bg-white/10 rounded w-4/6"></div>
         </div>
     </div>
 );
 
-const ReviewSection = ({id}) => {
+const ReviewSection = ({ id }) => {
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(false);
     const [comment, setComment] = useState('');
@@ -53,7 +53,7 @@ const ReviewSection = ({id}) => {
     const [submitting, setSubmitting] = useState(false);
     const [toast, setToast] = useState({ message: "", type: "" });
 
-    const apartmentId = parseInt(id, 10); // dynamic if needed
+    const apartmentId = parseInt(id, 10);
 
     const resetForm = () => {
         setComment('');
@@ -130,36 +130,46 @@ const ReviewSection = ({id}) => {
     };
 
     return (
-        <section className="w-full px-4 py-16 bg-neutral-900">
-            <h2 className="text-4xl font-bold text-white text-center mb-12">
-                What Guests Are Saying
-            </h2>
-
+        <section className="w-full px-4 py-16 bg-black">
             <div className="max-w-7xl mx-auto">
-                <div className="max-h-[420px] overflow-y-auto scrollbar-hide mb-8">
+                {/* Header with gradient underline */}
+                <div className="text-center mb-12">
+                    <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                        What Guests Are Saying
+                    </h2>
+                    <div className="w-24 h-1 bg-gradient-to-r from-teal-400 to-teal-600 rounded-full mx-auto"></div>
+                </div>
+
+                {/* Reviews Grid */}
+                <div className="max-h-[450px] overflow-y-auto mb-10 custom-scrollbar">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 p-4">
                         {loading ? (
                             Array(4).fill(null).map((_, i) => <ReviewSkeleton key={i} />)
                         ) : reviews.length === 0 ? (
-                            <p className="text-white/60 text-lg col-span-full text-center">No reviews yet. Be the first!</p>
+                            <div className="col-span-full text-center py-12">
+                                <p className="text-gray-400 text-lg">No reviews yet. Be the first to share your experience!</p>
+                            </div>
                         ) : (
                             reviews.map(review => (
                                 <div
                                     key={review.id}
-                                    className="bg-white/5 border border-white/10 rounded-2xl p-6 text-gray-100 transition-all hover:bg-white/15 hover:scale-105 duration-300"
+                                    className="group bg-black border border-white/20 rounded-2xl p-6 transition-all duration-300 hover:border-teal-500/30 hover:shadow-lg hover:shadow-teal-500/5 hover:-translate-y-1"
                                 >
                                     <div className="flex items-center gap-4 mb-4">
-                                        <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-white font-bold text-lg shadow-lg">
                                             {review.name.charAt(0).toUpperCase() || "?"}
                                         </div>
-                                        <div>
-                                            <h4 className="font-semibold text-lg max-w-[170px] truncate">{review.name}</h4>
-                                            <div className="flex">
+                                        <div className="flex-1">
+                                            <h4 className="font-semibold text-white text-lg max-w-[170px] truncate">
+                                                {review.name}
+                                            </h4>
+                                            <div className="flex gap-1 mt-1">
                                                 {[...Array(5)].map((_, i) => (
                                                     <FontAwesomeIcon
                                                         key={i}
                                                         icon={i < review.rating ? solidStar : regularStar}
-                                                        className={`text-sm ${i < review.rating ? 'text-teal-400' : 'text-white/30'}`}
+                                                        className={`text-sm transition-all duration-200 ${i < review.rating ? 'text-teal-400' : 'text-white/20'
+                                                            }`}
                                                     />
                                                 ))}
                                             </div>
@@ -172,45 +182,58 @@ const ReviewSection = ({id}) => {
                     </div>
                 </div>
 
+                {/* Write Review Button */}
                 <div className="text-center">
                     <button
                         onClick={() => setShowModal(true)}
-                        className="px-6 py-3 font-semibold text-white rounded-xl bg-teal-400/20 hover:bg-teal-500 transition-all duration-200 shadow-md hover:shadow-xl"
+                        className="group relative px-8 py-3 font-semibold text-white rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                     >
-                        Write a Review
+                        <span>Write a Review</span>
                     </button>
                 </div>
             </div>
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-5">
-                    <div className="bg-neutral-900 border border-white/20 rounded-2xl shadow-2xl p-8 w-full max-w-lg relative backdrop-blur-xl">
+                <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 p-5 animate-fadeIn">
+                    <div className="bg-black border border-white/20 rounded-2xl shadow-2xl p-8 w-full max-w-lg relative transform transition-all">
                         <button
                             onClick={() => { resetForm(); setShowModal(false); }}
-                            className="absolute top-4 right-4 text-white/60 hover:text-white"
+                            className="absolute top-4 right-4 text-gray-400 hover:text-white transition text-2xl"
                         >
                             ✕
                         </button>
 
-                        <h3 className="text-2xl font-semibold text-white mb-6">Leave a Review</h3>
+                        <div className="mb-6">
+                            <h3 className="text-2xl font-bold text-white mb-2">Share Your Experience</h3>
+                            <p className="text-gray-400 text-sm">Your feedback helps other travelers</p>
+                        </div>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            <textarea
-                                placeholder="Share your experience..."
-                                value={comment}
-                                onChange={(e) => setComment(e.target.value)}
-                                className="w-full h-28 p-4 rounded-xl border border-white/10 bg-white/10 text-white placeholder-white/60 resize-none focus:outline-none focus:border-teal-400 transition-all"
-                                required
-                            />
+                            {/* Comment Textarea */}
+                            <div>
+                                <label className="block text-white/80 text-sm font-medium mb-2">
+                                    Your Review
+                                </label>
+                                <textarea
+                                    placeholder="What did you love about your stay? Any suggestions?"
+                                    value={comment}
+                                    onChange={(e) => setComment(e.target.value)}
+                                    className="w-full h-32 p-4 rounded-xl border border-white/10 bg-white/5 text-white placeholder-gray-500 resize-none focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all"
+                                    required
+                                />
+                            </div>
 
-                            <div className="flex flex-col gap-2">
-                                <span className="text-white/70 mr-2">Your Rating:</span>
-                                <div>
+                            {/* Rating Stars */}
+                            <div>
+                                <label className="block text-white/80 text-sm font-medium mb-2">
+                                    Your Rating
+                                </label>
+                                <div className="flex gap-2">
                                     {[...Array(5)].map((_, i) => {
                                         const ratingValue = i + 1;
                                         return (
-                                            <label key={ratingValue} className="cursor-pointer">
+                                            <label key={ratingValue} className="cursor-pointer transition-transform hover:scale-110">
                                                 <input
                                                     type="radio"
                                                     name="rating"
@@ -222,32 +245,45 @@ const ReviewSection = ({id}) => {
                                                     icon={ratingValue <= (hover || rating) ? solidStar : regularStar}
                                                     onMouseEnter={() => setHover(ratingValue)}
                                                     onMouseLeave={() => setHover(0)}
-                                                    className={`text-2xl transition-all duration-150 ease-in-out mr-2 ${ratingValue <= (hover || rating)
-                                                        ? 'text-teal-400 scale-110'
-                                                        : 'text-white/30'
+                                                    className={`text-3xl transition-all duration-200 ${ratingValue <= (hover || rating)
+                                                        ? 'text-teal-400 drop-shadow-glow'
+                                                        : 'text-white/20'
                                                         }`}
                                                 />
                                             </label>
                                         )
                                     })}
                                 </div>
+                                <p className="text-gray-500 text-xs mt-2">
+                                    {rating === 0 ? 'Click to rate' : `You rated ${rating} star${rating > 1 ? 's' : ''}`}
+                                </p>
                             </div>
 
+                            {/* Submit Button */}
                             <button
                                 type="submit"
                                 disabled={submitting}
                                 className={`w-full py-3 font-semibold rounded-xl transition-all duration-200 shadow-md ${submitting
-                                    ? 'bg-gray-500 cursor-not-allowed'
-                                    : 'bg-teal-400/20 hover:bg-white hover:text-black'
+                                    ? 'bg-gray-700 cursor-not-allowed text-gray-400'
+                                    : 'bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white hover:shadow-lg transform hover:-translate-y-0.5'
                                     }`}
                             >
-                                {submitting ? 'Submitting...' : 'Submit Review'}
+                                {submitting ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Submitting...
+                                    </span>
+                                ) : 'Submit Review'}
                             </button>
                         </form>
                     </div>
                 </div>
             )}
 
+            {/* Toast Notification */}
             {toast.message && (
                 <Toast
                     message={toast.message}
@@ -255,6 +291,44 @@ const ReviewSection = ({id}) => {
                     onClose={() => setToast({ message: "", type: "" })}
                 />
             )}
+
+            {/* Custom Scrollbar Styles */}
+            <style jsx global>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 8px;
+                }
+                
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 10px;
+                }
+                
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: rgba(20, 184, 166, 0.5);
+                    border-radius: 10px;
+                }
+                
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: rgba(20, 184, 166, 0.8);
+                }
+                
+                @keyframes fadeIn {
+                    from {
+                        opacity: 0;
+                    }
+                    to {
+                        opacity: 1;
+                    }
+                }
+                
+                .animate-fadeIn {
+                    animation: fadeIn 0.2s ease-in;
+                }
+                
+                .drop-shadow-glow {
+                    filter: drop-shadow(0 0 4px rgba(20, 184, 166, 0.5));
+                }
+            `}</style>
         </section>
     )
 }

@@ -59,7 +59,6 @@ export async function POST(req) {
             return Response.json({ success: false, error: "Booking not found or not confirmed" });
 
         const amount = rows[0].total_amount;
-        console.log("Creating Razorpay order for amount:", amount);
         const razorpay = new Razorpay({
             key_id: process.env.RAZORPAY_KEY_ID,
             key_secret: process.env.RAZORPAY_KEY_SECRET,

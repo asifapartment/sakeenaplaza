@@ -10,7 +10,7 @@ const nextConfig = {
         ],
 
         // ➤ Add this
-        qualities: [60, 65, 70, 75, 80, 90, 95, 100],
+        qualities: [100, 60, 65, 70, 75, 80, 85, 90, 95],
     },
     serverExternalPackages: [
         "@sparticuz/chromium",

@@ -16,7 +16,7 @@ export default function ReviewsSection({ apartmentId, userId }) {
             const data = await res.json();
             setReviews(data.reviews || []);
         } catch (err) {
-            console.log(err);
+            console.error(err);
         }
         setLoading(false);
     };

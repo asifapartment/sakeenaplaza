@@ -490,7 +490,6 @@ const BookingsList = ({
                 selectedBookingDocument.booking_id.toString().startsWith('TEMP_');
 
             if (isFirstTimeBooking) {
-                console.log('Processing first-time booking with temp reference:', selectedBookingDocument.booking_id);
 
                 // Create the booking first
                 const bookingResponse = await fetch('/api/bookings', {
@@ -562,7 +561,6 @@ const BookingsList = ({
                 alert('Booking created and document verified successfully!');
 
             } else if (booking) {
-                console.log('Processing verification for existing booking:', selectedBooking);
 
                 const verificationResponse = await fetch('/api/admin/verify-document', {
                     method: 'POST',

@@ -177,14 +177,8 @@ export default async function BookingPage({ params }) {
         </section>
 
         {/* Reviews Section */}
-        <section className="w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-12 bg-white/5">
+        <section className="w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-12 bg-black">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-6">
-              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
-                Guest Reviews
-              </h2>
-              <div className="w-20 h-1 bg-teal-400 rounded-full"></div>
-            </div>
             <ReviewSection id={apartment.id} />
           </div>
         </section>

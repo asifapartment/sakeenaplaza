@@ -552,7 +552,6 @@ const ApartmentGallery = () => {
 
     const openEditModal = useCallback((img) => {
         if (!img?.id) return;
-        console.log(img)
         setSelectedImage(img);
         setEditModalOpen(true);
         setLoadingImage(true);

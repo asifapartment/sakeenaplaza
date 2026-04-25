@@ -14,25 +14,46 @@ import {
     faExclamationCircle,
     faStar,
     faWandSparkles,
-    faChevronRight
+    faChevronRight,
+    faShieldHalved
 } from '@fortawesome/free-solid-svg-icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
+import { set } from 'zod';
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
     const pathname = usePathname();
-    const [loading, setLoading] = useState(false);
+    const [auth, setAuth] = useState({ name: '', role: '' });
+    const [loading, setLoading] = useState(true);
     const [isHovered, setIsHovered] = useState(null);
     const sidebarRef = useRef(null);
     const overlayRef = useRef(null);
+
+    useEffect(() => {
+        const handleAuth = async () => {
+            try {
+                const res = await fetch('/api/auth/me');
+                if (res.ok) {
+                    const data = await res.json();
+                    setAuth({ name: data.name, role: data.role });
+                }
+            } catch (error) {
+                console.error('Error fetching auth info:', error);
+            }finally {
+                setLoading(false)
+            }
+        };
+
+        handleAuth();
+    }, []);
 
     // Fixed dimensions to prevent layout shifts
     const DIMENSIONS = {
         sidebar: { width: '288px' }, // 72 * 4 = 288px
         header: { height: '80px' },
-        navItem: { height: '56px' }, // 3.5rem * 16 = 56px
-        quickLink: { height: '52px' }, // 3.25rem * 16 = 52px
+        navItem: { height: '50px' }, // 3.125rem * 16 = 50px
+        quickLink: { height: '46px' }, // 2.875rem * 16 = 46px
         footer: { height: '88px' },
         mobileHeader: { height: '64px' },
         iconContainer: { width: '32px', height: '32px' },
@@ -239,7 +260,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
                     </div>
 
                     {/* Navigation - Scrollable area with fixed item heights */}
-                    <nav className="flex-1 p-5 space-y-6 overflow-y-auto">
+                    <nav className="flex-1 p-5 space-y-3 overflow-y-auto">
                         <div className="space-y-2">
                             <div className="flex items-center gap-2 px-3 mb-3" style={{ height: '24px' }}>
                                 <div className="h-px flex-1 bg-gradient-to-r from-transparent via-neutral-700/50 to-transparent"></div>
@@ -318,7 +339,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
                         {/* Quick Links - Fixed heights */}
                         <div className="space-y-2">
-                            <div className="flex items-center gap-2 px-3 mb-3" style={{ height: '24px' }}>
+                            <div className="flex items-center gap-2 px-3" style={{ height: '24px' }}>
                                 <div className="h-px flex-1 bg-gradient-to-r from-transparent via-neutral-700/50 to-transparent"></div>
                                 <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider whitespace-nowrap">
                                     Quick Access
@@ -368,6 +389,34 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
                                 ))}
                             </div>
                         </div>
+
+                        {auth.role === 'admin' && (
+                            <div className="">
+                                <Link
+                                    href="/admin"
+                                    onClick={() => setSidebarOpen(false)}
+                                    className="w-full flex items-center gap-3 px-4 py-2 rounded-xl bg-gradient-to-r from-teal-500/20 to-teal-400/10 border border-teal-500/30 hover:bg-gradient-to-r hover:from-teal-500/30 hover:to-teal-400/20 transition-all duration-200 group"
+                                >
+                                    <div className="flex items-center justify-center rounded-full shadow-lg bg-teal-500/30 group-hover:bg-teal-500/50 transition-colors"
+                                        style={{
+                                            width: '40px',
+                                            height: '40px'
+                                        }}
+                                    >
+                                        <FontAwesomeIcon
+                                            icon={faShieldHalved}
+                                            className="text-white"
+                                            style={{ width: '20px', height: '20px' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-white">Admin Panel</p>
+                                        <p className="text-xs text-neutral-400">Manage your site</p>
+                                    </div>
+                                </Link>
+                            </div>
+                        )}
+
                     </nav>
 
                     {/* Footer - Fixed height */}

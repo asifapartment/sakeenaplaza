@@ -98,7 +98,7 @@ export default function Header({
             });
 
             if (response.ok) {
-                console.log('Logout successful');
+                alert('Logout successful');
             } else {
                 console.error('Logout failed');
             }

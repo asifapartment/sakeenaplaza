@@ -152,7 +152,6 @@ export async function POST(req) {
         /* ===============================
            QUEUE OLD IMAGES FOR DELETION
         =============================== */
-        console.log("Old images to delete:", oldImages);
         if (oldImages.length) {
 
             try {

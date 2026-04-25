@@ -13,7 +13,6 @@ export async function GET() {
     const sessionToken = cookieStore.get('token')?.value;
 
     if (!sessionToken) {
-      console.log('No session token found in cookies.');
       return NextResponse.json(
         { error: 'Authentication required', code: 'UNAUTHORIZED' },
         { status: 401 }
