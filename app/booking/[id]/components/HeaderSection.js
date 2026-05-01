@@ -3,9 +3,15 @@ import { Star } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLocationDot, faTag, faCalendarAlt, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { useOffers, applyOffer, getApplicableOffers } from "@/hooks/useOffers";
+import { useEffect, useState } from "react";
 
 function HeaderSection({ plan }) {
     const { offers, loading, error } = useOffers(plan?.id);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     // Calculate prices
     const originalPrice = plan.price || 0;
@@ -17,6 +23,54 @@ function HeaderSection({ plan }) {
 
     // Get applicable offers for display
     const applicableOffers = getApplicableOffers(offers, plan?.id);
+
+    // Function to scroll to booking form
+    const scrollToBookingForm = () => {
+        // Check if we're on desktop or mobile based on viewport
+        const isDesktop = window.innerWidth >= 1024; // 1024px is the lg breakpoint
+
+        // Select the appropriate booking form based on screen size
+        const bookingForm = isDesktop
+            ? document.getElementById('booking-form-desktop')
+            : document.getElementById('booking-form-mobile');
+
+        if (bookingForm) {
+            // Get the header height for better offset calculation
+            const header = document.querySelector('header');
+            const headerHeight = header ? header.offsetHeight : 80;
+
+            const elementPosition = bookingForm.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerHeight - 20;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        } else {
+            // Fallback: try to find any booking form by class or attribute
+            const fallbackForm = document.querySelector('[id*="booking-form"]');
+            if (fallbackForm) {
+                fallbackForm.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        }
+    };
+
+    // Only render interactive elements after mounting to avoid hydration issues
+    if (!isMounted) {
+        return (
+            <section className="w-full bg-black border-b border-white/10 mt-10">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+                    <div className="animate-pulse">
+                        <div className="h-8 bg-white/10 rounded w-3/4 mb-4"></div>
+                        <div className="h-4 bg-white/10 rounded w-1/2"></div>
+                    </div>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <section className="w-full bg-black border-b border-white/10 mt-10">
@@ -184,7 +238,10 @@ function HeaderSection({ plan }) {
 
                             {/* CTA */}
                             <div className="p-6 pt-0">
-                                <button className="w-full bg-teal-400 hover:bg-teal-500 text-black font-semibold py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 group">
+                                <button
+                                    onClick={scrollToBookingForm}
+                                    className="w-full bg-teal-400 hover:bg-teal-500 text-black font-semibold py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 group"
+                                >
                                     <span>Book Now</span>
                                     <FontAwesomeIcon
                                         icon={faChevronRight}

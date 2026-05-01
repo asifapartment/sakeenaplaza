@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faChevronDown, faCheckCircle, faBan, faTrash, faTimes, faExclamationTriangle, faPlusCircle } from "@fortawesome/free-solid-svg-icons";
+import { faEye, faChevronDown, faCheckCircle, faBan, faTrash, faTimes, faExclamationTriangle, faPlusCircle, faClock, faHourglassHalf, faCalendarCheck, faInfoCircle, faSpinner, faCloudUploadAlt, faIdCard } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
 import NoBookingsEmptyState from "./EmptyBooking";
 
@@ -270,35 +270,54 @@ const BookingsList = ({
     };
 
     const getDocumentActionConfig = (documentStatus) => {
-        switch (documentStatus) {
-            case "approved":
-                return {
-                    label: "Verified",
-                    variant: "confirm",
-                    disabled: true,
-                    icon: faCheckCircle,
-                };
-            case "rejected":
-                return {
-                    label: "Verify",
-                    variant: "delete",
-                    disabled: false,
-                    icon: faExclamationTriangle,
-                };
-            default:
-                return {
-                    label: "Verify",
-                    variant: "cancel",
-                    disabled: false,
-                    icon: faExclamationTriangle,
-                };
-        }
+        const configs = {
+            approved: {
+                icon: faCheckCircle,
+                label: 'Verified',
+                variant: 'success',
+                disabled: true,
+                tooltip: 'Document already verified'
+            },
+            pending: {
+                icon: faSpinner,
+                label: 'Verify Pending',
+                variant: 'warning',
+                disabled: false,
+                tooltip: 'Document pending verification'
+            },
+            rejected: {
+                icon: faCloudUploadAlt,
+                label: 'Re-upload Required',
+                variant: 'danger',
+                disabled: false,
+                tooltip: 'Please re-upload your document'
+            },
+            not_submitted: {
+                icon: faIdCard,
+                label: 'Verify Now',
+                variant: 'primary',
+                disabled: false,
+                tooltip: 'Click to verify document'
+            },
+            submitted: {
+                icon: faHourglassHalf,
+                label: 'Under Review',
+                variant: 'info',
+                disabled: true,
+                tooltip: 'Document is being reviewed'
+            }
+        };
+
+        return configs[documentStatus] || configs.not_submitted;
     };
 
     const canShowCancelButton = (bookingStatus) => {
-        return !["confirmed", "expired", "ongoing", "cancelled"].includes(bookingStatus);
+        return !["confirmed", "expired", "ongoing", "cancelled","blocked","completed"].includes(bookingStatus);
     };
 
+    const canShowVerifyButton = (bookingStatus) => {
+        return !["confirmed","completed","expired","cancelled","blocked"].includes(bookingStatus);
+    };
     const handleDocumentTypeChange = (type) => {
         setDocumentType(type);
         const initialData = {};
@@ -350,19 +369,56 @@ const BookingsList = ({
     };
 
     const getStatusBadge = (status) => {
-        const statusColors = {
-            pending: "bg-yellow-500/20 text-yellow-400",
-            confirmed: "bg-green-500/20 text-green-400",
-            cancelled: "bg-red-500/20 text-red-400",
-            expired: "bg-gray-500/20 text-gray-400",
-            ongoing: "bg-blue-500/20 text-blue-400",
+        const statusConfig = {
+            pending: {
+                color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+                icon: faClock,
+                label: "Pending"
+            },
+            confirmed: {
+                color: "bg-green-500/20 text-green-400 border-green-500/30",
+                icon: faCheckCircle,
+                label: "Confirmed"
+            },
+            completed: {
+                color: "bg-green-500/20 text-green-400 border-green-500/30",
+                icon: faCheckCircle,
+                label: "Confirmed"
+            },
+            cancelled: {
+                color: "bg-red-500/20 text-red-400 border-red-500/30",
+                icon: faBan,
+                label: "Cancelled"
+            },
+            expired: {
+                color: "bg-gray-500/20 text-gray-400 border-gray-500/30",
+                icon: faHourglassHalf,
+                label: "Expired"
+            },
+            ongoing: {
+                color: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+                icon: faCalendarCheck,
+                label: "Ongoing"
+            },
+            blocked:{
+                color: "bg-red-500/20 text-red-400 border-red-500/30",
+                icon: faBan,
+                label: "Blocked"
+            }
         };
+
+        const config = statusConfig[status] || {
+            color: "bg-gray-500/20 text-gray-400 border-gray-500/30",
+            icon: faInfoCircle,
+            label: status?.charAt(0).toUpperCase() + status?.slice(1) || "Unknown"
+        };
+
         return (
             <span
-                className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[status] || "bg-gray-500/20 text-gray-400"
-                    }`}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${config.color}`}
             >
-                {status.charAt(0).toUpperCase() + status.slice(1)}
+                <FontAwesomeIcon icon={config.icon} className="text-xs" />
+                {config.label}
             </span>
         );
     };
@@ -699,22 +755,46 @@ const BookingsList = ({
         icon,
         label,
         variant = "default",
-        disabled = false
+        disabled = false,
+        className = ""
     }) => {
         const variants = {
-            default: "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20",
-            confirm: "bg-green-500/10 text-green-400 hover:bg-green-500/20",
-            cancel: "bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20",
-            delete: "bg-red-500/10 text-red-400 hover:bg-red-500/20",
+            // Original variants
+            default: "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30",
+            confirm: "bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30",
+            cancel: "bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/30",
+            delete: "bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30",
+
+            // Document status variants
+            success: "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30",
+            warning: "bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/30",
+            danger: "bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30",
+            primary: "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30",
+            info: "bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 border border-sky-500/30",
+
+            // Additional variants
+            purple: "bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/30",
+            indigo: "bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/30",
+            pink: "bg-pink-500/10 text-pink-400 hover:bg-pink-500/20 border border-pink-500/30",
+            teal: "bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 border border-teal-500/30",
         };
 
         return (
             <button
                 onClick={onClick}
                 disabled={disabled}
-                className={`flex items-center px-3 py-1.5 rounded-lg transition-all duration-200 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed ${variants[variant]}`}
+                className={`
+                    inline-flex items-center gap-2 px-3 py-1.5 rounded-lg 
+                    transition-all duration-200 font-medium text-sm 
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    ${variants[variant] || variants.default}
+                    ${className}
+                `}
             >
-                <FontAwesomeIcon icon={icon} className="w-4 h-4 mr-2" />
+                <FontAwesomeIcon
+                    icon={icon}
+                    className={`w-4 h-4 ${icon === faSpinner ? 'animate-spin' : ''}`}
+                />
                 {label}
             </button>
         );
@@ -958,20 +1038,29 @@ const BookingsList = ({
                                                 />
 
                                                 {/* Document Verify / Verified Button */}
-                                                {(() => {
+                                                {canShowVerifyButton(booking.status) && (() => {
                                                     const docConfig = getDocumentActionConfig(booking.document_status);
+
                                                     return (
-                                                        <ActionButton
-                                                            onClick={() => {
-                                                                if (!docConfig.disabled) {
-                                                                    handleQuickStatusUpdate(booking.id, "confirmed");
-                                                                }
-                                                            }}
-                                                            icon={docConfig.icon}
-                                                            label={docConfig.label}
-                                                            variant={docConfig.variant}
-                                                            disabled={docConfig.disabled}
-                                                        />
+                                                        <div className="relative group">
+                                                            <ActionButton
+                                                                onClick={() => {
+                                                                    if (!docConfig.disabled) {
+                                                                        handleQuickStatusUpdate(booking.id, "confirmed");
+                                                                    }
+                                                                }}
+                                                                icon={docConfig.icon}
+                                                                label={docConfig.label}
+                                                                variant={docConfig.variant}
+                                                                disabled={docConfig.disabled}
+                                                                className={docConfig.disabled ? 'cursor-not-allowed opacity-60' : ''}
+                                                            />
+                                                            {docConfig.disabled && docConfig.tooltip && (
+                                                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                                                                    {docConfig.tooltip}
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     );
                                                 })()}
 

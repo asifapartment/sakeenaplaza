@@ -221,7 +221,7 @@ function BookingForm({ apartmentId, disabledRanges, lockedRanges, dailyRate = 20
     };
 
     return (
-        <div className="sticky top-24 bg-black rounded-2xl border border-white/10 overflow-hidden w-full max-w-md">
+        <div id="book" className="sticky top-24 bg-black rounded-2xl border border-white/10 overflow-hidden w-full max-w-md">
             <div className="p-5 space-y-4">
                 {/* Error Toast */}
                 {(formError || error) && (

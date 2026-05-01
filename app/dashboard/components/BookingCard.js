@@ -1,23 +1,21 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation'; // Add this import
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faCalendar,
     faRupeeSign,
     faBan,
-    faEnvelope,
     faCreditCard,
-    faTrash,
     faEye,
     faUser,
     faHome,
     faUsers,
     faReceipt,
     faClock,
-    faCheckCircle,
-    faPaperPlane
+    faCheckCircle
 } from '@fortawesome/free-solid-svg-icons';
-import PaymentModal from './PaymentModal'; // Import the modal component
+import PaymentModal from './PaymentModal';
 
 const getStatusColor = (status) => {
     const colors = {
@@ -43,11 +41,11 @@ const getStatusIcon = (status) => {
 
 export default function BookingCard({
     booking,
-    onViewDetails,
-    onCancel,
+    onCancel,  // Keep for cancellation functionality
     onResendEmail,
     updateBookingInState
 }) {
+    const router = useRouter(); // Initialize router
     const [processingPayment, setProcessingPayment] = useState(false);
     const [resendingEmail, setResendingEmail] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
@@ -56,11 +54,15 @@ export default function BookingCard({
     const [verificationMessage, setVerificationMessage] = useState('');
     const [paymentDetails, setPaymentDetails] = useState(null);
 
+    // Handle view details - navigate to dedicated booking page
+    const handleViewDetails = () => {
+        router.push(`/dashboard/bookings/${booking.id}`);
+    };
+
     const handlePayment = async () => {
         setProcessingPayment(true);
 
         try {
-
             // Create order
             const order = await fetch('/api/payments/create-order', {
                 method: 'POST',
@@ -76,14 +78,12 @@ export default function BookingCard({
                 description: `Payment for Booking #${booking.id}`,
                 order_id: order.order_id,
                 handler: async function (response) {
-                    // Show verification modal
                     setVerificationStatus('verifying');
                     setVerificationMessage('Verifying your payment...');
                     setPaymentDetails(response);
                     setShowVerificationModal(true);
 
                     try {
-                        // Verify payment on server with comprehensive data
                         const verifyRes = await fetch('/api/payments/verify-payment', {
                             method: 'POST',
                             headers: {
@@ -103,12 +103,10 @@ export default function BookingCard({
                         const result = await verifyRes.json();
 
                         if (result.success) {
-                            // Optimistic update
                             updateBookingInState(booking.id, { paymentStatus: 'paid' });
                             setVerificationStatus('success');
                             setVerificationMessage('Payment verified successfully!');
 
-                            // Auto-close after 3 seconds
                             setTimeout(() => {
                                 setShowVerificationModal(false);
                                 setVerificationStatus(null);
@@ -140,14 +138,12 @@ export default function BookingCard({
 
             const razorpayInstance = new window.Razorpay(options);
 
-            // Add payment failure handler
             razorpayInstance.on('payment.failed', function (response) {
                 setVerificationStatus('error');
                 setVerificationMessage(response.error.description || 'Payment failed. Please try again.');
                 setShowVerificationModal(true);
             });
 
-            // Add close handler for verification scenario
             razorpayInstance.on('close', function () {
                 if (verificationStatus === 'verifying') {
                     setVerificationStatus('error');
@@ -168,13 +164,6 @@ export default function BookingCard({
         }
     };
 
-    const handleResendClick = async () => {
-        setResendingEmail(true);
-        await onResendEmail(booking);
-        setResendingEmail(false);
-    };
-
-    // Calculate days between dates
     const calculateNights = (checkIn, checkOut) => {
         const start = new Date(checkIn);
         const end = new Date(checkOut);
@@ -187,9 +176,10 @@ export default function BookingCard({
     return (
         <>
             <div
-                className="group relative overflow-hidden bg-gradient-to-br from-neutral-800/60 to-neutral-900/60 border border-neutral-700/30 rounded-2xl p-6 hover:border-teal-500/30 hover:shadow-2xl hover:shadow-teal-500/10 transition-all duration-500 backdrop-blur-sm"
+                className="group relative overflow-hidden bg-gradient-to-br from-neutral-800/60 to-neutral-900/60 border border-neutral-700/30 rounded-2xl p-6 hover:border-teal-500/30 hover:shadow-2xl hover:shadow-teal-500/10 transition-all duration-500 backdrop-blur-sm cursor-pointer"
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
+                onClick={handleViewDetails} // Make entire card clickable for details
             >
                 {/* Animated background gradient */}
                 <div className={`absolute inset-0 bg-gradient-to-br from-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${isHovered ? 'opacity-100' : ''}`}></div>
@@ -293,10 +283,10 @@ export default function BookingCard({
                     </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="relative flex gap-2">
+                {/* Action Buttons - Stop propagation to prevent card click when clicking buttons */}
+                <div className="relative flex gap-2" onClick={(e) => e.stopPropagation()}>
                     <button
-                        onClick={onViewDetails}
+                        onClick={handleViewDetails}
                         className="flex-1 px-4 py-2.5 bg-gradient-to-r from-neutral-700/60 to-neutral-800/60 hover:from-neutral-600/60 hover:to-neutral-700/60 text-neutral-200 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 border border-neutral-600/30 hover:border-teal-500/30 hover:text-teal-100 group/btn"
                     >
                         <FontAwesomeIcon icon={faEye} className="group-hover/btn:scale-110 transition-transform" />
@@ -310,20 +300,6 @@ export default function BookingCard({
                         >
                             <FontAwesomeIcon icon={faBan} className="group-hover/btn:rotate-12 transition-transform" />
                             Cancel
-                        </button>
-                    )}
-
-                    {booking.status === 'pending' && (
-                        <button
-                            onClick={handleResendClick}
-                            disabled={resendingEmail}
-                            className="px-4 py-2.5 bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 hover:from-emerald-500/30 hover:to-emerald-600/30 text-emerald-300 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 border border-emerald-500/30 hover:border-emerald-400/50 disabled:opacity-50 disabled:cursor-not-allowed group/btn"
-                        >
-                            <FontAwesomeIcon
-                                icon={resendingEmail ? faPaperPlane : faEnvelope}
-                                className={`group-hover/btn:scale-110 transition-transform ${resendingEmail ? 'animate-pulse' : ''}`}
-                            />
-                            {resendingEmail ? 'Sending...' : 'Resend'}
                         </button>
                     )}
 

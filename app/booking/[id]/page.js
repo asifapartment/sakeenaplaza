@@ -127,7 +127,7 @@ export default async function BookingPage({ params }) {
           <div className="max-w-7xl mx-auto">
             {/* Mobile: Booking Form first, Desktop: Side by side */}
             <div className="block lg:hidden mb-8">
-              <div className="sticky top-4 z-20">
+              <div id="booking-form-mobile" className="sticky top-4 z-20">
                 <BookingForm
                   apartmentId={id}
                   disabledRanges={disabledRanges}
@@ -142,13 +142,11 @@ export default async function BookingPage({ params }) {
               <div className="lg:col-span-2 space-y-10">
                 {/* Features Section */}
                 <div>
-
                   <FeaturesSection apartment={apartment} />
                 </div>
 
                 {/* House Rules Section */}
                 <div>
-
                   <HouseRulesSection rules={apartment.houseRules} />
                 </div>
 
@@ -163,7 +161,7 @@ export default async function BookingPage({ params }) {
 
               {/* Right Column - Booking Form (Desktop only) */}
               <div className="hidden lg:block">
-                <div className="sticky top-24">
+                <div id="booking-form-desktop" className="sticky top-24">
                   <BookingForm
                     apartmentId={id}
                     disabledRanges={disabledRanges}
