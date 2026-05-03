@@ -10,7 +10,7 @@ import GuestDetailsModal from "./GuestDetailsModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPen, faTag, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useOffers, applyOffer, getApplicableOffers } from "@/hooks/useOffers";
-
+let grandTotal;
 function formatForMySQL(date) {
     const pad = (n) => n.toString().padStart(2, "0");
     const yyyy = date.getFullYear();
@@ -209,7 +209,7 @@ function BookingForm({ apartmentId, dailyRate = 200, cleaningFee = 500 }) {
                     check_in: checkinSQL,
                     check_out: checkoutSQL,
                     guests: Number(formData.guests),
-                    total_amount: Number(bookingTotal),
+                    total_amount: Number(grandTotal),
                     nights: Number(bookingSummary.nights),
                     guest_details: guestsInfo,
                     document_reference: referenceId
@@ -239,7 +239,7 @@ function BookingForm({ apartmentId, dailyRate = 200, cleaningFee = 500 }) {
     const basePrice = parseInt(bookingSummary?bookingSummary?.originalDailyRate:0) * (bookingSummary?.nights);
     discount = ((basePrice * parseInt(bookingSummary?.appliedOffer?.discount_percentage ||0))/100);
     const subTotal = basePrice-discount+cleaningFee;
-    const grandTotal = (subTotal*(1+(gst/100)));
+    grandTotal = (subTotal*(1+(gst/100)));
 
     return (
         <div id="book" className="sticky top-24 bg-black rounded-2xl border border-white/10 overflow-hidden w-full max-w-md">
