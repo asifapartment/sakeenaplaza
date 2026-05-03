@@ -17,6 +17,7 @@ const nextConfig = {
         "puppeteer-core",
     ],
     allowedDevOrigins: ['192.168.43.109'],
+    reactStrictMode: false,
 };
 
 export default nextConfig;

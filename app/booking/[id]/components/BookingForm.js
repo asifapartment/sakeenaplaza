@@ -31,8 +31,9 @@ function calculateNights(checkin, checkout) {
     return nights > 0 ? nights : 0;
 }
 
-function BookingForm({ apartmentId, disabledRanges, lockedRanges, dailyRate = 200, cleaningFee = 500 }) {
+function BookingForm({ apartmentId, dailyRate = 200, cleaningFee = 500 }) {
     const router = useRouter();
+    let discount;
     const { offers, loading: offersLoading } = useOffers(apartmentId);
     const [formData, setFormData] = useState({ checkin: "", checkout: "", guests: 1 });
     const [formError, setFormError] = useState("");
@@ -46,7 +47,7 @@ function BookingForm({ apartmentId, disabledRanges, lockedRanges, dailyRate = 20
     const [guestsInfo, setGuestsInfo] = useState([]);
     const [showGuestModal, setShowGuestModal] = useState(false);
     const [showPriceDetails, setShowPriceDetails] = useState(false);
-
+    const [gst, setGst] = useState(0);
     const applicableOffers = useMemo(() => {
         return getApplicableOffers(offers, apartmentId);
     }, [offers, apartmentId]);
@@ -60,6 +61,21 @@ function BookingForm({ apartmentId, disabledRanges, lockedRanges, dailyRate = 20
 
     const fixedCheckinTime = "15:00";
     const fixedCheckoutTime = "11:00";
+
+    const fetchGst = async () => {
+        try {
+            const res = await fetch('/api/admin/gst', { credentials: 'include' });
+            const data = await res.json();
+            if (res.ok) return setGst(data.gst);
+            else return
+        } catch (err) {
+            console.error('Error fetching gst : ', err)
+        }
+    }
+
+    useEffect(()=>{
+        fetchGst();
+    },[])
 
     useEffect(() => {
         if (formData.checkin && formData.checkout) {
@@ -193,7 +209,7 @@ function BookingForm({ apartmentId, disabledRanges, lockedRanges, dailyRate = 20
                     check_in: checkinSQL,
                     check_out: checkoutSQL,
                     guests: Number(formData.guests),
-                    total_amount: Number(bookingSummary.total),
+                    total_amount: Number(bookingTotal),
                     nights: Number(bookingSummary.nights),
                     guest_details: guestsInfo,
                     document_reference: referenceId
@@ -219,6 +235,11 @@ function BookingForm({ apartmentId, disabledRanges, lockedRanges, dailyRate = 20
             setLoading(false);
         }
     };
+
+    const basePrice = parseInt(bookingSummary?bookingSummary?.originalDailyRate:0) * (bookingSummary?.nights);
+    discount = ((basePrice * parseInt(bookingSummary?.appliedOffer?.discount_percentage ||0))/100);
+    const subTotal = basePrice-discount+cleaningFee;
+    const grandTotal = (subTotal*(1+(gst/100)));
 
     return (
         <div id="book" className="sticky top-24 bg-black rounded-2xl border border-white/10 overflow-hidden w-full max-w-md">
@@ -366,7 +387,7 @@ function BookingForm({ apartmentId, disabledRanges, lockedRanges, dailyRate = 20
                                     )}
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <span className="text-lg font-bold text-teal-400">₹{bookingSummary.total}</span>
+                                    <span className="text-lg font-bold text-teal-400">₹{grandTotal}</span>
                                     {showPriceDetails ? (
                                         <ChevronUp className="w-4 h-4 text-gray-400" />
                                     ) : (
@@ -374,28 +395,40 @@ function BookingForm({ apartmentId, disabledRanges, lockedRanges, dailyRate = 20
                                     )}
                                 </div>
                             </button>
-
                             {showPriceDetails && (
                                 <div className="p-3 pt-0 space-y-2 text-sm border-t border-white/10">
                                     <div className="flex justify-between">
                                         <span className="text-gray-400">
-                                            ₹{bookingSummary.dailyRate} × {bookingSummary.nights} nights
+                                            ₹{bookingSummary.originalDailyRate} × {bookingSummary.nights} nights
                                         </span>
-                                        <span className="text-white">₹{bookingSummary.basePrice}</span>
+                                        <span className="text-white">₹{basePrice}</span>
                                     </div>
+                                    {bookingSummary.hasDiscount && (
+                                        <div className="flex justify-between text-teal-400">
+                                            <span>Discount ({parseFloat(bookingSummary?.appliedOffer?.discount_percentage).toFixed(0)}%)</span>
+                                            <span>-₹{discount}</span>
+                                        </div>
+                                    )}
                                     <div className="flex justify-between">
                                         <span className="text-gray-400">Cleaning fee</span>
                                         <span className="text-white">₹{cleaningFee}</span>
                                     </div>
-                                    {bookingSummary.hasDiscount && (
-                                        <div className="flex justify-between text-teal-400">
-                                            <span>Discount ({bookingSummary.appliedOffer?.discount_percentage}%)</span>
-                                            <span>-₹{bookingSummary.discountAmount}</span>
-                                        </div>
+
+                                    {gst !==0 &&(
+                                        <>
+                                            <div className="flex justify-between border-t pt-2 border-white/10">
+                                                <span className="text-gray-400">Subtotal</span>
+                                                <span className="text-white">₹{subTotal}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-400">GST<span className="text-xs">({gst}%)</span></span>
+                                                <span className="text-white">₹{bookingSummary.total * (gst / 100)}</span>
+                                            </div>
+                                        </>
                                     )}
                                     <div className="pt-2 border-t border-white/10 flex justify-between font-semibold">
                                         <span className="text-white">Total</span>
-                                        <span className="text-teal-400 text-lg">₹{bookingSummary.total}</span>
+                                        <span className="text-teal-400 text-lg">₹{grandTotal}</span>
                                     </div>
                                 </div>
                             )}

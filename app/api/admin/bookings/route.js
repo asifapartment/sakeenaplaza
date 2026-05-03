@@ -77,6 +77,7 @@ export async function GET(request) {
                 a.title as apartment_title,
                 a.price_per_night,
                 a.location,
+                a.gst,
                 a.max_guests,
                 JSON_UNQUOTE(JSON_EXTRACT(a.location_data, '$.address1')) AS apartment_address,
                 JSON_UNQUOTE(JSON_EXTRACT(a.location_data, '$.city')) AS apartment_city,
@@ -88,7 +89,7 @@ export async function GET(request) {
                 p.paid_at,
                 p.razorpay_payment_id,
                 DATEDIFF(b.end_date, b.start_date) as total_nights,
-                (DATEDIFF(b.end_date, b.start_date) * a.price_per_night) as total_amount,
+                b.total_amount,
                 dv.document_type,
                 dv.document_data,
                 dv.status AS document_status,
@@ -107,6 +108,8 @@ export async function GET(request) {
         await updateBookingStatus()
         // 👇 Pass ALL params: filters + pagination
         const bookings = await query(bookingsQuery, queryParams);
+
+
         const formattedBookings = bookings.map(b => ({
             ...b,
             document: b.document_type

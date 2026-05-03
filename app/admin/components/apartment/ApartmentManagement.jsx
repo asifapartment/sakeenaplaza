@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faXmark, faEdit, faTrash, faPlus, faFilter, faEye, faSort, faSortUp, faSortDown, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
-
+import { faSearch, faPercentage, faXmark, faEdit, faTrash, faPlus, faFilter, faEye, faSort, faSortUp, faSortDown, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 // Lazy-loaded components
 const ApartmentForm = lazy(() => import('./ApartmentForm'));
 const ApartmentRow = lazy(() => import('./ApartmentRow'));
@@ -29,6 +28,8 @@ const initialFormState = {
 
 const ApartmentsManager = () => {
     const [apartments, setApartments] = useState([]);
+    const [showGstForm, setShowGstForm] = useState(false);
+    const [savingGst, setSavingGst] = useState(false);
     const [loading, setLoading] = useState(true);
     const [loadingAction, setLoadingAction] = useState(false);
     const [showForm, setShowForm] = useState(false);
@@ -36,7 +37,7 @@ const ApartmentsManager = () => {
     const [formData, setFormData] = useState(initialFormState);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, apartmentId: null, apartmentTitle: '' });
     const [detailsModal, setDetailsModal] = useState({ isOpen: false, apartment: null });
-
+    const [gst,setGst]= useState(0);
     const [filters, setFilters] = useState({
         search: '',
         location: '',
@@ -82,15 +83,70 @@ const ApartmentsManager = () => {
         return null;
     };
 
+    const fetchGst = async()=>{
+        try{
+            const res = await fetch('/api/admin/gst', { credentials: 'include' });
+            const data = await res.json();
+            console.log(data)
+            if (res.ok) return setGst(data.gst);
+            else return
+        }catch(err){
+            console.error('Error fetching gst : ',err)
+        }
+    }
+
+    const updateGst = async (newGstRate) => {
+        setSavingGst(true);
+        try {
+            // Call the API
+            const response = await fetch('/api/admin/gst', {
+                method: 'PUT', // or 'POST'
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({ gst: Number(newGstRate) })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // Update state with new GST rate
+                setGst(Number(newGstRate));
+                return { success: true, message: data.message };
+            } else {
+                throw new Error(data.message || 'Failed to update GST');
+            }
+        } catch (err) {
+            console.error('Error updating GST:', err);
+            return { success: false, message: err.message || 'Failed to update GST rate' };
+        } finally {
+            setSavingGst(false);
+        }
+    };
+
+    const handleSaveGst = async (newRate) => {
+        const result = await updateGst(newRate);
+        if (result.success) {
+            setShowGstForm(false);
+            // Optional: Show success toast/alert
+            alert('GST rate updated for all apartments!');
+        } else {
+            alert('Error updating GST rate');
+        }
+    };
+
     // Fetch on mount
     useEffect(() => {
         fetchApartments();
+        fetchGst();
     }, []);
 
     // Reset to first page when filters change
     useEffect(() => {
         setCurrentPage(1);
     }, [filters, sortBy, sortOrder]);
+
 
     // 🔹 Filter + Sort apartments
     const filteredAndSortedApartments = useMemo(() => {
@@ -352,7 +408,7 @@ const ApartmentsManager = () => {
     }
 
     return (
-        <section className="max-sm:pb-16 h-full p-4 sm:p-6">
+        <section className="max-sm:pb-16 h-[calc(100vh-5rem)] overflow-y-auto p-4 sm:p-6">
 
 
             {/* Action Bar */}
@@ -373,6 +429,14 @@ const ApartmentsManager = () => {
                     >
                         <FontAwesomeIcon icon={faFilter} />
                         <span className="text-sm">Filters</span>
+                    </button>
+
+                    <button
+                        onClick={() => setShowGstForm(true)}
+                        className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 px-5 py-2.5 rounded-xl flex items-center space-x-2 text-white font-medium transition-all"
+                    >
+                        <FontAwesomeIcon icon={faPercentage} /> {/* You'll need to import faPercentage */}
+                        <span className='text-sm'>Set GST</span>
                     </button>
 
                     <button
@@ -454,6 +518,15 @@ const ApartmentsManager = () => {
                 </div>
             </div>
 
+            {/* GST Settings Form */}
+            {showGstForm && (
+                <GstSettingsForm
+                    currentGst={gst}
+                    onSave={handleSaveGst}
+                    onCancel={() => setShowGstForm(false)}
+                    loading={savingGst}
+                />
+            )}
             {/* Apartments Table */}
             <div className="bg-black backdrop-blur-sm border border-white/20 rounded-xl shadow-xl overflow-hidden mb-6">
                 <div
@@ -497,7 +570,7 @@ const ApartmentsManager = () => {
                                     onClick={() => handleSort('price_per_night')}
                                 >
                                     <div className="flex items-center space-x-2">
-                                        <span>Price/Night</span>
+                                        <span>Price + GST</span>
                                         <FontAwesomeIcon
                                             icon={sortBy === 'price_per_night' ? (sortOrder === 'asc' ? faSortUp : faSortDown) : faSort}
                                             className={`text-xs ${sortBy === 'price_per_night' ? 'text-blue-400' : 'text-neutral-500 group-hover:text-neutral-400'}`}
@@ -521,6 +594,7 @@ const ApartmentsManager = () => {
                                             onViewDetails={handleViewDetails}
                                             loadingAction={loadingAction}
                                             getImageUrl={getImageUrl}
+                                            gst={gst}
                                         />
                                     </Suspense>
                                 ))
@@ -679,6 +753,58 @@ const ApartmentsManager = () => {
                 </Suspense>
             )}
         </section>
+    );
+};
+
+// GST Settings Modal/Form Component
+const GstSettingsForm = ({ currentGst, onSave, onCancel, loading }) => {
+    const [gstRate, setGstRate] = useState(currentGst);
+    const [isEditing, setIsEditing] = useState(false);
+
+    return (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-neutral-900 border border-white/20 rounded-2xl w-full max-w-md">
+                <div className="p-6">
+                    <h3 className="text-xl font-semibold text-white mb-4">GST Settings</h3>
+                    <p className="text-neutral-400 text-sm mb-4">
+                        Apply same GST percentage to all apartments in this building/state
+                    </p>
+
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-neutral-300 mb-2">
+                            GST Rate (%)
+                        </label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={gstRate}
+                            onChange={(e) => setGstRate(e.target.value)}
+                            className="w-full p-3 rounded-lg border border-neutral-600 bg-neutral-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Enter GST percentage"
+                        />
+                        <p className="text-xs text-neutral-500 mt-1">
+                            Example: Enter 18 for 18% GST
+                        </p>
+                    </div>
+
+                    <div className="flex space-x-3">
+                        <button
+                            onClick={() => onSave(gstRate)}
+                            disabled={loading}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white font-medium transition disabled:opacity-50"
+                        >
+                            {loading ? 'Saving...' : 'Save GST Rate'}
+                        </button>
+                        <button
+                            onClick={onCancel}
+                            className="flex-1 bg-neutral-700 hover:bg-neutral-600 px-4 py-2 rounded-lg text-white font-medium transition"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 

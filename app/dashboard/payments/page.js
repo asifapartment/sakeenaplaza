@@ -24,7 +24,7 @@ export async function getPaymentsData(page = 1, limit = 10) {
 export default async function PaymentsPage() {
 
     return (
-        <div className="min-h-screen bg-neutral-900">
+        <div className="min-h-screen bg-black">
             <Suspense fallback={
                 <div className="h-screen text-white p-6 flex items-center justify-center"
                     style={{ maxHeight: 'calc(100vh - 96px)' }}

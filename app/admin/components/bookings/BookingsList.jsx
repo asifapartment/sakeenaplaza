@@ -614,8 +614,6 @@ const BookingsList = ({
                     await onStatusUpdate(newBooking.id, "confirmed");
                 }
 
-                alert('Booking created and document verified successfully!');
-
             } else if (booking) {
 
                 const verificationResponse = await fetch('/api/admin/verify-document', {
@@ -643,8 +641,6 @@ const BookingsList = ({
                 if (onStatusUpdate) {
                     await onStatusUpdate(selectedBooking, "confirmed");
                 }
-
-                alert('Booking confirmed and document verified successfully!');
             } else {
                 throw new Error('Unable to process: Missing booking information');
             }

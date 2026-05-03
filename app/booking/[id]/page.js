@@ -42,26 +42,6 @@ const BookingForm = dynamic(() => import("./components/BookingForm"), {
   ),
 });
 
-function getLockedDates(bookings) {
-  const locked = [];
-  if (!bookings || !Array.isArray(bookings)) return locked;
-
-  bookings.forEach((b) => {
-    const start = new Date(b.start_date);
-    const end = new Date(b.end_date);
-    let current = new Date(start);
-
-    while (current <= end) {
-      const year = current.getUTCFullYear();
-      const month = current.getUTCMonth();
-      const day = current.getUTCDate();
-      locked.push(new Date(Date.UTC(year, month, day)));
-      current.setUTCDate(current.getUTCDate() + 1);
-    }
-  });
-  return locked;
-}
-
 async function getApartmentDetails(id) {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/apartment/${id}`, {
@@ -122,46 +102,16 @@ export default async function BookingPage({ params }) {
           </div>
         </section>
 
-        {/* Main Content - Features + Booking Form */}
+        {/* Main Content - SINGLE BookingForm instance that repositions */}
         <section className="w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           <div className="max-w-7xl mx-auto">
-            {/* Mobile: Booking Form first, Desktop: Side by side */}
-            <div className="block lg:hidden mb-8">
-              <div id="booking-form-mobile" className="sticky top-4 z-20">
-                <BookingForm
-                  apartmentId={id}
-                  disabledRanges={disabledRanges}
-                  dailyRate={DAILY_RATE}
-                  cleaningFee={cleaningFee}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
-              {/* Left Column - Features and Details */}
-              <div className="lg:col-span-2 space-y-10">
-                {/* Features Section */}
-                <div>
-                  <FeaturesSection apartment={apartment} />
-                </div>
-
-                {/* House Rules Section */}
-                <div>
-                  <HouseRulesSection rules={apartment.houseRules} />
-                </div>
-
-                {/* Extra Info Section */}
-                <div>
-                  <ExtraInfoSection
-                    whyBookWithUs={apartment?.whyBookWithUs}
-                    policy={apartment?.policy}
-                  />
-                </div>
-              </div>
-
-              {/* Right Column - Booking Form (Desktop only) */}
-              <div className="hidden lg:block">
-                <div id="booking-form-desktop" className="sticky top-24">
+            {/* Desktop Layout with absolute positioning */}
+            <div className="relative">
+              {/* This is the ONE AND ONLY BookingForm */}
+              {/* On desktop: positioned absolutely on the right */}
+              {/* On mobile: normal block flow */}
+              <div className="lg:absolute lg:right-0 lg:top-0 lg:w-[380px] xl:w-[400px]">
+                <div id="booking-form" className="lg:sticky lg:top-24">
                   <BookingForm
                     apartmentId={id}
                     disabledRanges={disabledRanges}
@@ -169,6 +119,16 @@ export default async function BookingPage({ params }) {
                     cleaningFee={cleaningFee}
                   />
                 </div>
+              </div>
+
+              {/* Content - on desktop, add right padding to avoid overlap with form */}
+              <div className="space-y-10 lg:pr-[420px] xl:pr-[440px]">
+                <FeaturesSection apartment={apartment} />
+                <HouseRulesSection rules={apartment.houseRules} />
+                <ExtraInfoSection
+                  whyBookWithUs={apartment?.whyBookWithUs}
+                  policy={apartment?.policy}
+                />
               </div>
             </div>
           </div>

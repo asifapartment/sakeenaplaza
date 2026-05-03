@@ -324,7 +324,7 @@ export default function Bookings() {
     // Loading skeleton for the entire page
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-neutral-900 to-neutral-950 p-6">
+            <div className="min-h-screen bg-black p-6">
                 {/* Header Skeleton */}
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-2">
@@ -359,7 +359,7 @@ export default function Bookings() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-neutral-900 to-neutral-950 p-6">
+        <div className="min-h-screen bg-black p-6">
             {/* Header Section */}
             <div className="mb-8">
                 <div className="flex items-center justify-between mb-2">

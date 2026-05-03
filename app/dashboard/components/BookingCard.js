@@ -176,7 +176,7 @@ export default function BookingCard({
     return (
         <>
             <div
-                className="group relative overflow-hidden bg-gradient-to-br from-neutral-800/60 to-neutral-900/60 border border-neutral-700/30 rounded-2xl p-6 hover:border-teal-500/30 hover:shadow-2xl hover:shadow-teal-500/10 transition-all duration-500 backdrop-blur-sm cursor-pointer"
+                className="group relative overflow-hidden bg-neutral-950 border border-neutral-700/30 rounded-2xl p-6 hover:border-teal-500/30 hover:shadow-2xl hover:shadow-teal-500/10 transition-all duration-500 backdrop-blur-sm cursor-pointer"
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 onClick={handleViewDetails} // Make entire card clickable for details

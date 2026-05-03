@@ -7,7 +7,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
     const [showStatusModal, setShowStatusModal] = useState(false);
     const [selectedStatus, setSelectedStatus] = useState('');
     const [adminNotes, setAdminNotes] = useState('');
-
+    console.log(booking)
     // Parse guest details safely
     const guestDetails = booking?.guest_details && typeof booking.guest_details === 'string'
         ? JSON.parse(booking.guest_details)
@@ -86,16 +86,15 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
             .replace(/_/g, ' ')
             .replace(/\b\w/g, (char) => char.toUpperCase());
     };
-    
-    const calculateStayDuration = () => {
-        const start = new Date(booking.start_date);
-        const end = new Date(booking.end_date);
-        const nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-        return nights;
-    };
 
     const timelineStatus = getTimelineStatus();
-
+    const nightPrice = booking.price_per_night;
+    const basePrice = nightPrice * booking.total_nights;
+    const discount = basePrice*(parseInt(booking?.applied_discount_percentage||0)/100);
+    const subTotal = basePrice-discount;
+    const gstAmt = subTotal *(booking?.gst/100)
+    const grandTootal = subTotal+gstAmt;
+    console.log(discount);
     return (
         <div className="bg-black text-neutral-200 rounded-xl shadow-lg border border-neutral-800 overflow-y-auto max-h-[700px]">
             {/* Header with Timeline Status */}
@@ -202,7 +201,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                                 <div className="space-y-4">
                                     <div className="flex justify-between">
                                         <span className="text-neutral-400">Total Nights:</span>
-                                        <span className="font-semibold text-white">{calculateStayDuration()} nights</span>
+                                        <span className="font-semibold text-white">{booking.total_nights} nights</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-neutral-400">Total Guests:</span>
@@ -428,22 +427,30 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                                     <div className="space-y-3">
                                         <div className="flex justify-between">
                                             <span className="text-neutral-400">Price per night:</span>
-                                            <span>{formatCurrency(booking.price_per_night)}</span>
+                                            <span>{formatCurrency(nightPrice)}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-neutral-400">× {calculateStayDuration()} nights:</span>
-                                            <span>{formatCurrency(booking.price_per_night * calculateStayDuration())}</span>
+                                            <span className="text-neutral-400">× {booking.total_nights} nights:</span>
+                                            <span>{formatCurrency(basePrice)}</span>
                                         </div>
-                                        {booking.guests > 1 && (
+                                        {booking.applied_discount_percentage&&(
                                             <div className="flex justify-between">
-                                                <span className="text-neutral-400">× {booking.guests} guests:</span>
-                                                <span>{formatCurrency(booking.price_per_night * calculateStayDuration() * booking.guests)}</span>
+                                                <span className="text-neutral-400">Discount<span className='text-xs'>({parseFloat(booking.applied_discount_percentage).toFixed(0)}%)</span> : </span>
+                                                <span>{formatCurrency(discount)}</span>
                                             </div>
                                         )}
+                                        <div className="flex justify-between border-t border-white/30 pt-2">
+                                            <span className="text-neutral-400">SubTotal</span>
+                                            <span>{formatCurrency(subTotal)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-neutral-400">GST<span className='text-xs'>({booking.gst}%)</span></span>
+                                            <span>{formatCurrency(gstAmt)}</span>
+                                        </div>
                                         <div className="pt-3 border-t border-white/20">
                                             <div className="flex justify-between text-lg font-semibold">
                                                 <span className="text-white">Total Amount:</span>
-                                                <span className="text-white">{formatCurrency(booking.total_amount)}</span>
+                                                <span className="text-white">{formatCurrency(grandTootal)}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -489,7 +496,7 @@ const BookingDetails = ({ booking, onStatusUpdate, onDeleteBooking, onBack }) =>
                                     <div className="text-xs text-neutral-400 mt-1">Guests</div>
                                 </div>
                                 <div className="text-center p-3 bg-black/50 rounded-lg">
-                                    <div className="text-2xl font-bold text-white">{calculateStayDuration()}</div>
+                                    <div className="text-2xl font-bold text-white">{booking.total_nights}</div>
                                     <div className="text-xs text-neutral-400 mt-1">Nights</div>
                                 </div>
                                 <div className="text-center p-3 bg-black/50 rounded-lg">

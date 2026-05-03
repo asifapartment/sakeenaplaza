@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faEye, faUsers, faMapMarkerAlt, faBed, faRupeeSign } from '@fortawesome/free-solid-svg-icons';
 
-const ApartmentRow = ({ apartment, onEdit, onDelete, onViewDetails, loadingAction, getImageUrl }) => {
+const ApartmentRow = ({ apartment, onEdit, onDelete, onViewDetails, loadingAction, getImageUrl,gst }) => {
     const truncateText = (text, maxLength = 80) => {
         if (!text) return '';
         return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
@@ -76,12 +76,9 @@ const ApartmentRow = ({ apartment, onEdit, onDelete, onViewDetails, loadingActio
                 </div>
             </td>
             <td className="p-4">
-                <div className="flex items-center space-x-2">
-                    <FontAwesomeIcon icon={faRupeeSign} className="text-green-400" />
-                    <span className="font-semibold text-white">
-                        {apartment.price_per_night?.toLocaleString('en-IN')}
-                    </span>
-                    <span className="text-xs text-neutral-400">/night</span>
+                <div className="font-medium">₹{apartment.price_per_night}</div>
+                <div className="text-xs text-neutral-500">
+                    +{gst}% GST = ₹{Number(apartment.price_per_night) * (1 + gst / 100)}
                 </div>
             </td>
             <td className="p-4">

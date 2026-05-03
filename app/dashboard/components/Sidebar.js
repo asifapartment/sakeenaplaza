@@ -189,7 +189,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
             <div
                 ref={sidebarRef}
                 className={`
-                    fixed inset-y-0 left-0 z-50 bg-gradient-to-b from-neutral-900 via-neutral-900 to-neutral-950 
+                    fixed inset-y-0 left-0 z-50 bg-black
                     border-r border-neutral-700/50 shadow-2xl shadow-black/50 transform transition-transform duration-300 ease-in-out
                     ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
                     lg:translate-x-0 lg:static
